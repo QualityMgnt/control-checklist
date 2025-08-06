@@ -367,11 +367,20 @@
                         <table id="key-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
                             <thead>
                                 <tr>
-                                    <th>Description</th>
-                                    <th>How</th>
-                                    <th>Frequency</th>
-                                    <th>By When</th>
-                                    <th>Evidence</th>
+                                    <th rowspan="2">Description</th>
+                                    <th rowspan="2">How</th>
+                                    <th rowspan="2">Frequency</th>
+                                    <th rowspan="2">By When</th>
+                                    <th rowspan="2">Evidence</th>
+                                    <th colspan="12" class="text-center">Months</th>
+                                    <th colspan="4" class="text-center">Quarters</th>
+                                    <th rowspan="2">Annual</th>
+                                    <th rowspan="2">Tracking Status</th>
+                                    <th rowspan="2">Link</th>
+                                    <th rowspan="2">Edit</th>
+                                    <th rowspan="2">Delete</th>
+                                </tr>
+                                <tr>
                                     <th>JAN</th>
                                     <th>FEB</th>
                                     <th>MAR</th>
@@ -388,11 +397,6 @@
                                     <th>Q2</th>
                                     <th>Q3</th>
                                     <th>Q4</th>
-                                    <th>Annual</th>
-                                    <th>Tracking Status</th>
-                                    <th>Link</th>
-                                    <th>Edit</th>
-                                    <th>Delete</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -527,11 +531,20 @@
             <table id="pdf-key-controls-table" class="min-w-full bg-white border border-gray-200">
                 <thead>
                     <tr>
-                        <th>Description</th>
-                        <th>How</th>
-                        <th>Frequency</th>
-                        <th>By When</th>
-                        <th>Evidence</th>
+                        <th rowspan="2">Description</th>
+                        <th rowspan="2">How</th>
+                        <th rowspan="2">Frequency</th>
+                        <th rowspan="2">By When</th>
+                        <th rowspan="2">Evidence</th>
+                        <th colspan="12" class="text-center">Months</th>
+                        <th colspan="4" class="text-center">Quarters</th>
+                        <th rowspan="2">Annual</th>
+                        <th rowspan="2">Tracking Status</th>
+                        <th rowspan="2">Link</th>
+                        <th rowspan="2">Edit</th>
+                        <th rowspan="2">Delete</th>
+                    </tr>
+                    <tr>
                         <th>JAN</th>
                         <th>FEB</th>
                         <th>MAR</th>
@@ -548,11 +561,6 @@
                         <th>Q2</th>
                         <th>Q3</th>
                         <th>Q4</th>
-                        <th>Annual</th>
-                        <th>Tracking Status</th>
-                        <th>Link</th>
-                        <th>Edit</th>
-                        <th>Delete</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -861,7 +869,8 @@
             { id: 'Q4', label: 'Q4', type: 'select', options: ['Yes', 'No', 'N/A'] },
             { id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'No', 'N/A'] },
             { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On track', 'Overdue', 'Pending', 'Closed'] },
-            { id: 'Link URL', label: 'Link', type: 'url' }
+            { id: 'Link Name', label: 'Link Name', type: 'text' }, // Re-added Link Name
+            { id: 'Link URL', label: 'Link URL', type: 'url' } // Link URL for actual URL
         ];
 
         const secondaryControlHeaders = [
@@ -946,19 +955,21 @@
                     }
                 }
 
+                // Render data columns based on keyControlHeaders
                 headers.forEach(header => {
                     const cell = row.insertCell();
-                    if (collectionName === 'keyControls' && header.id === 'Link URL') {
+                    if (collectionName === 'keyControls' && header.id === 'Link Name') {
+                        const linkName = control['Link Name'];
                         const linkURL = control['Link URL'];
-                        if (linkURL) {
+                        if (linkName && linkURL) {
                             const anchor = document.createElement('a');
                             anchor.href = linkURL;
-                            anchor.textContent = linkURL;
+                            anchor.textContent = linkName; // Display Link Name
                             anchor.target = '_blank';
                             anchor.classList.add('text-blue-600', 'hover:underline');
                             cell.appendChild(anchor);
                         } else {
-                            cell.textContent = '';
+                            cell.textContent = linkName || ''; // Display Link Name even if URL is missing
                         }
                     } else {
                         cell.textContent = control[header.id] || '';
@@ -1180,11 +1191,6 @@
                 let uploadCount = 0;
 
                 parsedData.forEach(item => {
-                    // Remove 'Assessment Status' if it comes from CSV
-                    if (collectionName === 'keyControls' && item['Assessment Status']) {
-                        delete item['Assessment Status'];
-                    }
-
                     // For Key Controls, ensure 'Status' is mapped to 'Tracking Status' if present in CSV
                     if (collectionName === 'keyControls' && item['Status']) {
                         item['Tracking Status'] = item['Status'];
@@ -1195,6 +1201,11 @@
                         item['Link URL'] = item['Link'];
                         delete item['Link']; // Remove old 'Link' if it exists
                     }
+                    // For Key Controls, if 'Link Name' column exists in CSV, map it to 'Link Name'
+                    if (collectionName === 'keyControls' && item['Link Name']) {
+                        item['Link Name'] = item['Link Name'];
+                    }
+
                     // Map month columns from CSV if they exist
                     const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
                     months.forEach(month => {
@@ -1360,7 +1371,7 @@
         document.getElementById('generate-pdf-button').addEventListener('click', () => {
             const pdfExportContent = document.getElementById('pdf-export-content');
 
-            populatePdfTable('pdf-key-controls-table', controlData.keyControls, keyControlHeaders); // Pass all headers for PDF
+            populatePdfTable('pdf-key-controls-table', controlData.keyControls, keyControlHeaders);
             populatePdfTable('pdf-secondary-controls-table', controlData.secondaryControls, secondaryControlHeaders);
             populatePdfTable('pdf-qa-checklist-table', controlData.qaChecklist, qaChecklistHeaders);
 
@@ -1392,12 +1403,18 @@
                 const row = tableBody.insertRow();
                 headers.forEach(header => {
                     const cell = row.insertCell();
-                    if (header.id === 'Link URL') {
-                        const anchor = document.createElement('a');
-                        anchor.href = control['Link URL'] || '';
-                        anchor.textContent = control['Link URL'] || '';
-                        anchor.target = '_blank';
-                        cell.appendChild(anchor);
+                    if (header.id === 'Link Name') { // Display Link Name in PDF
+                        const linkName = control['Link Name'];
+                        const linkURL = control['Link URL'];
+                        if (linkName && linkURL) {
+                            const anchor = document.createElement('a');
+                            anchor.href = linkURL;
+                            anchor.textContent = linkName;
+                            anchor.target = '_blank';
+                            cell.appendChild(anchor);
+                        } else {
+                            cell.textContent = linkName || '';
+                        }
                     } else {
                         cell.textContent = control[header.id] || '';
                     }
