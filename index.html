@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Centre Controls</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js CDN for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            width: 100vw; /* Ensure body takes full viewport width */
+            margin: 0;
+            overflow: hidden; /* Prevent body scrollbars if content overflows */
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 98vw; /* Adjusted to cover almost full width */
+            height: 98vh; /* Adjusted to cover almost full height */
+            max-width: none; /* Remove max-width constraint */
+            max-height: none; /* Remove max-height constraint */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Styles for vertical navigation */
+        .app-layout {
+            display: flex;
+            flex-grow: 1; /* Allow this to take available height */
+            overflow: hidden; /* Hide overflow within the layout */
+        }
+        .sidebar-nav {
+            width: 200px; /* Fixed width for sidebar */
+            background-color: #f9fafb; /* Default sidebar background */
+            border-right: 1px solid #e5e7eb;
+            padding-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            border-radius: 0 0 0 1rem; /* Rounded bottom-left corner */
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
+            overflow-y: auto; /* Allow sidebar to scroll if many items */
+        }
+        .sidebar-nav .tab-button {
+            padding: 1rem 1.5rem;
+            border-left: 3px solid transparent;
+            border-bottom: none; /* Remove horizontal border */
+            text-align: left;
+            width: 100%;
+            background-color: #3b82f6; /* Blue background for all tab buttons */
+            color: white; /* White text for all tab buttons */
+            margin-bottom: 0.25rem; /* Small space between buttons */
+            border-radius: 0.5rem; /* Rounded corners for buttons */
+        }
+        .sidebar-nav .tab-button:hover {
+            background-color: #2563eb; /* Darker blue on hover */
+        }
+        .sidebar-nav .tab-button.active {
+            border-color: #ffffff; /* White border for active tab */
+            background-color: #1d4ed8; /* Even darker blue for active tab */
+            color: white;
+            border-left: 3px solid white; /* Active indicator on the left */
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1.5rem;
+            flex-grow: 1;
+            overflow-y: auto; /* Allow content to scroll */
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .input-field {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message-box {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: #333;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .message-box.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            white-space: nowrap;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f3f4f6;
+        }
+        tbody tr:hover {
+            background-color: #e5e7eb;
+        }
+        .action-buttons button {
+            margin-right: 0.5rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.3rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .action-buttons .edit-btn {
+            background-color: #22c55e;
+            color: white;
+        }
+        .action-buttons .edit-btn:hover {
+            background-color: #16a34a;
+        }
+        .action-buttons .delete-btn {
+            background-color: #ef4444;
+            color: white;
+        }
+        .action-buttons .delete-btn:hover {
+            background-color: #dc2626;
+        }
+        .pdf-export-content {
+            display: none; /* Hidden by default, only for PDF generation */
+            padding: 1rem;
+            background-color: white;
+        }
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                min-height: 100vh;
+            }
+            .app-layout {
+                flex-direction: column; /* Stack navigation and content vertically on small screens */
+            }
+            .sidebar-nav {
+                width: 100%; /* Full width for navigation on small screens */
+                flex-direction: row; /* Make tabs horizontal on small screens */
+                flex-wrap: wrap; /* Allow tabs to wrap */
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+                border-radius: 0;
+                padding-top: 0;
+            }
+            .sidebar-nav .tab-button {
+                flex-grow: 1; /* Distribute space evenly */
+                text-align: center;
+                border-left: none;
+                border-bottom: 3px solid transparent; /* Re-add bottom border for horizontal tabs */
+            }
+            .sidebar-nav .tab-button.active {
+                border-bottom-color: #3b82f6; /* Active indicator for horizontal tabs */
+                border-left: none;
+            }
+            .modal-content {
+                width: 95%;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="loading-spinner"></div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="message-box"></div>
+
+    <!-- Login Page -->
+    <div id="login-page" class="w-full h-screen flex items-center justify-center bg-gray-100">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Login to Contact Centre Controls</h2>
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email" required class="input-field">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" required class="input-field">
+                </div>
+                <button type="submit" class="btn-primary w-full">Login</button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Don't have an account? <a href="#" id="show-signup" class="text-blue-600 hover:underline">Sign Up</a>
+                </p>
+            </form>
+            <form id="signup-form" class="space-y-6 hidden">
+                <div>
+                    <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required class="input-field">
+                </div>
+                <div>
+                    <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password" required class="input-field">
+                </div>
+                <button type="submit" class="btn-primary w-full">Sign Up</button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Already have an account? <a href="#" id="show-login" class="text-blue-600 hover:underline">Login</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application Page -->
+    <div id="app-page" class="container hidden">
+        <header class="flex justify-between items-center p-4 bg-purple-600 text-white rounded-t-xl">
+            <h1 class="text-2xl font-bold">Contact Centre Controls</h1>
+            <div class="flex items-center space-x-4">
+                <span id="user-display" class="text-sm font-medium"></span>
+                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm font-medium transition-colors">Logout</button>
+            </div>
+        </header>
+
+        <div class="app-layout">
+            <nav class="sidebar-nav tab-buttons">
+                <button class="tab-button active" data-tab="dashboard">Dashboard</button>
+                <button class="tab-button" data-tab="key-controls">Key Controls</button>
+                <button class="tab-button" data-tab="secondary-controls">Secondary Controls</button>
+                <button class="tab-button" data-tab="qa-checklist">QA Checklist</button>
+                <button class="tab-button" data-tab="admin">Admin</button>
+            </nav>
+
+            <main class="flex-grow p-6 overflow-hidden">
+                <!-- Dashboard Tab Content -->
+                <div id="dashboard-content" class="tab-content active">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-medium text-gray-700 mb-4">Key Controls Status</h3>
+                            <canvas id="keyControlsChart"></canvas>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-medium text-gray-700 mb-4">Secondary Controls Status</h3>
+                            <canvas id="secondaryControlsChart"></canvas>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-medium text-gray-700 mb-4">QA Checklist Status</h3>
+                            <canvas id="qaChecklistChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <button id="generate-pdf-button" class="btn-primary">Generate All Controls PDF</button>
+                    </div>
+                </div>
+
+                <!-- Key Controls Tab Content -->
+                <div id="key-controls-content" class="tab-content">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Key Controls</h2>
+                    <div class="overflow-x-auto">
+                        <table id="key-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>How</th>
+                                    <th>Frequency</th>
+                                    <th>By When</th>
+                                    <th>Evidence</th>
+                                    <th>Q1</th>
+                                    <th>Q2</th>
+                                    <th>Q3</th>
+                                    <th>Q4</th>
+                                    <th>Annual</th>
+                                    <th>Assessment Status</th> <!-- Renamed for clarity -->
+                                    <th>Tracking Status</th> <!-- New column -->
+                                    <th>Link</th> <!-- New column for clickable link -->
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Key controls will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex flex-wrap gap-4 mt-6 justify-end">
+                        <button id="add-key-control-btn" class="btn-primary">Add New Key Control</button>
+                        <input type="file" id="upload-key-control-file" accept=".csv" class="hidden">
+                        <button id="upload-key-control-btn" class="btn-secondary">Upload Key Controls (CSV)</button>
+                    </div>
+                </div>
+
+                <!-- Secondary Controls Tab Content -->
+                <div id="secondary-controls-content" class="tab-content">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Secondary Controls</h2>
+                    <div class="overflow-x-auto">
+                        <table id="secondary-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>How</th>
+                                    <th>Who</th>
+                                    <th>Frequency</th>
+                                    <th>By When</th>
+                                    <th>Evidence</th>
+                                    <th>Archived</th>
+                                    <th>Date of Review</th>
+                                    <th>Total Transactions</th>
+                                    <th>Samples Checked</th>
+                                    <th>Exceptions</th>
+                                    <th>Assessment</th>
+                                    <th>Required Action</th>
+                                    <th>Closure Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Secondary controls will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex flex-wrap gap-4 mt-6 justify-end">
+                        <button id="add-secondary-control-btn" class="btn-primary">Add New Secondary Control</button>
+                        <input type="file" id="upload-secondary-control-file" accept=".csv" class="hidden">
+                        <button id="upload-secondary-control-btn" class="btn-secondary">Upload Secondary Controls (CSV)</button>
+                    </div>
+                </div>
+
+                <!-- QA Checklist Tab Content -->
+                <div id="qa-checklist-content" class="tab-content">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">QA Checklist</h2>
+                    <div class="overflow-x-auto">
+                        <table id="qa-checklist-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>How</th>
+                                    <th>Who</th>
+                                    <th>Frequency</th>
+                                    <th>By When</th>
+                                    <th>Evidence</th>
+                                    <th>Archived</th>
+                                    <th>Date of Review</th>
+                                    <th>Samples Checked</th>
+                                    <th>Exceptions</th>
+                                    <th>Assessment</th>
+                                    <th>Required Action</th>
+                                    <th>Closure Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- QA Checklist items will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex flex-wrap gap-4 mt-6 justify-end">
+                        <button id="add-qa-checklist-btn" class="btn-primary">Add New QA Checklist Item</button>
+                        <input type="file" id="upload-qa-checklist-file" accept=".csv" class="hidden">
+                        <button id="upload-qa-checklist-btn" class="btn-secondary">Upload QA Checklist (CSV)</button>
+                    </div>
+                </div>
+
+                <!-- Admin Tab Content -->
+                <div id="admin-content" class="tab-content">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Admin Panel</h2>
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                        <h3 class="text-xl font-medium text-gray-700 mb-4">Create New User</h3>
+                        <form id="create-user-form" class="space-y-4">
+                            <div>
+                                <label for="new-user-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input type="email" id="new-user-email" placeholder="New user email" required class="input-field">
+                            </div>
+                            <div>
+                                <label for="new-user-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                <input type="password" id="new-user-password" placeholder="New user password" required class="input-field">
+                            </div>
+                            <button type="submit" class="btn-primary">Create User</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-medium text-gray-700 mb-4">Current Users</h3>
+                        <ul id="user-list" class="list-disc pl-5 text-gray-700">
+                            <!-- Users will be listed here -->
+                        </ul>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add/Edit Control Modal -->
+    <div id="control-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4">Add New Control</h3>
+            <form id="control-form" class="space-y-4">
+                <!-- Fields will be dynamically generated here based on control type -->
+                <button type="submit" class="btn-primary">Save Control</button>
+                <button type="button" id="cancel-control-modal" class="btn-secondary ml-2">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hidden div for PDF generation -->
+    <div id="pdf-export-content" class="pdf-export-content">
+        <h1 class="text-2xl font-bold text-center mb-6">Contact Centre Controls Report</h1>
+
+        <h2 class="text-xl font-semibold mt-8 mb-4">Key Controls</h2>
+        <div class="overflow-x-auto">
+            <table id="pdf-key-controls-table" class="min-w-full bg-white border border-gray-200">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>How</th>
+                        <th>Frequency</th>
+                        <th>By When</th>
+                        <th>Evidence</th>
+                        <th>Q1</th>
+                        <th>Q2</th>
+                        <th>Q3</th>
+                        <th>Q4</th>
+                        <th>Annual</th>
+                        <th>Assessment Status</th>
+                        <th>Tracking Status</th>
+                        <th>Link</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <h2 class="text-xl font-semibold mt-8 mb-4">Secondary Controls</h2>
+        <div class="overflow-x-auto">
+            <table id="pdf-secondary-controls-table" class="min-w-full bg-white border border-gray-200">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>How</th>
+                        <th>Who</th>
+                        <th>Frequency</th>
+                        <th>By When</th>
+                        <th>Evidence</th>
+                        <th>Archived</th>
+                        <th>Date of Review</th>
+                        <th>Total Transactions</th>
+                        <th>Samples Checked</th>
+                        <th>Exceptions</th>
+                        <th>Assessment</th>
+                        <th>Required Action</th>
+                        <th>Closure Date</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <h2 class="text-xl font-semibold mt-8 mb-4">QA Checklist</h2>
+        <div class="overflow-x-auto">
+            <table id="pdf-qa-checklist-table" class="min-w-full bg-white border border-gray-200">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>How</th>
+                        <th>Who</th>
+                        <th>Frequency</th>
+                        <th>By When</th>
+                        <th>Evidence</th>
+                        <th>Archived</th>
+                        <th>Date of Review</th>
+                        <th>Samples Checked</th>
+                        <th>Exceptions</th>
+                        <th>Assessment</th>
+                        <th>Required Action</th>
+                        <th>Closure Date</th>
+                    </tr>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {
+            getAuth,
+            signInAnonymously,
+            signInWithCustomToken,
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            doc,
+            getDoc,
+            setDoc,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            onSnapshot,
+            query,
+            where,
+            getDocs,
+            writeBatch // For bulk operations
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase instances and user ID
+        let app;
+        let db;
+        let auth;
+        let currentUserId = null;
+
+        // --- Utility Functions ---
+        function showLoadingSpinner() {
+            document.getElementById('loading-spinner').style.display = 'block';
+        }
+
+        function hideLoadingSpinner() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        }
+
+        function showMessage(message, duration = 3000) {
+            const msgBox = document.getElementById('message-box');
+            msgBox.textContent = message;
+            msgBox.classList.add('show');
+            setTimeout(() => {
+                msgBox.classList.remove('show');
+            }, duration);
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Exponential backoff for API calls
+        async function retryOperation(operation, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i < maxRetries - 1) {
+                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+        }
+
+        // --- Firebase Initialization and Authentication ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // Updated Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEK6AOeXiZVWKXw715FGkX9_yeNaKHx_8",
+            authDomain: "controls-f11f8.firebaseapp.com",
+            projectId: "controls-f11f8",
+            storageBucket: "controls-f11f8.firebasestorage.app",
+            messagingSenderId: "316152578637",
+            appId: "1:316152578637:web:b0b3c11c9821ee8bb05204",
+            measurementId: "G-793K2F5VZC"
+        };
+
+        // Initialize Firebase
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        // Authenticate user
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                document.getElementById('user-display').textContent = `User: ${user.email || user.uid}`;
+                document.getElementById('login-page').classList.add('hidden');
+                document.getElementById('app-page').classList.remove('hidden');
+                // Load initial data for all tabs
+                await loadControls('keyControls', 'key-controls-table');
+                await loadControls('secondaryControls', 'secondary-controls-table');
+                await loadControls('qaChecklist', 'qa-checklist-table');
+                await loadUsers();
+                renderDashboardCharts(); // Render charts after data is loaded
+            } else {
+                currentUserId = null;
+                document.getElementById('login-page').classList.remove('hidden');
+                document.getElementById('app-page').classList.add('hidden');
+            }
+            hideLoadingSpinner();
+        });
+
+        // Initial sign-in attempt
+        async function initialSignIn() {
+            showLoadingSpinner();
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await retryOperation(() => signInWithCustomToken(auth, __initial_auth_token));
+                } else {
+                    await retryOperation(() => signInAnonymously(auth));
+                }
+            } catch (error) {
+                console.error("Error during initial sign-in:", error);
+                showMessage(`Authentication failed: ${error.message}`);
+                hideLoadingSpinner();
+            }
+        }
+        initialSignIn();
+
+        // --- Login/Signup Forms ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => signInWithEmailAndPassword(auth, email, password));
+                showMessage('Logged in successfully!');
+            } catch (error) {
+                console.error("Login error:", error);
+                showMessage(`Login failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                showMessage('Account created and logged in successfully!');
+            } catch (error) {
+                console.error("Signup error:", error);
+                showMessage(`Signup failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+
+        document.getElementById('show-signup').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+        });
+
+        document.getElementById('show-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        });
+
+        document.getElementById('logout-button').addEventListener('click', async () => {
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => signOut(auth));
+                showMessage('Logged out successfully!');
+            } catch (error) {
+                console.error("Logout error:", error);
+                showMessage(`Logout failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+
+        // --- Tab Navigation ---
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                button.classList.add('active');
+                document.getElementById(`${button.dataset.tab}-content`).classList.add('active');
+            });
+        });
+
+        // --- Control Data Management (Firestore) ---
+        const controlData = {
+            keyControls: [],
+            secondaryControls: [],
+            qaChecklist: []
+        };
+
+        // Define headers for each control type for dynamic form generation and PDF
+        const keyControlHeaders = [
+            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
+            { id: 'HOW', label: 'How', type: 'text' },
+            { id: 'FREQ', label: 'Frequency', type: 'text' },
+            { id: 'BY WHEN', label: 'By When', type: 'date' },
+            { id: 'EVIDENCE OF CONTROL', label: 'Evidence of Control', type: 'text' },
+            { id: 'Q1', label: 'Q1', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'Q2', label: 'Q2', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'Q3', label: 'Q3', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'Q4', label: 'Q4', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'Assessment Status', label: 'Assessment Status', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
+            { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On Track', 'Not Started', 'In Progress', 'Completed'] }, // Added new status
+            { id: 'Link Name', label: 'Link Name', type: 'text' }, // New field for link display name
+            { id: 'Link URL', label: 'Link URL', type: 'url' } // New field for actual URL
+        ];
+
+        const secondaryControlHeaders = [
+            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
+            { id: 'HOW (i.e. Manual/ Automated)', label: 'How', type: 'text' },
+            { id: 'WHO (i.e. Title of reviewer)', label: 'Who', type: 'text' },
+            { id: 'FREQUENCY e.g. Daily, Weekly, Monthly', label: 'Frequency', type: 'text' },
+            { id: 'BY WHEN (TATs e.g. by 10th of ever month)', label: 'By When', type: 'date' },
+            { id: 'EVIDENCE OF CONTROL e.g What is signed-off?', label: 'Evidence of Control', type: 'text' },
+            { id: 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', label: 'How Archived', type: 'text' },
+            { id: 'Date of Review', label: 'Date of Review', type: 'date' },
+            { id: 'Total number of transactions (where applicable)', label: 'Total Transactions', type: 'number' },
+            { id: 'Samples checked (Where Applicable)', label: 'Samples Checked', type: 'text' },
+            { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
+            { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
+            { id: 'Required Action', label: 'Required Action', type: 'text' },
+            { id: 'Closure Date', label: 'Closure Date', type: 'date' }
+        ];
+
+        const qaChecklistHeaders = [
+            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
+            { id: 'HOW (i.e. Manual/ Automated)', label: 'How', type: 'text' },
+            { id: 'WHO (i.e. Title of reviewer)', label: 'Who', type: 'text' },
+            { id: 'FREQUENCY e.g. Daily, Weekly, Monthly', label: 'Frequency', type: 'text' },
+            { id: 'BY WHEN (TATs e.g. by 10th of ever month)', label: 'By When', type: 'date' },
+            { id: 'EVIDENCE OF CONTROL e.g What is signed-off?', label: 'Evidence of Control', type: 'text' },
+            { id: 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', label: 'How Archived', type: 'text' },
+            { id: 'Date of Review', label: 'Date of Review', type: 'date' },
+            { id: 'Samples checked (Where Applicable)', label: 'Samples Checked', type: 'text' },
+            { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
+            { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
+            { id: 'Required Action', label: 'Required Action', type: 'text' },
+            { id: 'Closure Date', label: 'Closure Date', type: 'date' }
+        ];
+
+
+        async function loadControls(collectionName, tableId) {
+            if (!currentUserId) return; // Ensure user is authenticated
+
+            const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+            onSnapshot(controlsColRef, (snapshot) => {
+                const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                controlData[collectionName] = controls; // Update global data
+                renderControlsTable(controls, tableId, collectionName);
+                renderDashboardCharts(); // Re-render charts on data change
+            }, (error) => {
+                console.error(`Error fetching ${collectionName}:`, error);
+                showMessage(`Failed to load ${collectionName}: ${error.message}`);
+            });
+        }
+
+        function renderControlsTable(controls, tableId, collectionName) {
+            const tableBody = document.querySelector(`#${tableId} tbody`);
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            let headers;
+            if (collectionName === 'keyControls') {
+                headers = keyControlHeaders;
+            } else if (collectionName === 'secondaryControls') {
+                headers = secondaryControlHeaders;
+            } else if (collectionName === 'qaChecklist') {
+                headers = qaChecklistHeaders;
+            }
+
+            controls.forEach(control => {
+                const row = tableBody.insertRow();
+                headers.forEach(header => {
+                    const cell = row.insertCell();
+                    if (collectionName === 'keyControls' && header.id === 'Link Name') {
+                        const linkName = control['Link Name'];
+                        const linkURL = control['Link URL'];
+                        if (linkName && linkURL) {
+                            const anchor = document.createElement('a');
+                            anchor.href = linkURL;
+                            anchor.textContent = linkName;
+                            anchor.target = '_blank'; // Open in new tab
+                            anchor.classList.add('text-blue-600', 'hover:underline');
+                            cell.appendChild(anchor);
+                        } else {
+                            cell.textContent = linkName || '';
+                        }
+                    } else {
+                        cell.textContent = control[header.id] || '';
+                    }
+                });
+
+                // Add Actions column
+                const actionsCell = row.insertCell();
+                actionsCell.classList.add('action-buttons');
+                const editBtn = document.createElement('button');
+                editBtn.textContent = 'Edit';
+                editBtn.classList.add('edit-btn');
+                editBtn.onclick = () => openControlModal(collectionName, control.id, control);
+                actionsCell.appendChild(editBtn);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.onclick = () => deleteControl(collectionName, control.id);
+                actionsCell.appendChild(deleteBtn);
+            });
+        }
+
+        async function addOrUpdateControl(collectionName, controlId, data) {
+            showLoadingSpinner();
+            try {
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                if (controlId) {
+                    await retryOperation(() => updateDoc(doc(controlsColRef, controlId), data));
+                    showMessage('Control updated successfully!');
+                } else {
+                    await retryOperation(() => addDoc(controlsColRef, data));
+                    showMessage('Control added successfully!');
+                }
+            } catch (error) {
+                console.error(`Error saving control to ${collectionName}:`, error);
+                showMessage(`Failed to save control: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+                hideModal('control-modal');
+            }
+        }
+
+        async function deleteControl(collectionName, controlId) {
+            if (!confirm('Are you sure you want to delete this control?')) return; // Simple confirmation
+
+            showLoadingSpinner();
+            try {
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                await retryOperation(() => deleteDoc(doc(controlsColRef, controlId)));
+                showMessage('Control deleted successfully!');
+            } catch (error) {
+                console.error(`Error deleting control from ${collectionName}:`, error);
+                showMessage(`Failed to delete control: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        // --- Modal for Add/Edit Control ---
+        let currentControlType = '';
+        let currentControlId = null;
+
+        function openControlModal(type, id = null, data = {}) {
+            currentControlType = type;
+            currentControlId = id;
+
+            const modalTitle = document.getElementById('modal-title');
+            const controlForm = document.getElementById('control-form');
+            controlForm.innerHTML = ''; // Clear previous fields
+
+            let headersToUse;
+            if (type === 'keyControls') {
+                modalTitle.textContent = id ? 'Edit Key Control' : 'Add New Key Control';
+                headersToUse = keyControlHeaders;
+            } else if (type === 'secondaryControls') {
+                modalTitle.textContent = id ? 'Edit Secondary Control' : 'Add New Secondary Control';
+                headersToUse = secondaryControlHeaders;
+            } else if (type === 'qaChecklist') {
+                modalTitle.textContent = id ? 'Edit QA Checklist Item' : 'Add New QA Checklist Item';
+                headersToUse = qaChecklistHeaders;
+            }
+
+            headersToUse.forEach(header => {
+                const div = document.createElement('div');
+                div.classList.add('mb-4');
+
+                const label = document.createElement('label');
+                label.htmlFor = `form-${header.id}`;
+                label.classList.add('block', 'text-sm', 'font-medium', 'text-gray-700', 'mb-1');
+                label.textContent = header.label;
+                div.appendChild(label);
+
+                let inputElement;
+                if (header.type === 'select' && header.options) {
+                    inputElement = document.createElement('select');
+                    header.options.forEach(optionText => {
+                        const option = document.createElement('option');
+                        option.value = optionText;
+                        option.textContent = optionText;
+                        inputElement.appendChild(option);
+                    });
+                } else {
+                    inputElement = document.createElement('input');
+                    inputElement.type = header.type || 'text';
+                }
+
+                inputElement.id = `form-${header.id}`;
+                inputElement.classList.add('input-field');
+                inputElement.value = data[header.id] || '';
+                div.appendChild(inputElement);
+                controlForm.appendChild(div);
+            });
+
+            // Add Save and Cancel buttons
+            const buttonDiv = document.createElement('div');
+            buttonDiv.classList.add('flex', 'justify-end', 'mt-6');
+            const saveButton = document.createElement('button');
+            saveButton.type = 'submit';
+            saveButton.classList.add('btn-primary');
+            saveButton.textContent = 'Save Control';
+            buttonDiv.appendChild(saveButton);
+
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.id = 'cancel-control-modal';
+            cancelButton.classList.add('btn-secondary', 'ml-2');
+            cancelButton.textContent = 'Cancel';
+            cancelButton.onclick = () => hideModal('control-modal');
+            buttonDiv.appendChild(cancelButton);
+            controlForm.appendChild(buttonDiv);
+
+            showModal('control-modal');
+        }
+
+        document.getElementById('control-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {};
+            let headersToUse;
+            if (currentControlType === 'keyControls') {
+                headersToUse = keyControlHeaders;
+            } else if (currentControlType === 'secondaryControls') {
+                headersToUse = secondaryControlHeaders;
+            } else if (currentControlType === 'qaChecklist') {
+                headersToUse = qaChecklistHeaders;
+            }
+
+            headersToUse.forEach(header => {
+                const inputElement = document.getElementById(`form-${header.id}`);
+                if (inputElement) {
+                    formData[header.id] = inputElement.value;
+                }
+            });
+            await addOrUpdateControl(currentControlType, currentControlId, formData);
+        });
+
+        document.getElementById('add-key-control-btn').addEventListener('click', () => openControlModal('keyControls'));
+        document.getElementById('add-secondary-control-btn').addEventListener('click', () => openControlModal('secondaryControls'));
+        document.getElementById('add-qa-checklist-btn').addEventListener('click', () => openControlModal('qaChecklist'));
+
+        // --- CSV Upload Logic ---
+        async function parseCSV(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const text = event.target.result;
+                    const lines = text.split('\n').filter(line => line.trim() !== ''); // Filter out empty lines
+                    if (lines.length === 0) {
+                        reject(new Error("CSV file is empty or malformed."));
+                        return;
+                    }
+                    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '')); // Remove quotes from headers
+                    const data = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, '')); // Remove quotes from values
+                        if (values.length === headers.length) {
+                            const row = {};
+                            headers.forEach((header, index) => {
+                                row[header] = values[index];
+                            });
+                            data.push(row);
+                        } else if (values.length > 1) { // Log potential malformed rows but try to proceed
+                            console.warn(`Skipping malformed row ${i + 1}: Expected ${headers.length} columns, got ${values.length}. Row: ${lines[i]}`);
+                        }
+                    }
+                    resolve(data);
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsText(file);
+            });
+        }
+
+        async function uploadControls(fileInputId, collectionName) {
+            const fileInput = document.getElementById(fileInputId);
+            const file = fileInput.files[0];
+            if (!file) {
+                showMessage('Please select a CSV file to upload.');
+                return;
+            }
+
+            showLoadingSpinner();
+            try {
+                const parsedData = await parseCSV(file);
+                if (parsedData.length === 0) {
+                    showMessage('No valid data found in the CSV file.');
+                    return;
+                }
+
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                const batch = writeBatch(db);
+                let uploadCount = 0;
+
+                parsedData.forEach(item => {
+                    // Ensure the 'Assessment of Effectiveness of Control from Review' is mapped to 'Status' for dashboard consistency
+                    if (collectionName !== 'keyControls' && item['Assessment of Effectiveness of Control from Review']) {
+                        item['Assessment Status'] = item['Assessment of Effectiveness of Control from Review']; // Map to new Assessment Status
+                    }
+                    // For Key Controls, ensure 'Status' is mapped to 'Tracking Status' if present in CSV
+                    if (collectionName === 'keyControls' && item['Status']) {
+                        item['Tracking Status'] = item['Status'];
+                    }
+
+                    const newDocRef = doc(controlsColRef); // Create a new document reference with an auto-generated ID
+                    batch.set(newDocRef, item);
+                    uploadCount++;
+                });
+
+                await retryOperation(() => batch.commit());
+                showMessage(`Successfully uploaded ${uploadCount} controls to ${collectionName}.`);
+            } catch (error) {
+                console.error(`Error uploading controls to ${collectionName}:`, error);
+                showMessage(`Failed to upload controls: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+                fileInput.value = ''; // Clear file input
+            }
+        }
+
+        document.getElementById('upload-key-control-btn').addEventListener('click', () => {
+            document.getElementById('upload-key-control-file').click();
+        });
+        document.getElementById('upload-key-control-file').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                uploadControls('upload-key-control-file', 'keyControls');
+            }
+        });
+
+        document.getElementById('upload-secondary-control-btn').addEventListener('click', () => {
+            document.getElementById('upload-secondary-control-file').click();
+        });
+        document.getElementById('upload-secondary-control-file').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                uploadControls('upload-secondary-control-file', 'secondaryControls');
+            }
+        });
+
+        document.getElementById('upload-qa-checklist-btn').addEventListener('click', () => {
+            document.getElementById('upload-qa-checklist-file').click();
+        });
+        document.getElementById('upload-qa-checklist-file').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                uploadControls('upload-qa-checklist-file', 'qaChecklist');
+            }
+        });
+
+
+        // --- Dashboard Charts ---
+        let keyControlsChart, secondaryControlsChart, qaChecklistChart;
+
+        function getStatusCounts(controls) {
+            const counts = {};
+            controls.forEach(control => {
+                // For dashboard, use 'Assessment Status' first, then 'Tracking Status', then default to 'N/A'
+                const status = control['Assessment Status'] || control['Tracking Status'] || 'N/A';
+                counts[status] = (counts[status] || 0) + 1;
+            });
+            return counts;
+        }
+
+        function renderChart(chartId, title, dataCounts) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            const labels = Object.keys(dataCounts);
+            const data = Object.values(dataCounts);
+
+            const colors = [
+                'rgba(75, 192, 192, 0.6)', // Effective/On Track (greenish)
+                'rgba(255, 206, 86, 0.6)', // Partially Effective/In Progress (yellowish)
+                'rgba(255, 99, 132, 0.6)', // Not Effective/Not Started (reddish)
+                'rgba(153, 102, 255, 0.6)', // Completed (purple)
+                'rgba(54, 162, 235, 0.6)', // Blue
+                'rgba(201, 203, 207, 0.6)' // Grey (N/A)
+            ];
+
+            const borderColors = colors.map(color => color.replace('0.6', '1'));
+
+            // Destroy existing chart if it exists
+            let existingChart = Chart.getChart(ctx);
+            if (existingChart) {
+                existingChart.destroy();
+            }
+
+            return new Chart(ctx, {
+                type: 'doughnut', // Doughnut chart for status distribution
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Number of Controls',
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: borderColors.slice(0, labels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: title
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderDashboardCharts() {
+            const keyCounts = getStatusCounts(controlData.keyControls);
+            keyControlsChart = renderChart('keyControlsChart', 'Key Controls Status Distribution', keyCounts);
+
+            const secondaryCounts = getStatusCounts(controlData.secondaryControls);
+            secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
+
+            const qaCounts = getStatusCounts(controlData.qaChecklist);
+            qaChecklistChart = renderChart('qaChecklistChart', 'QA Checklist Status Distribution', qaCounts);
+        }
+
+        // --- Admin Panel (User Management) ---
+        async function createUser(email, password) {
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                showMessage(`User ${email} created successfully!`);
+                document.getElementById('create-user-form').reset();
+                await loadUsers(); // Refresh user list
+            } catch (error) {
+                console.error("Error creating user:", error);
+                showMessage(`Failed to create user: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        document.getElementById('create-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('new-user-email').value;
+            const password = document.getElementById('new-user-password').value;
+            await createUser(email, password);
+        });
+
+        async function loadUsers() {
+            // Note: Listing all users directly from client-side Firebase Auth is not possible for security reasons.
+            // This would typically require a Firebase Cloud Function or Admin SDK on a backend.
+            // For this client-side app, we can only list the current user.
+            // To simulate a user list for an admin, we'd need to store user data in Firestore
+            // and manage roles there, which is beyond the scope of a simple client-side HTML app.
+            // For now, I'll just show the current user's UID.
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = '';
+            if (auth.currentUser) {
+                const listItem = document.createElement('li');
+                listItem.textContent = `Current User: ${auth.currentUser.email || auth.currentUser.uid}`;
+                userList.appendChild(listItem);
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = `No active user.`;
+                userList.appendChild(listItem);
+            }
+        }
+
+        // --- PDF Generation ---
+        document.getElementById('generate-pdf-button').addEventListener('click', () => {
+            const pdfExportContent = document.getElementById('pdf-export-content');
+
+            // Populate PDF tables with current data
+            // For Key Controls PDF, include all headers including new ones
+            populatePdfTable('pdf-key-controls-table', controlData.keyControls, keyControlHeaders.filter(h => h.id !== 'Actions'));
+            populatePdfTable('pdf-secondary-controls-table', controlData.secondaryControls, secondaryControlHeaders);
+            populatePdfTable('pdf-qa-checklist-table', controlData.qaChecklist, qaChecklistHeaders);
+
+            // Make the content visible for html2pdf, but hide it from normal view
+            pdfExportContent.style.display = 'block';
+
+            const options = {
+                margin: 10,
+                filename: 'Contact_Centre_Controls_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' } // A3 landscape for more space
+            };
+
+            html2pdf().set(options).from(pdfExportContent).save().then(() => {
+                pdfExportContent.style.display = 'none'; // Hide content after PDF generation
+                showMessage('PDF generated successfully!');
+            }).catch(error => {
+                console.error("Error generating PDF:", error);
+                showMessage(`Failed to generate PDF: ${error.message}`);
+                pdfExportContent.style.display = 'none'; // Ensure hidden even on error
+            });
+        });
+
+        function populatePdfTable(tableId, controls, headers) {
+            const tableBody = document.querySelector(`#${tableId} tbody`);
+            tableBody.innerHTML = '';
+            controls.forEach(control => {
+                const row = tableBody.insertRow();
+                headers.forEach(header => {
+                    const cell = row.insertCell();
+                    if (header.id === 'Link Name' && control['Link URL']) {
+                        const anchor = document.createElement('a');
+                        anchor.href = control['Link URL'];
+                        anchor.textContent = control['Link Name'];
+                        anchor.target = '_blank';
+                        cell.appendChild(anchor);
+                    } else {
+                        cell.textContent = control[header.id] || '';
+                    }
+                });
+            });
+        }
+
+    </script>
+</body>
+</html>
