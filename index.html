@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Centre Controls</title>
+    <title>Customer Experience Controls</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Inter Font -->
@@ -12,6 +12,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- html2pdf.js CDN for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- SheetJS for Excel generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -296,6 +298,15 @@
             font-style: italic;
             color: #6b7280;
         }
+
+        /* Excel Export specific styles (hidden from normal view) */
+        #excel-export-content {
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: auto;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -441,6 +452,7 @@
                     <input type="file" id="upload-key-control-file" accept=".csv" class="hidden">
                     <button id="upload-key-control-btn" class="btn-secondary">Upload Key Controls (CSV)</button>
                     <button id="generate-key-pdf-button" class="btn-primary">Generate PDF</button>
+                    <button id="download-key-excel-button" class="btn-primary">Download as Excel</button>
                 </div>
             </div>
 
@@ -487,6 +499,7 @@
                     <input type="file" id="upload-secondary-control-file" accept=".csv" class="hidden">
                     <button id="upload-secondary-control-btn" class="btn-secondary">Upload Secondary Controls (CSV)</button>
                     <button id="generate-secondary-pdf-button" class="btn-primary">Generate PDF</button>
+                    <button id="download-secondary-excel-button" class="btn-primary">Download as Excel</button>
                 </div>
             </div>
 
@@ -617,6 +630,10 @@
         </div>
     </div>
 
+    <!-- Hidden div for Excel generation -->
+    <div id="excel-export-content" style="display: none;">
+        <table id="excel-table-to-generate"></table>
+    </div>
 
     <!-- Firebase SDKs -->
     <script type="module">
@@ -1206,7 +1223,7 @@
                         dynamicDiv.appendChild(div);
                     });
                     
-                    const buttonDiv = controlForm.querySelector('.flex-justify-end');
+                    const buttonDiv = controlForm.querySelector('button[type="submit"]').parentNode;
                     if (buttonDiv) {
                         controlForm.insertBefore(dynamicDiv, buttonDiv);
                     } else {
@@ -1256,7 +1273,6 @@
                 const frequency = formData['FREQ'] || 'Monthly';
                 if (frequency === 'Quarterly') {
                     months.forEach(month => delete formData[month]);
-                    delete formData['Annual'];
                 } else if (frequency === 'Annually') {
                     months.forEach(month => delete formData[month]);
                     quarters.forEach(q => delete formData[q]);
@@ -1597,7 +1613,7 @@
                     });
                 }
 
-                const otherStaticHeaders = ['Annual', 'Tracking Status', 'Link Name', 'Link URL'];
+                const otherStaticHeaders = ['Annual', 'Tracking Status', 'Link Name'];
                 otherStaticHeaders.forEach(h => {
                     const th = document.createElement('th');
                     th.textContent = h;
@@ -1635,7 +1651,7 @@
                         });
                     }
                     
-                    const postDynamicHeaders = ['Annual', 'Tracking Status', 'Link Name', 'Link URL'];
+                    const postDynamicHeaders = ['Annual', 'Tracking Status', 'Link Name'];
                     postDynamicHeaders.forEach(id => {
                          const cell = row.insertCell();
                         if (id === 'Annual' && frequency !== 'Annually') {
@@ -1652,7 +1668,7 @@
                             } else {
                                 cell.textContent = linkName || '';
                             }
-                        } else if (id !== 'Link URL') {
+                        } else {
                             cell.textContent = control[id] || '';
                         }
                     });
@@ -1710,6 +1726,39 @@
         handleSignatureUpload('key-controls-signature-upload', 'key-controls-signature-preview');
         handleSignatureUpload('secondary-controls-signature-upload', 'secondary-controls-signature-preview');
         handleSignatureUpload('qa-checklist-signature-upload', 'qa-checklist-signature-preview');
+
+
+        document.getElementById('download-key-excel-button').addEventListener('click', () => {
+             downloadExcel('keyControls');
+        });
+        document.getElementById('download-secondary-excel-button').addEventListener('click', () => {
+             downloadExcel('secondaryControls');
+        });
+
+        function downloadExcel(controlType) {
+            const tableId = controlType === 'keyControls' ? 'key-controls-table' : 'secondary-controls-table';
+            const tableName = controlType === 'keyControls' ? 'Key Controls' : 'Secondary Controls';
+            const table = document.getElementById(tableId);
+
+            // Clone the table to manipulate for Excel export
+            const tableClone = table.cloneNode(true);
+            const signaturePreview = document.getElementById(`${controlType}-controls-signature-preview`);
+            const signatureArea = document.createElement('div');
+            if (signaturePreview && signaturePreview.src && signaturePreview.src.length > 0) {
+                signatureArea.innerHTML = `<br><p><strong>Sign Off:</strong></p><img src="${signaturePreview.src}" alt="Signature" width="100" height="40"><p>Date: ${new Date().toLocaleDateString()}</p>`;
+                tableClone.parentNode.insertBefore(signatureArea, tableClone.nextSibling);
+            }
+
+            const ws = XLSX.utils.table_to_sheet(tableClone);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, tableName);
+            XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            
+            // Clean up the clone and signature area
+            tableClone.remove();
+            signatureArea.remove();
+        }
+
     </script>
 </body>
 </html>
