@@ -356,7 +356,7 @@
     <!-- Main Application Page -->
     <div id="app-page" class="container hidden">
         <header class="flex justify-between items-center p-4 bg-purple-600 text-white">
-            <h1 class="text-2xl font-bold">Contact Centre Controls</h1>
+            <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
             <div class="flex items-center space-x-4">
                 <span id="user-display" class="text-sm font-medium"></span>
                 <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm font-medium transition-colors">Logout</button>
@@ -666,6 +666,47 @@
         let auth;
         let currentUserId = null;
         let signatureDataUrl = '';
+
+        // --- Utility Functions ---
+        function showLoadingSpinner() {
+            document.getElementById('loading-spinner').style.display = 'block';
+        }
+
+        function hideLoadingSpinner() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        }
+
+        function showMessage(message, duration = 3000) {
+            const msgBox = document.getElementById('message-box');
+            msgBox.textContent = message;
+            msgBox.classList.add('show');
+            setTimeout(() => {
+                msgBox.classList.remove('show');
+            }, duration);
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+        
+        // Exponential backoff for API calls
+        async function retryOperation(operation, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i < maxRetries - 1) {
+                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+        }
         
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = {
@@ -713,6 +754,7 @@
             } catch (error) {
                 console.error("Error during initial sign-in:", error);
                 showMessage(`Authentication failed: ${error.message}`);
+            } finally {
                 hideLoadingSpinner();
             }
         }
@@ -996,7 +1038,6 @@
                     const cell = row.insertCell();
 
                     if (collectionName === 'keyControls') {
-                        // Dynamic rendering for Key Controls
                         const frequency = control['FREQ'] || 'Monthly';
                         
                         if (header.id === 'FREQ') {
@@ -1004,17 +1045,17 @@
                         } else if (header.id === 'BY WHEN') {
                             cell.textContent = control[header.id] || '';
                         } else if (header.id.length === 3 && (frequency === 'Monthly' || frequency === 'Weekly' || frequency === 'Daily')) {
-                             renderStatusCell(cell, control[header.id]);
+                            renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'Q1' && frequency === 'Quarterly') {
-                             renderStatusCell(cell, control[header.id]);
+                            renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'Q2' && frequency === 'Quarterly') {
-                             renderStatusCell(cell, control[header.id]);
+                            renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'Q3' && frequency === 'Quarterly') {
-                             renderStatusCell(cell, control[header.id]);
+                            renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'Q4' && frequency === 'Quarterly') {
-                             renderStatusCell(cell, control[header.id]);
+                            renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'Annual' && frequency === 'Annually') {
-                             renderStatusCell(cell, control[header.id]);
+                            renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'Tracking Status') {
                             renderStatusCell(cell, control['Tracking Status']);
                         } else if (header.id === 'Link Name') {
@@ -1042,7 +1083,6 @@
                     }
                 });
 
-                // Add Edit and Delete columns (specific to key controls)
                 if (collectionName === 'keyControls') {
                     const editCell = row.insertCell();
                     editCell.classList.add('action-buttons');
@@ -1059,7 +1099,7 @@
                     deleteBtn.classList.add('delete-btn');
                     deleteBtn.onclick = () => deleteControl(collectionName, control.id);
                     deleteCell.appendChild(deleteBtn);
-                } else { // Other tables have one 'Actions' column
+                } else {
                     const actionsCell = row.insertCell();
                     actionsCell.classList.add('action-buttons');
                     const editBtn = document.createElement('button');
@@ -1074,7 +1114,6 @@
                     deleteBtn.onclick = () => deleteControl(collectionName, control.id);
                     actionsCell.appendChild(deleteBtn);
                 }
-
 
                 if (needsStatusUpdate) {
                     updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), { 'Tracking Status': 'Overdue' })
@@ -1223,7 +1262,7 @@
                         dynamicDiv.appendChild(div);
                     });
                     
-                    const buttonDiv = controlForm.querySelector('button[type="submit"]').parentNode;
+                    const buttonDiv = controlForm.querySelector('.flex-justify-end');
                     if (buttonDiv) {
                         controlForm.insertBefore(dynamicDiv, buttonDiv);
                     } else {
