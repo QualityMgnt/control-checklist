@@ -368,9 +368,8 @@
             <button class="tab-button active" data-tab="dashboard">Dashboard</button>
             <button class="tab-button" data-tab="key-controls">Key Controls</button>
             <button class="tab-button" data-tab="secondary-controls">Secondary Controls</button>
-            <button class="tab-button" data-tab="qa-checklist">QA Checklist</button>
             <button class="tab-button" data-tab="admin">Admin</button>
-            <button class="tab-button" data-tab="database">Database</button> <!-- New Database Tab -->
+            <button class="tab-button" data-tab="database">Database</button>
         </nav>
 
         <main class="flex-grow p-6 overflow-hidden">
@@ -385,10 +384,6 @@
                     <div class="bg-white p-6 rounded-lg shadow-md">
                         <h3 class="text-xl font-medium text-gray-700 mb-4">Secondary Controls Status</h3>
                         <canvas id="secondaryControlsChart"></canvas>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-xl font-medium text-gray-700 mb-4">QA Checklist Status</h3>
-                        <canvas id="qaChecklistChart"></canvas>
                     </div>
                 </div>
                 <div class="mt-8">
@@ -500,50 +495,6 @@
                     <button id="upload-secondary-control-btn" class="btn-secondary">Upload Secondary Controls (CSV)</button>
                     <button id="generate-secondary-pdf-button" class="btn-primary">Generate PDF</button>
                     <button id="download-secondary-excel-button" class="btn-primary">Download as Excel</button>
-                </div>
-            </div>
-
-            <!-- QA Checklist Tab Content -->
-            <div id="qa-checklist-content" class="tab-content">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6">QA Checklist</h2>
-                <div class="overflow-x-auto">
-                    <table id="qa-checklist-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                        <thead>
-                            <tr>
-                                <th>Description</th>
-                                <th>How</th>
-                                <th>Who</th>
-                                <th>Frequency</th>
-                                <th>By When</th>
-                                <th>Evidence</th>
-                                <th>Archived</th>
-                                <th>Date of Review</th>
-                                <th>Samples Checked</th>
-                                <th>Exceptions</th>
-                                <th>Assessment</th>
-                                <th>Required Action</th>
-                                <th>Closure Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- QA Checklist items will be loaded here -->
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Sign Off Section -->
-                <div class="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
-                    <h3 class="text-lg font-semibold mb-4">Sign Off</h3>
-                    <div class="flex items-center space-x-4">
-                        <input type="file" id="qa-checklist-signature-upload" accept="image/*" class="hidden">
-                        <button id="qa-checklist-upload-signature-btn" class="btn-primary">Upload Signature</button>
-                        <img id="qa-checklist-signature-preview" class="h-16 w-auto border rounded-md hidden" src="" alt="Signature Preview">
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-4 mt-6 justify-end">
-                    <button id="add-qa-checklist-btn" class="btn-primary">Add New QA Checklist Item</button>
-                    <input type="file" id="upload-qa-checklist-file" accept=".csv" class="hidden">
-                    <button id="upload-qa-checklist-btn" class="btn-secondary">Upload QA Checklist (CSV)</button>
                 </div>
             </div>
 
@@ -731,7 +682,6 @@
                 document.getElementById('app-page').classList.remove('hidden');
                 await loadControls('keyControls', 'key-controls-table');
                 await loadControls('secondaryControls', 'secondary-controls-table');
-                await loadControls('qaChecklist', 'qa-checklist-table');
                 await loadPdfs();
                 await loadUsers();
                 renderDashboardCharts();
@@ -849,7 +799,6 @@
         const controlData = {
             keyControls: [],
             secondaryControls: [],
-            qaChecklist: [],
             generatedPdfs: []
         };
         const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -881,22 +830,6 @@
             { id: 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', label: 'How Archived', type: 'text' },
             { id: 'Date of Review', label: 'Date of Review', type: 'date' },
             { id: 'Total number of transactions (where applicable)', label: 'Total Transactions', type: 'number' },
-            { id: 'Samples checked (Where Applicable)', label: 'Samples Checked', type: 'text' },
-            { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
-            { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
-            { id: 'Required Action', label: 'Required Action', type: 'text' },
-            { id: 'Closure Date', label: 'Closure Date', type: 'date' }
-        ];
-
-        const qaChecklistHeaders = [
-            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
-            { id: 'HOW (i.e. Manual/ Automated)', label: 'How', type: 'text' },
-            { id: 'WHO (i.e. Title of reviewer)', label: 'Who', type: 'text' },
-            { id: 'FREQUENCY e.g. Daily, Weekly, Monthly', label: 'Frequency', type: 'text' },
-            { id: 'BY WHEN (TATs e.g. by 10th of ever month)', label: 'By When', type: 'date' },
-            { id: 'EVIDENCE OF CONTROL e.g What is signed-off?', label: 'Evidence of Control', type: 'text' },
-            { id: 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', label: 'How Archived', type: 'text' },
-            { id: 'Date of Review', label: 'Date of Review', type: 'date' },
             { id: 'Samples checked (Where Applicable)', label: 'Samples Checked', type: 'text' },
             { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
             { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
@@ -1032,7 +965,7 @@
                     }
                 }
                 
-                const tableHeaders = tableId === 'key-controls-table' ? keyControlHeaders : (tableId === 'secondary-controls-table' ? secondaryControlHeaders : qaChecklistHeaders);
+                const tableHeaders = tableId === 'key-controls-table' ? keyControlHeaders : secondaryControlHeaders;
                 
                 tableHeaders.forEach(header => {
                     const cell = row.insertCell();
@@ -1074,7 +1007,7 @@
                         } else if (!['Q1', 'Q2', 'Q3', 'Q4', 'Annual', 'Link URL'].includes(header.id)) {
                              cell.textContent = control[header.id] || '';
                         }
-                    } else { // Secondary Controls and QA Checklist
+                    } else { // Secondary Controls
                         if (header.id === 'Assessment') {
                             renderStatusCell(cell, control[header.id]);
                         } else {
@@ -1169,7 +1102,7 @@
             const controlForm = document.getElementById('control-form');
             controlForm.innerHTML = '';
 
-            let headersToUse = type === 'keyControls' ? keyControlHeaders : (type === 'secondaryControls' ? secondaryControlHeaders : qaChecklistHeaders);
+            let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             const staticFields = headersToUse.filter(h => !months.includes(h.id) && !quarters.includes(h.id) && h.id !== 'Annual' && h.id !== 'Link URL' && h.id !== 'Link Name');
             staticFields.forEach(header => {
@@ -1203,7 +1136,6 @@
                 controlForm.appendChild(div);
             });
 
-            // Add Link Name and Link URL fields
             if (type === 'keyControls') {
                 const linkNameHeader = { id: 'Link Name', label: 'Link Name', type: 'text' };
                 const linkUrlHeader = { id: 'Link URL', label: 'Link URL', type: 'url' };
@@ -1262,7 +1194,7 @@
                         dynamicDiv.appendChild(div);
                     });
                     
-                    const buttonDiv = controlForm.querySelector('.flex-justify-end');
+                    const buttonDiv = controlForm.querySelector('button[type="submit"]').parentNode;
                     if (buttonDiv) {
                         controlForm.insertBefore(dynamicDiv, buttonDiv);
                     } else {
@@ -1299,7 +1231,7 @@
         document.getElementById('control-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = {};
-            let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : (currentControlType === 'secondaryControls' ? secondaryControlHeaders : qaChecklistHeaders);
+            let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             headersToUse.forEach(header => {
                 const inputElement = document.getElementById(`form-${header.id}`);
@@ -1325,7 +1257,6 @@
 
         document.getElementById('add-key-control-btn').addEventListener('click', () => openControlModal('keyControls'));
         document.getElementById('add-secondary-control-btn').addEventListener('click', () => openControlModal('secondaryControls'));
-        document.getElementById('add-qa-checklist-btn').addEventListener('click', () => openControlModal('qaChecklist'));
 
         async function parseCSV(file) {
             return new Promise((resolve, reject) => {
@@ -1429,16 +1360,7 @@
             }
         });
 
-        document.getElementById('upload-qa-checklist-btn').addEventListener('click', () => {
-            document.getElementById('upload-qa-checklist-file').click();
-        });
-        document.getElementById('upload-qa-checklist-file').addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                uploadControls('upload-qa-checklist-file', 'qaChecklist');
-            }
-        });
-
-        let keyControlsChart, secondaryControlsChart, qaChecklistChart;
+        let keyControlsChart, secondaryControlsChart;
 
         function getStatusCounts(controls, collectionName) {
             const counts = {};
@@ -1504,9 +1426,6 @@
 
             const secondaryCounts = getStatusCounts(controlData.secondaryControls, 'secondaryControls');
             secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
-
-            const qaCounts = getStatusCounts(controlData.qaChecklist, 'qaChecklist');
-            qaChecklistChart = renderChart('qaChecklistChart', 'QA Checklist Status Distribution', qaCounts);
         }
 
         async function createUser(email, password) {
@@ -1764,7 +1683,6 @@
         
         handleSignatureUpload('key-controls-signature-upload', 'key-controls-signature-preview');
         handleSignatureUpload('secondary-controls-signature-upload', 'secondary-controls-signature-preview');
-        handleSignatureUpload('qa-checklist-signature-upload', 'qa-checklist-signature-preview');
 
 
         document.getElementById('download-key-excel-button').addEventListener('click', () => {
@@ -1779,23 +1697,18 @@
             const tableName = controlType === 'keyControls' ? 'Key Controls' : 'Secondary Controls';
             const table = document.getElementById(tableId);
 
-            // Clone the table to manipulate for Excel export
-            const tableClone = table.cloneNode(true);
-            const signaturePreview = document.getElementById(`${controlType}-controls-signature-preview`);
-            const signatureArea = document.createElement('div');
-            if (signaturePreview && signaturePreview.src && signaturePreview.src.length > 0) {
-                signatureArea.innerHTML = `<br><p><strong>Sign Off:</strong></p><img src="${signaturePreview.src}" alt="Signature" width="100" height="40"><p>Date: ${new Date().toLocaleDateString()}</p>`;
-                tableClone.parentNode.insertBefore(signatureArea, tableClone.nextSibling);
-            }
-
-            const ws = XLSX.utils.table_to_sheet(tableClone);
+            const ws = XLSX.utils.table_to_sheet(table);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, tableName);
-            XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
             
-            // Clean up the clone and signature area
-            tableClone.remove();
-            signatureArea.remove();
+            // Add signature as a separate sheet
+            if (signatureDataUrl) {
+                const signatureSheet = XLSX.utils.aoa_to_sheet([["Sign Off"], ["Signed By: Manager - John Doe"], [`Date: ${new Date().toLocaleDateString()}`]]);
+                XLSX.utils.sheet_add_aoa(signatureSheet, [[signatureDataUrl]], {origin: "A5"});
+                XLSX.utils.book_append_sheet(wb, signatureSheet, "Sign Off");
+            }
+
+            XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
         }
 
     </script>
