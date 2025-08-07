@@ -272,6 +272,30 @@
             width: 100%;
             height: 100%;
         }
+        .table-header-months, .table-header-quarters {
+            text-align: center;
+        }
+        .pdf-signature-area {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            max-width: 400px;
+        }
+        .pdf-signature-area img {
+            height: 60px;
+            width: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .pdf-signature-area span {
+            margin-left: 1rem;
+            font-style: italic;
+            color: #6b7280;
+        }
     </style>
 </head>
 <body>
@@ -285,7 +309,7 @@
     <!-- Login Page -->
     <div id="login-page" class="w-full h-screen flex items-center justify-center bg-gray-100">
         <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-            <h2 class="text-3xl font-bold text-center text-blue-600 mb-8">Login to Contact Centre Controls</h2>
+            <h2 class="text-3xl font-bold text-center text-blue-600 mb-8">Login to Customer Experience Controls</h2>
             <form id="login-form" class="space-y-6">
                 <div>
                     <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -373,10 +397,10 @@
                                 <th rowspan="2">Frequency</th>
                                 <th rowspan="2">By When</th>
                                 <th rowspan="2">Evidence</th>
-                                <th colspan="3" class="text-center">Q1</th>
-                                <th colspan="3" class="text-center">Q2</th>
-                                <th colspan="3" class="text-center">Q3</th>
-                                <th colspan="3" class="text-center">Q4</th>
+                                <th colspan="3" class="table-header-quarters">Q1</th>
+                                <th colspan="3" class="table-header-quarters">Q2</th>
+                                <th colspan="3" class="table-header-quarters">Q3</th>
+                                <th colspan="3" class="table-header-quarters">Q4</th>
                                 <th rowspan="2">Annual</th>
                                 <th rowspan="2">Tracking Status</th>
                                 <th rowspan="2">Link</th>
@@ -384,18 +408,18 @@
                                 <th rowspan="2">Delete</th>
                             </tr>
                             <tr>
-                                <th>JAN</th>
-                                <th>FEB</th>
-                                <th>MAR</th>
-                                <th>APR</th>
-                                <th>MAY</th>
-                                <th>JUN</th>
-                                <th>JUL</th>
-                                <th>AUG</th>
-                                <th>SEP</th>
-                                <th>OCT</th>
-                                <th>NOV</th>
-                                <th>DEC</th>
+                                <th class="table-header-months">JAN</th>
+                                <th class="table-header-months">FEB</th>
+                                <th class="table-header-months">MAR</th>
+                                <th class="table-header-months">APR</th>
+                                <th class="table-header-months">MAY</th>
+                                <th class="table-header-months">JUN</th>
+                                <th class="table-header-months">JUL</th>
+                                <th class="table-header-months">AUG</th>
+                                <th class="table-header-months">SEP</th>
+                                <th class="table-header-months">OCT</th>
+                                <th class="table-header-months">NOV</th>
+                                <th class="table-header-months">DEC</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -574,7 +598,7 @@
     <!-- Hidden div for PDF generation -->
     <div id="pdf-export-content" class="pdf-export-content">
         <div id="pdf-content-wrapper">
-            <h1 class="text-2xl font-bold text-center mb-6">Contact Centre Controls Report</h1>
+            <h1 class="text-2xl font-bold text-center mb-6">Customer Experience Controls Report</h1>
             <h2 id="pdf-report-title" class="text-xl font-semibold mt-8 mb-4"></h2>
             <div class="overflow-x-auto">
                 <table id="pdf-table-to-generate" class="min-w-full bg-white border border-gray-200">
@@ -582,9 +606,13 @@
                 </table>
             </div>
             <!-- Sign Off Section for PDF -->
-            <div class="mt-8">
-                <h3 class="text-lg font-semibold mb-2">Sign Off</h3>
+            <div class="pdf-signature-area">
                 <img id="pdf-signature-image" class="h-16 w-auto border rounded-md" src="" alt="Signature" style="display:none;">
+                <div class="flex-grow ml-4">
+                    <p class="font-semibold">Signed By:</p>
+                    <p class="text-sm">Manager - John Doe</p>
+                    <p class="text-sm">Date: ${new Date().toLocaleDateString()}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -607,67 +635,21 @@
             getFirestore,
             collection,
             doc,
-            getDoc,
             setDoc,
             addDoc,
             updateDoc,
             deleteDoc,
             onSnapshot,
-            query,
-            where,
             getDocs,
             writeBatch
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables for Firebase instances and user ID
         let app;
         let db;
         let auth;
         let currentUserId = null;
-        let signatureDataUrl = ''; // Global variable to hold signature data
-
-        // --- Utility Functions ---
-        function showLoadingSpinner() {
-            document.getElementById('loading-spinner').style.display = 'block';
-        }
-
-        function hideLoadingSpinner() {
-            document.getElementById('loading-spinner').style.display = 'none';
-        }
-
-        function showMessage(message, duration = 3000) {
-            const msgBox = document.getElementById('message-box');
-            msgBox.textContent = message;
-            msgBox.classList.add('show');
-            setTimeout(() => {
-                msgBox.classList.remove('show');
-            }, duration);
-        }
-
-        function showModal(modalId) {
-            document.getElementById(modalId).classList.add('show');
-        }
-
-        function hideModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
-        }
-
-        // Exponential backoff for API calls
-        async function retryOperation(operation, maxRetries = 5, delay = 1000) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    return await operation();
-                } catch (error) {
-                    if (i < maxRetries - 1) {
-                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
-                    } else {
-                        throw error;
-                    }
-                }
-            }
-        }
-
-        // --- Firebase Initialization and Authentication ---
+        let signatureDataUrl = '';
+        
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = {
             apiKey: "AIzaSyDEK6AOeXiZVWKXw715FGkX9_yeNaKHx_8",
@@ -692,7 +674,7 @@
                 await loadControls('keyControls', 'key-controls-table');
                 await loadControls('secondaryControls', 'secondary-controls-table');
                 await loadControls('qaChecklist', 'qa-checklist-table');
-                await loadPdfs(); // Load PDF records
+                await loadPdfs();
                 await loadUsers();
                 renderDashboardCharts();
             } else {
@@ -719,7 +701,6 @@
         }
         initialSignIn();
 
-        // --- Login/Signup Forms ---
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -777,7 +758,6 @@
             }
         });
 
-        // --- Forgot Password Functionality ---
         document.getElementById('forgot-password').addEventListener('click', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -797,8 +777,6 @@
             }
         });
 
-
-        // --- Tab Navigation ---
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', () => {
                 document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
@@ -809,7 +787,6 @@
             });
         });
 
-        // --- Control Data Management (Firestore) ---
         const controlData = {
             keyControls: [],
             secondaryControls: [],
@@ -819,12 +796,18 @@
         const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
 
-        const staticKeyControlHeaders = [
+        const keyControlHeaders = [
             { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
             { id: 'HOW', label: 'How', type: 'text' },
             { id: 'FREQ', label: 'Frequency', type: 'select', options: ['Quarterly', 'Monthly', 'Weekly', 'Annually', 'Daily'] },
             { id: 'BY WHEN', label: 'By When', type: 'date' },
             { id: 'EVIDENCE OF CONTROL', label: 'Evidence of Control', type: 'text' },
+            { id: 'Q1', label: 'Q1', type: 'select', options: ['Yes', 'N/A', 'No'] },
+            { id: 'Q2', label: 'Q2', type: 'select', options: ['Yes', 'N/A', 'No'] },
+            { id: 'Q3', label: 'Q3', type: 'select', options: ['Yes', 'N/A', 'No'] },
+            { id: 'Q4', label: 'Q4', type: 'select', options: ['Yes', 'N/A', 'No'] },
+            { id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'N/A', 'No'] },
+            { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On track', 'Overdue', 'Pending', 'Closed'] },
             { id: 'Link Name', label: 'Link Name', type: 'text' },
             { id: 'Link URL', label: 'Link URL', type: 'url' },
         ];
@@ -862,10 +845,8 @@
             { id: 'Closure Date', label: 'Closure Date', type: 'date' }
         ];
 
-
         async function loadControls(collectionName, tableId) {
             if (!currentUserId) return;
-
             const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
             onSnapshot(controlsColRef, (snapshot) => {
                 const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -880,7 +861,6 @@
 
         async function loadPdfs() {
             if (!currentUserId) return;
-
             const pdfsColRef = collection(db, `artifacts/${appId}/public/data/generatedPdfs`);
             onSnapshot(pdfsColRef, (snapshot) => {
                 const pdfs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -943,8 +923,6 @@
             const subject = `Control Report: ${pdfRecord.controlType} - ${pdfRecord.month} ${pdfRecord.date.split('-')[0]}`;
             const body = `Please find the attached PDF report for ${pdfRecord.controlType} from ${pdfRecord.month} ${pdfRecord.date.split('-')[0]}.`;
             
-            // This is a client-side mailto link, which does not support attachments directly.
-            // A more robust solution would require a backend service.
             window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             showMessage('Opening email client. Please manually attach the downloaded PDF.');
         }
@@ -954,7 +932,7 @@
                 return 'status-green';
             } else if (status === 'No' || status === 'Overdue' || status === 'Not Effective') {
                 return 'status-red';
-            } else if (status === 'N/A' || status === 'Pending' || status === 'Partially Effective') {
+            } else if (status === 'N/A' || status === 'Pending' || status === 'Partially Effective' || status === 'Not Started') {
                 return 'status-amber';
             } else if (status === 'Closed') {
                 return 'status-gray';
@@ -964,7 +942,7 @@
 
         function renderStatusCell(cell, status) {
             const statusDiv = document.createElement('div');
-            statusDiv.textContent = status || '';
+            statusDiv.textContent = status || 'N/A';
             statusDiv.classList.add('status-text');
             const colorClass = getStatusColorClass(status);
             if (colorClass) {
@@ -977,113 +955,109 @@
         function renderControlsTable(controls, tableId, collectionName) {
             const tableBody = document.querySelector(`#${tableId} tbody`);
             tableBody.innerHTML = '';
-
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
             controls.forEach(control => {
                 const row = tableBody.insertRow();
                 let needsStatusUpdate = false;
-                let currentTrackingStatus = control['Tracking Status'];
-                const byWhenDateStr = control['By When'];
+                const byWhenDateStr = control['BY WHEN'];
 
-                if (collectionName === 'keyControls' && byWhenDateStr) {
+                if (collectionName === 'keyControls' && byWhenDateStr && control['Tracking Status'] !== 'Closed') {
                     const byWhenDate = new Date(byWhenDateStr);
                     byWhenDate.setHours(0, 0, 0, 0);
 
-                    if (byWhenDate < today && currentTrackingStatus !== 'Closed' && currentTrackingStatus !== 'Overdue') {
+                    if (byWhenDate < today && control['Tracking Status'] !== 'Overdue') {
                         control['Tracking Status'] = 'Overdue';
                         needsStatusUpdate = true;
                     }
                 }
-
-                // Render static columns
-                const preMonthsHeaders = staticKeyControlHeaders.slice(0, 5);
-                preMonthsHeaders.forEach(header => {
+                
+                const tableHeaders = tableId === 'key-controls-table' ? keyControlHeaders : (tableId === 'secondary-controls-table' ? secondaryControlHeaders : qaChecklistHeaders);
+                
+                tableHeaders.forEach(header => {
                     const cell = row.insertCell();
-                    if (header.id === 'FREQ') {
-                         cell.textContent = control[header.id] || '';
-                    } else if (header.id === 'BY WHEN') {
-                         cell.textContent = control[header.id] || '';
-                    } else {
-                        cell.textContent = control[header.id] || '';
+
+                    if (collectionName === 'keyControls') {
+                        // Dynamic rendering for Key Controls
+                        const frequency = control['FREQ'] || 'Monthly';
+                        
+                        if (header.id === 'FREQ') {
+                            cell.textContent = control[header.id] || '';
+                        } else if (header.id === 'BY WHEN') {
+                            cell.textContent = control[header.id] || '';
+                        } else if (header.id.length === 3 && (frequency === 'Monthly' || frequency === 'Weekly' || frequency === 'Daily')) {
+                             renderStatusCell(cell, control[header.id]);
+                        } else if (header.id === 'Q1' && frequency === 'Quarterly') {
+                             renderStatusCell(cell, control[header.id]);
+                        } else if (header.id === 'Q2' && frequency === 'Quarterly') {
+                             renderStatusCell(cell, control[header.id]);
+                        } else if (header.id === 'Q3' && frequency === 'Quarterly') {
+                             renderStatusCell(cell, control[header.id]);
+                        } else if (header.id === 'Q4' && frequency === 'Quarterly') {
+                             renderStatusCell(cell, control[header.id]);
+                        } else if (header.id === 'Annual' && frequency === 'Annually') {
+                             renderStatusCell(cell, control[header.id]);
+                        } else if (header.id === 'Tracking Status') {
+                            renderStatusCell(cell, control['Tracking Status']);
+                        } else if (header.id === 'Link Name') {
+                            const linkName = control['Link Name'];
+                            const linkURL = control['Link URL'];
+                            if (linkName && linkURL) {
+                                const anchor = document.createElement('a');
+                                anchor.href = linkURL;
+                                anchor.textContent = linkName;
+                                anchor.target = '_blank';
+                                anchor.classList.add('text-blue-600', 'hover:underline');
+                                cell.appendChild(anchor);
+                            } else {
+                                cell.textContent = linkName || '';
+                            }
+                        } else if (!['Q1', 'Q2', 'Q3', 'Q4', 'Annual', 'Link URL'].includes(header.id)) {
+                             cell.textContent = control[header.id] || '';
+                        }
+                    } else { // Secondary Controls and QA Checklist
+                        if (header.id === 'Assessment') {
+                            renderStatusCell(cell, control[header.id]);
+                        } else {
+                             cell.textContent = control[header.id] || '';
+                        }
                     }
                 });
 
-                // Render dynamic month/quarter/annual columns
+                // Add Edit and Delete columns (specific to key controls)
                 if (collectionName === 'keyControls') {
-                    const frequency = control['FREQ'] || 'Monthly';
-                    if (frequency === 'Quarterly') {
-                        quarters.forEach(q => {
-                            const cell = row.insertCell();
-                            cell.colSpan = 3;
-                            const status = control[q] || 'N/A';
-                            renderStatusCell(cell, status);
-                        });
-                    } else if (frequency === 'Annually') {
-                        const cell = row.insertCell();
-                        cell.colSpan = 12;
-                        const status = control['Annual'] || 'N/A';
-                        renderStatusCell(cell, status);
-                    } else { // Default to Monthly, Weekly, Daily
-                        months.forEach(month => {
-                            const cell = row.insertCell();
-                            const status = control[month] || 'N/A';
-                            renderStatusCell(cell, status);
-                        });
-                    }
+                    const editCell = row.insertCell();
+                    editCell.classList.add('action-buttons');
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.classList.add('edit-btn');
+                    editBtn.onclick = () => openControlModal(collectionName, control.id, control);
+                    editCell.appendChild(editBtn);
+
+                    const deleteCell = row.insertCell();
+                    deleteCell.classList.add('action-buttons');
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.classList.add('delete-btn');
+                    deleteBtn.onclick = () => deleteControl(collectionName, control.id);
+                    deleteCell.appendChild(deleteBtn);
+                } else { // Other tables have one 'Actions' column
+                    const actionsCell = row.insertCell();
+                    actionsCell.classList.add('action-buttons');
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.classList.add('edit-btn');
+                    editBtn.onclick = () => openControlModal(collectionName, control.id, control);
+                    actionsCell.appendChild(editBtn);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.classList.add('delete-btn', 'ml-1');
+                    deleteBtn.onclick = () => deleteControl(collectionName, control.id);
+                    actionsCell.appendChild(deleteBtn);
                 }
 
-                // Render static columns after the months/quarters
-                const postMonthsHeaders = staticKeyControlHeaders.slice(5);
-                postMonthsHeaders.forEach(header => {
-                    const cell = row.insertCell();
-                    if (header.id === 'Annual') {
-                        if (control['FREQ'] === 'Annually') {
-                            const status = control['Annual'] || 'N/A';
-                            renderStatusCell(cell, status);
-                        } else {
-                            cell.textContent = ''; // Hide annual column if not annual frequency
-                        }
-                    } else if (header.id === 'Tracking Status') {
-                        const status = control['Tracking Status'] || 'N/A';
-                        renderStatusCell(cell, status);
-                    } else if (header.id === 'Link Name') {
-                        const linkName = control['Link Name'];
-                        const linkURL = control['Link URL'];
-                        if (linkName && linkURL) {
-                            const anchor = document.createElement('a');
-                            anchor.href = linkURL;
-                            anchor.textContent = linkName;
-                            anchor.target = '_blank';
-                            anchor.classList.add('text-blue-600', 'hover:underline');
-                            cell.appendChild(anchor);
-                        } else {
-                            cell.textContent = linkName || '';
-                        }
-                    } else if (header.id === 'Link URL') {
-                        // This column is not rendered in the table view
-                    } else {
-                        cell.textContent = control[header.id] || '';
-                    }
-                });
-                
-                // Add Edit and Delete columns
-                const editCell = row.insertCell();
-                editCell.classList.add('action-buttons');
-                const editBtn = document.createElement('button');
-                editBtn.textContent = 'Edit';
-                editBtn.classList.add('edit-btn');
-                editBtn.onclick = () => openControlModal(collectionName, control.id, control);
-                editCell.appendChild(editBtn);
-
-                const deleteCell = row.insertCell();
-                deleteCell.classList.add('action-buttons');
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.classList.add('delete-btn');
-                deleteBtn.onclick = () => deleteControl(collectionName, control.id);
-                deleteCell.appendChild(deleteBtn);
 
                 if (needsStatusUpdate) {
                     updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), { 'Tracking Status': 'Overdue' })
@@ -1128,7 +1102,6 @@
             }
         }
 
-        // --- Modal for Add/Edit Control ---
         let currentControlType = '';
         let currentControlId = null;
 
@@ -1140,19 +1113,10 @@
             const controlForm = document.getElementById('control-form');
             controlForm.innerHTML = '';
 
-            let headersToUse;
-            if (type === 'keyControls') {
-                modalTitle.textContent = id ? 'Edit Key Control' : 'Add New Key Control';
-                headersToUse = staticKeyControlHeaders;
-            } else if (type === 'secondaryControls') {
-                modalTitle.textContent = id ? 'Edit Secondary Control' : 'Add New Secondary Control';
-                headersToUse = secondaryControlHeaders;
-            } else if (type === 'qaChecklist') {
-                modalTitle.textContent = id ? 'Edit QA Checklist Item' : 'Add New QA Checklist Item';
-                headersToUse = qaChecklistHeaders;
-            }
+            let headersToUse = type === 'keyControls' ? keyControlHeaders : (type === 'secondaryControls' ? secondaryControlHeaders : qaChecklistHeaders);
             
-            headersToUse.forEach(header => {
+            const staticFields = headersToUse.filter(h => !months.includes(h.id) && !quarters.includes(h.id) && h.id !== 'Annual' && h.id !== 'Link URL' && h.id !== 'Link Name');
+            staticFields.forEach(header => {
                 const div = document.createElement('div');
                 div.classList.add('mb-4');
 
@@ -1182,8 +1146,23 @@
                 div.appendChild(inputElement);
                 controlForm.appendChild(div);
             });
+
+            // Add Link Name and Link URL fields
+            if (type === 'keyControls') {
+                const linkNameHeader = { id: 'Link Name', label: 'Link Name', type: 'text' };
+                const linkUrlHeader = { id: 'Link URL', label: 'Link URL', type: 'url' };
+
+                const linkNameDiv = document.createElement('div');
+                linkNameDiv.classList.add('mb-4');
+                linkNameDiv.innerHTML = `<label for="form-${linkNameHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkNameHeader.label}</label><input type="${linkNameHeader.type}" id="form-${linkNameHeader.id}" class="input-field" value="${data[linkNameHeader.id] || ''}">`;
+                controlForm.appendChild(linkNameDiv);
+
+                const linkUrlDiv = document.createElement('div');
+                linkUrlDiv.classList.add('mb-4');
+                linkUrlDiv.innerHTML = `<label for="form-${linkUrlHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkUrlHeader.label}</label><input type="${linkUrlHeader.type}" id="form-${linkUrlHeader.id}" class="input-field" value="${data[linkUrlHeader.id] || ''}">`;
+                controlForm.appendChild(linkUrlDiv);
+            }
             
-            // Add dynamic month/quarter fields for Key Controls only
             if (type === 'keyControls') {
                 const frequencySelect = document.getElementById('form-FREQ');
                 const addMonthFields = (frequency) => {
@@ -1226,8 +1205,13 @@
                         div.appendChild(selectElement);
                         dynamicDiv.appendChild(div);
                     });
-
-                    controlForm.insertBefore(dynamicDiv, controlForm.querySelector('button'));
+                    
+                    const buttonDiv = controlForm.querySelector('.flex-justify-end');
+                    if (buttonDiv) {
+                        controlForm.insertBefore(dynamicDiv, buttonDiv);
+                    } else {
+                        controlForm.appendChild(dynamicDiv);
+                    }
                 };
                 
                 addMonthFields(data['FREQ'] || 'Monthly');
@@ -1259,7 +1243,7 @@
         document.getElementById('control-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = {};
-            let headersToUse = currentControlType === 'keyControls' ? staticKeyControlHeaders : (currentControlType === 'secondaryControls' ? secondaryControlHeaders : qaChecklistHeaders);
+            let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : (currentControlType === 'secondaryControls' ? secondaryControlHeaders : qaChecklistHeaders);
             
             headersToUse.forEach(header => {
                 const inputElement = document.getElementById(`form-${header.id}`);
@@ -1271,27 +1255,16 @@
             if (currentControlType === 'keyControls') {
                 const frequency = formData['FREQ'] || 'Monthly';
                 if (frequency === 'Quarterly') {
-                    quarters.forEach(q => {
-                        const inputElement = document.getElementById(`form-${q}`);
-                        if (inputElement) formData[q] = inputElement.value;
-                    });
                     months.forEach(month => delete formData[month]);
                     delete formData['Annual'];
                 } else if (frequency === 'Annually') {
-                    const inputElement = document.getElementById('form-Annual');
-                    if (inputElement) formData['Annual'] = inputElement.value;
                     months.forEach(month => delete formData[month]);
                     quarters.forEach(q => delete formData[q]);
-                } else { // Monthly, Weekly, Daily
-                    months.forEach(month => {
-                        const inputElement = document.getElementById(`form-${month}`);
-                        if (inputElement) formData[month] = inputElement.value;
-                    });
+                } else {
                     quarters.forEach(q => delete formData[q]);
                     delete formData['Annual'];
                 }
             }
-
             await addOrUpdateControl(currentControlType, currentControlId, formData);
         });
 
@@ -1299,7 +1272,6 @@
         document.getElementById('add-secondary-control-btn').addEventListener('click', () => openControlModal('secondaryControls'));
         document.getElementById('add-qa-checklist-btn').addEventListener('click', () => openControlModal('qaChecklist'));
 
-        // --- CSV Upload Logic ---
         async function parseCSV(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1368,7 +1340,6 @@
                             item['Link Name'] = item['Link URL'].split('/').pop() || 'Link';
                         }
                     }
-
                     const newDocRef = doc(controlsColRef);
                     batch.set(newDocRef, item);
                     uploadCount++;
@@ -1412,14 +1383,12 @@
             }
         });
 
-
-        // --- Dashboard Charts ---
         let keyControlsChart, secondaryControlsChart, qaChecklistChart;
 
-        function getStatusCounts(controls) {
+        function getStatusCounts(controls, collectionName) {
             const counts = {};
             controls.forEach(control => {
-                const status = control['Tracking Status'] || control['Assessment'] || 'N/A';
+                const status = collectionName === 'keyControls' ? (control['Tracking Status'] || 'N/A') : (control['Assessment'] || 'N/A');
                 counts[status] = (counts[status] || 0) + 1;
             });
             return counts;
@@ -1470,21 +1439,21 @@
                             text: title
                         }
                     }
-                });
+                }
+            });
         }
 
         function renderDashboardCharts() {
-            const keyCounts = getStatusCounts(controlData.keyControls);
+            const keyCounts = getStatusCounts(controlData.keyControls, 'keyControls');
             keyControlsChart = renderChart('keyControlsChart', 'Key Controls Status Distribution', keyCounts);
 
-            const secondaryCounts = getStatusCounts(controlData.secondaryControls);
+            const secondaryCounts = getStatusCounts(controlData.secondaryControls, 'secondaryControls');
             secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
 
-            const qaCounts = getStatusCounts(controlData.qaChecklist);
+            const qaCounts = getStatusCounts(controlData.qaChecklist, 'qaChecklist');
             qaChecklistChart = renderChart('qaChecklistChart', 'QA Checklist Status Distribution', qaCounts);
         }
 
-        // --- Admin Panel (User Management) ---
         async function createUser(email, password) {
             showLoadingSpinner();
             try {
@@ -1521,7 +1490,6 @@
             }
         }
 
-        // --- PDF Generation ---
         document.getElementById('generate-key-pdf-button').addEventListener('click', () => generatePdfForControls('keyControls'));
         document.getElementById('generate-secondary-pdf-button').addEventListener('click', () => generatePdfForControls('secondaryControls'));
         document.getElementById('generate-all-pdf-button').addEventListener('click', () => generatePdfForControls('all'));
@@ -1548,16 +1516,12 @@
                 pdfReportTitle.textContent = title;
                 populatePdfTable(pdfTable, controlsToPrint, 'secondaryControls');
             } else if (type === 'all') {
-                 // For all controls, we'll need to generate a single report
                  controlsToPrint = controlData.keyControls.concat(controlData.secondaryControls);
                  title = 'All Controls Report';
                  pdfReportTitle.textContent = title;
-                 // To keep it simple, we'll only populate with Key Controls data, a more robust
-                 // solution would involve dynamically building multiple tables.
                  populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
             }
 
-            // Get signature and append to PDF content
             if (signatureDataUrl) {
                 pdfSignatureImage.src = signatureDataUrl;
                 pdfSignatureImage.style.display = 'block';
@@ -1600,14 +1564,10 @@
             tableHeader.innerHTML = '';
             tableBody.innerHTML = '';
 
-            let headersToUse;
             if (controlType === 'keyControls') {
-                headersToUse = staticKeyControlHeaders;
-                 // Create header rows for Key Controls
                 const firstRow = tableHeader.insertRow();
                 const secondRow = tableHeader.insertRow();
 
-                // Static headers with rowspan
                 const staticHeaders = ['Description', 'How', 'Frequency', 'By When', 'Evidence'];
                 staticHeaders.forEach(h => {
                     const th = document.createElement('th');
@@ -1615,103 +1575,119 @@
                     th.rowSpan = 2;
                     firstRow.appendChild(th);
                 });
-
-                // Quarters headers
-                firstRow.innerHTML += `<th colspan="3" class="text-center">Q1</th>`;
-                firstRow.innerHTML += `<th colspan="3" class="text-center">Q2</th>`;
-                firstRow.innerHTML += `<th colspan="3" class="text-center">Q3</th>`;
-                firstRow.innerHTML += `<th colspan="3" class="text-center">Q4</th>`;
                 
-                const otherStaticHeaders = ['Annual', 'Tracking Status', 'Link', 'Edit', 'Delete'];
-                 otherStaticHeaders.forEach(h => {
+                const dynamicHeaders = {
+                    Q1: ['JAN', 'FEB', 'MAR'],
+                    Q2: ['APR', 'MAY', 'JUN'],
+                    Q3: ['JUL', 'AUG', 'SEP'],
+                    Q4: ['OCT', 'NOV', 'DEC']
+                };
+
+                for(const q in dynamicHeaders) {
+                    const th = document.createElement('th');
+                    th.textContent = q;
+                    th.colSpan = 3;
+                    th.classList.add('table-header-quarters');
+                    firstRow.appendChild(th);
+                    dynamicHeaders[q].forEach(month => {
+                        const thMonth = document.createElement('th');
+                        thMonth.textContent = month;
+                        thMonth.classList.add('table-header-months');
+                        secondRow.appendChild(thMonth);
+                    });
+                }
+
+                const otherStaticHeaders = ['Annual', 'Tracking Status', 'Link Name', 'Link URL'];
+                otherStaticHeaders.forEach(h => {
                     const th = document.createElement('th');
                     th.textContent = h;
                     th.rowSpan = 2;
                     firstRow.appendChild(th);
                 });
 
-                // Month headers
-                months.forEach(month => {
-                    const th = document.createElement('th');
-                    th.textContent = month;
-                    secondRow.appendChild(th);
+                controls.forEach(control => {
+                    const row = tableBody.insertRow();
+                    
+                    const cellsToRender = [
+                        'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
+                    ];
+
+                    cellsToRender.forEach(id => {
+                        const cell = row.insertCell();
+                        cell.textContent = control[id] || '';
+                    });
+
+                    const frequency = control['FREQ'] || 'Monthly';
+                    if (frequency === 'Quarterly') {
+                        quarters.forEach(q => {
+                            const cell = row.insertCell();
+                            cell.colSpan = 3;
+                            cell.textContent = control[q] || 'N/A';
+                        });
+                    } else if (frequency === 'Annually') {
+                         const cell = row.insertCell();
+                        cell.colSpan = 12;
+                        cell.textContent = control['Annual'] || 'N/A';
+                    } else {
+                        months.forEach(month => {
+                            const cell = row.insertCell();
+                            cell.textContent = control[month] || 'N/A';
+                        });
+                    }
+                    
+                    const postDynamicHeaders = ['Annual', 'Tracking Status', 'Link Name', 'Link URL'];
+                    postDynamicHeaders.forEach(id => {
+                         const cell = row.insertCell();
+                        if (id === 'Annual' && frequency !== 'Annually') {
+                             cell.textContent = '';
+                        } else if (id === 'Link Name') {
+                            const linkName = control['Link Name'];
+                            const linkURL = control['Link URL'];
+                            if (linkName && linkURL) {
+                                const anchor = document.createElement('a');
+                                anchor.href = linkURL;
+                                anchor.textContent = linkName;
+                                anchor.target = '_blank';
+                                cell.appendChild(anchor);
+                            } else {
+                                cell.textContent = linkName || '';
+                            }
+                        } else if (id !== 'Link URL') {
+                            cell.textContent = control[id] || '';
+                        }
+                    });
                 });
             } else {
-                 headersToUse = secondaryControlHeaders;
+                let headersToUse = controlType === 'secondaryControls' ? secondaryControlHeaders : qaChecklistHeaders;
                  const headerRow = tableHeader.insertRow();
                  headersToUse.forEach(header => {
                     const th = document.createElement('th');
                     th.textContent = header.label;
                     headerRow.appendChild(th);
                  });
+                const thActions = document.createElement('th');
+                thActions.textContent = "Actions";
+                headerRow.appendChild(thActions);
+
+                controls.forEach(control => {
+                    const row = tableBody.insertRow();
+                    headersToUse.forEach(header => {
+                        const cell = row.insertCell();
+                        cell.textContent = control[header.id] || '';
+                    });
+                    const actionsCell = row.insertCell();
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.classList.add('edit-btn');
+                    actionsCell.appendChild(editBtn);
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.classList.add('delete-btn', 'ml-1');
+                    actionsCell.appendChild(deleteBtn);
+                });
             }
-           
-
-            // Populate table body
-            controls.forEach(control => {
-                const row = tableBody.insertRow();
-                
-                // Render static columns
-                const nonStatusHeaders = staticKeyControlHeaders.slice(0,5).concat(staticKeyControlHeaders.slice(8));
-                nonStatusHeaders.forEach(header => {
-                     const cell = row.insertCell();
-                    if (header.id === 'Link Name') {
-                        const linkName = control['Link Name'];
-                        const linkURL = control['Link URL'];
-                        if (linkName && linkURL) {
-                            const anchor = document.createElement('a');
-                            anchor.href = linkURL;
-                            anchor.textContent = linkName;
-                            anchor.target = '_blank';
-                            cell.appendChild(anchor);
-                        } else {
-                            cell.textContent = linkName || '';
-                        }
-                    } else if (header.id === 'Link URL') {
-                        // Don't render as a separate cell
-                    } else {
-                        cell.textContent = control[header.id] || '';
-                    }
-                });
-
-                // Add month/quarter cells for PDF
-                const frequency = control['FREQ'] || 'Monthly';
-                if (frequency === 'Quarterly') {
-                    quarters.forEach(q => {
-                        const cell = row.insertCell();
-                        cell.colSpan = 3;
-                        cell.textContent = control[q] || 'N/A';
-                    });
-                } else if (frequency === 'Annually') {
-                    const cell = row.insertCell();
-                    cell.colSpan = 12;
-                    cell.textContent = control['Annual'] || 'N/A';
-                } else { // Monthly, Weekly, Daily
-                    months.forEach(month => {
-                        const cell = row.insertCell();
-                        cell.textContent = control[month] || 'N/A';
-                    });
-                }
-                
-                const postMonthsHeaders = staticKeyControlHeaders.slice(5, 8);
-                postMonthsHeaders.forEach(header => {
-                    const cell = row.insertCell();
-                    if (header.id === 'Annual') {
-                        if (control['FREQ'] === 'Annually') {
-                            cell.textContent = control[header.id] || '';
-                        } else {
-                            cell.textContent = '';
-                        }
-                    } else if (header.id === 'Tracking Status') {
-                        cell.textContent = control[header.id] || '';
-                    } else {
-                        cell.textContent = control[header.id] || '';
-                    }
-                });
-            });
         }
 
-        // --- Signature Upload Logic ---
         function handleSignatureUpload(fileInputId, previewId) {
             document.getElementById(fileInputId).addEventListener('change', (e) => {
                 const file = e.target.files[0];
