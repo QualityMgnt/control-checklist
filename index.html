@@ -977,15 +977,9 @@
                             cell.textContent = control[header.id] || '';
                         } else if (header.id === 'BY WHEN') {
                             cell.textContent = control[header.id] || '';
-                        } else if (header.id.length === 3 && (frequency === 'Monthly' || frequency === 'Weekly' || frequency === 'Daily')) {
+                        } else if (months.includes(header.id) && (frequency === 'Monthly' || frequency === 'Weekly' || frequency === 'Daily')) {
                             renderStatusCell(cell, control[header.id]);
-                        } else if (header.id === 'Q1' && frequency === 'Quarterly') {
-                            renderStatusCell(cell, control[header.id]);
-                        } else if (header.id === 'Q2' && frequency === 'Quarterly') {
-                            renderStatusCell(cell, control[header.id]);
-                        } else if (header.id === 'Q3' && frequency === 'Quarterly') {
-                            renderStatusCell(cell, control[header.id]);
-                        } else if (header.id === 'Q4' && frequency === 'Quarterly') {
+                        } else if (quarters.includes(header.id) && frequency === 'Quarterly') {
                             renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'Annual' && frequency === 'Annually') {
                             renderStatusCell(cell, control[header.id]);
@@ -1004,7 +998,7 @@
                             } else {
                                 cell.textContent = linkName || '';
                             }
-                        } else if (!['Q1', 'Q2', 'Q3', 'Q4', 'Annual', 'Link URL'].includes(header.id)) {
+                        } else if (![...months, ...quarters, 'Annual', 'Link URL'].includes(header.id)) {
                              cell.textContent = control[header.id] || '';
                         }
                     } else { // Secondary Controls
@@ -1194,7 +1188,7 @@
                         dynamicDiv.appendChild(div);
                     });
                     
-                    const buttonDiv = controlForm.querySelector('button[type="submit"]').parentNode;
+                    const buttonDiv = controlForm.querySelector('.flex-justify-end');
                     if (buttonDiv) {
                         controlForm.insertBefore(dynamicDiv, buttonDiv);
                     } else {
@@ -1359,7 +1353,7 @@
                 uploadControls('upload-secondary-control-file', 'secondaryControls');
             }
         });
-
+        
         let keyControlsChart, secondaryControlsChart;
 
         function getStatusCounts(controls, collectionName) {
@@ -1701,7 +1695,6 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, tableName);
             
-            // Add signature as a separate sheet
             if (signatureDataUrl) {
                 const signatureSheet = XLSX.utils.aoa_to_sheet([["Sign Off"], ["Signed By: Manager - John Doe"], [`Date: ${new Date().toLocaleDateString()}`]]);
                 XLSX.utils.sheet_add_aoa(signatureSheet, [[signatureDataUrl]], {origin: "A5"});
@@ -1710,7 +1703,6 @@
 
             XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
         }
-
     </script>
 </body>
 </html>
