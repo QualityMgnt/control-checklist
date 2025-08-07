@@ -96,7 +96,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-rgba(0, 0, 0, 0.06);
         }
         .btn-primary:hover {
             background-color: #2563eb;
@@ -620,28 +620,34 @@
 
         // --- Utility Functions ---
         function showLoadingSpinner() {
-            document.getElementById('loading-spinner').style.display = 'block';
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.style.display = 'block';
         }
 
         function hideLoadingSpinner() {
-            document.getElementById('loading-spinner').style.display = 'none';
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.style.display = 'none';
         }
 
         function showMessage(message, duration = 3000) {
             const msgBox = document.getElementById('message-box');
-            msgBox.textContent = message;
-            msgBox.classList.add('show');
-            setTimeout(() => {
-                msgBox.classList.remove('show');
-            }, duration);
+            if (msgBox) {
+                msgBox.textContent = message;
+                msgBox.classList.add('show');
+                setTimeout(() => {
+                    msgBox.classList.remove('show');
+                }, duration);
+            }
         }
 
         function showModal(modalId) {
-            document.getElementById(modalId).classList.add('show');
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('show');
         }
 
         function hideModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('show');
         }
         
         // Exponential backoff for API calls
@@ -699,6 +705,7 @@
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await retryOperation(() => signInWithCustomToken(auth, __initial_auth_token));
                 } else {
+                    // Fallback to anonymous sign-in
                     await retryOperation(() => signInAnonymously(auth));
                 }
             } catch (error) {
@@ -866,6 +873,7 @@
         
         function renderPdfsTable(pdfs) {
             const tableBody = document.querySelector('#pdf-database-table tbody');
+            if (!tableBody) return;
             tableBody.innerHTML = '';
             pdfs.forEach(pdf => {
                 const row = tableBody.insertRow();
@@ -946,6 +954,7 @@
 
         function renderControlsTable(controls, tableId, collectionName) {
             const tableBody = document.querySelector(`#${tableId} tbody`);
+            if (!tableBody) return;
             tableBody.innerHTML = '';
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -977,12 +986,24 @@
                             cell.textContent = control[header.id] || '';
                         } else if (header.id === 'BY WHEN') {
                             cell.textContent = control[header.id] || '';
-                        } else if (months.includes(header.id) && (frequency === 'Monthly' || frequency === 'Weekly' || frequency === 'Daily')) {
-                            renderStatusCell(cell, control[header.id]);
-                        } else if (quarters.includes(header.id) && frequency === 'Quarterly') {
-                            renderStatusCell(cell, control[header.id]);
-                        } else if (header.id === 'Annual' && frequency === 'Annually') {
-                            renderStatusCell(cell, control[header.id]);
+                        } else if (months.includes(header.id)) {
+                             if (frequency === 'Monthly' || frequency === 'Weekly' || frequency === 'Daily') {
+                                 renderStatusCell(cell, control[header.id]);
+                             } else {
+                                 cell.textContent = '';
+                             }
+                        } else if (quarters.includes(header.id)) {
+                             if (frequency === 'Quarterly') {
+                                 renderStatusCell(cell, control[header.id]);
+                             } else {
+                                 cell.textContent = '';
+                             }
+                        } else if (header.id === 'Annual') {
+                            if (frequency === 'Annually') {
+                                 renderStatusCell(cell, control[header.id]);
+                             } else {
+                                 cell.textContent = '';
+                             }
                         } else if (header.id === 'Tracking Status') {
                             renderStatusCell(cell, control['Tracking Status']);
                         } else if (header.id === 'Link Name') {
@@ -998,7 +1019,7 @@
                             } else {
                                 cell.textContent = linkName || '';
                             }
-                        } else if (![...months, ...quarters, 'Annual', 'Link URL'].includes(header.id)) {
+                        } else if (header.id !== 'Link URL') {
                              cell.textContent = control[header.id] || '';
                         }
                     } else { // Secondary Controls
@@ -1094,6 +1115,7 @@
 
             const modalTitle = document.getElementById('modal-title');
             const controlForm = document.getElementById('control-form');
+            if (!controlForm || !modalTitle) return;
             controlForm.innerHTML = '';
 
             let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
@@ -1188,7 +1210,7 @@
                         dynamicDiv.appendChild(div);
                     });
                     
-                    const buttonDiv = controlForm.querySelector('.flex-justify-end');
+                    const buttonDiv = controlForm.querySelector('button[type="submit"]')?.parentNode;
                     if (buttonDiv) {
                         controlForm.insertBefore(dynamicDiv, buttonDiv);
                     } else {
@@ -1196,7 +1218,8 @@
                     }
                 };
                 
-                addMonthFields(data['FREQ'] || 'Monthly');
+                const currentFrequency = data['FREQ'] || 'Monthly';
+                addMonthFields(currentFrequency);
                 frequencySelect.addEventListener('change', (e) => {
                     addMonthFields(e.target.value);
                 });
@@ -1446,6 +1469,7 @@
 
         async function loadUsers() {
             const userList = document.getElementById('user-list');
+            if (!userList) return;
             userList.innerHTML = '';
             if (auth.currentUser) {
                 const listItem = document.createElement('li');
@@ -1476,28 +1500,28 @@
             if (type === 'keyControls') {
                 controlsToPrint = controlData.keyControls;
                 title = 'Key Controls Report';
-                pdfReportTitle.textContent = title;
+                if(pdfReportTitle) pdfReportTitle.textContent = title;
                 populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
             } else if (type === 'secondaryControls') {
                 controlsToPrint = controlData.secondaryControls;
                 title = 'Secondary Controls Report';
-                pdfReportTitle.textContent = title;
+                if(pdfReportTitle) pdfReportTitle.textContent = title;
                 populatePdfTable(pdfTable, controlsToPrint, 'secondaryControls');
             } else if (type === 'all') {
                  controlsToPrint = controlData.keyControls.concat(controlData.secondaryControls);
                  title = 'All Controls Report';
-                 pdfReportTitle.textContent = title;
+                 if(pdfReportTitle) pdfReportTitle.textContent = title;
                  populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
             }
 
-            if (signatureDataUrl) {
+            if (signatureDataUrl && pdfSignatureImage) {
                 pdfSignatureImage.src = signatureDataUrl;
                 pdfSignatureImage.style.display = 'block';
-            } else {
+            } else if (pdfSignatureImage) {
                 pdfSignatureImage.style.display = 'none';
             }
-
-            pdfExportContent.style.display = 'block';
+            
+            if(pdfExportContent) pdfExportContent.style.display = 'block';
             
             const options = {
                 margin: 10,
@@ -1508,7 +1532,7 @@
             };
 
             await html2pdf().set(options).from(pdfExportContent).save().then(async () => {
-                pdfExportContent.style.display = 'none';
+                if(pdfExportContent) pdfExportContent.style.display = 'none';
                 showMessage('PDF generated successfully!');
 
                 const pdfRecord = {
@@ -1521,12 +1545,13 @@
             }).catch(error => {
                 console.error("Error generating PDF:", error);
                 showMessage(`Failed to generate PDF: ${error.message}`);
-                pdfExportContent.style.display = 'none';
+                if(pdfExportContent) pdfExportContent.style.display = 'none';
             });
             hideLoadingSpinner();
         }
 
         function populatePdfTable(tableElement, controls, controlType) {
+            if (!tableElement) return;
             const tableHeader = tableElement.querySelector('thead') || tableElement.createTHead();
             const tableBody = tableElement.querySelector('tbody') || tableElement.createTBody();
             tableHeader.innerHTML = '';
@@ -1557,13 +1582,14 @@
                     th.colSpan = 3;
                     th.classList.add('table-header-quarters');
                     firstRow.appendChild(th);
-                    dynamicHeaders[q].forEach(month => {
-                        const thMonth = document.createElement('th');
-                        thMonth.textContent = month;
-                        thMonth.classList.add('table-header-months');
-                        secondRow.appendChild(thMonth);
-                    });
                 }
+
+                months.forEach(month => {
+                    const thMonth = document.createElement('th');
+                    thMonth.textContent = month;
+                    thMonth.classList.add('table-header-months');
+                    secondRow.appendChild(thMonth);
+                });
 
                 const otherStaticHeaders = ['Annual', 'Tracking Status', 'Link Name'];
                 otherStaticHeaders.forEach(h => {
@@ -1593,7 +1619,7 @@
                             cell.textContent = control[q] || 'N/A';
                         });
                     } else if (frequency === 'Annually') {
-                         const cell = row.insertCell();
+                        const cell = row.insertCell();
                         cell.colSpan = 12;
                         cell.textContent = control['Annual'] || 'N/A';
                     } else {
@@ -1657,22 +1683,33 @@
         }
 
         function handleSignatureUpload(fileInputId, previewId) {
-            document.getElementById(fileInputId).addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        signatureDataUrl = event.target.result;
-                        document.getElementById(previewId).src = signatureDataUrl;
-                        document.getElementById(previewId).classList.remove('hidden');
-                        showMessage('Signature uploaded successfully!');
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-            document.getElementById(fileInputId.replace('-upload', '-btn')).addEventListener('click', () => {
-                document.getElementById(fileInputId).click();
-            });
+            const fileInput = document.getElementById(fileInputId);
+            const uploadBtn = document.getElementById(fileInputId.replace('-upload', '-btn'));
+            const previewImg = document.getElementById(previewId);
+
+            if (uploadBtn) {
+                uploadBtn.addEventListener('click', () => {
+                    fileInput?.click();
+                });
+            }
+
+            if (fileInput) {
+                fileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            signatureDataUrl = event.target.result;
+                            if (previewImg) {
+                                previewImg.src = signatureDataUrl;
+                                previewImg.classList.remove('hidden');
+                            }
+                            showMessage('Signature uploaded successfully!');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
         }
         
         handleSignatureUpload('key-controls-signature-upload', 'key-controls-signature-preview');
