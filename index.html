@@ -705,7 +705,6 @@
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await retryOperation(() => signInWithCustomToken(auth, __initial_auth_token));
                 } else {
-                    // Fallback to anonymous sign-in
                     await retryOperation(() => signInAnonymously(auth));
                 }
             } catch (error) {
@@ -987,23 +986,11 @@
                         } else if (header.id === 'BY WHEN') {
                             cell.textContent = control[header.id] || '';
                         } else if (months.includes(header.id)) {
-                             if (frequency === 'Monthly' || frequency === 'Weekly' || frequency === 'Daily') {
-                                 renderStatusCell(cell, control[header.id]);
-                             } else {
-                                 cell.textContent = '';
-                             }
+                             renderStatusCell(cell, control[header.id]);
                         } else if (quarters.includes(header.id)) {
-                             if (frequency === 'Quarterly') {
-                                 renderStatusCell(cell, control[header.id]);
-                             } else {
-                                 cell.textContent = '';
-                             }
+                             renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'Annual') {
-                            if (frequency === 'Annually') {
-                                 renderStatusCell(cell, control[header.id]);
-                             } else {
-                                 cell.textContent = '';
-                             }
+                             renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'Tracking Status') {
                             renderStatusCell(cell, control['Tracking Status']);
                         } else if (header.id === 'Link Name') {
@@ -1019,7 +1006,7 @@
                             } else {
                                 cell.textContent = linkName || '';
                             }
-                        } else if (header.id !== 'Link URL') {
+                        } else if (!['Link URL'].includes(header.id)) {
                              cell.textContent = control[header.id] || '';
                         }
                     } else { // Secondary Controls
@@ -1220,9 +1207,11 @@
                 
                 const currentFrequency = data['FREQ'] || 'Monthly';
                 addMonthFields(currentFrequency);
-                frequencySelect.addEventListener('change', (e) => {
-                    addMonthFields(e.target.value);
-                });
+                if(frequencySelect) {
+                    frequencySelect.addEventListener('change', (e) => {
+                        addMonthFields(e.target.value);
+                    });
+                }
             }
 
             const buttonDiv = document.createElement('div');
@@ -1739,6 +1728,16 @@
             }
 
             XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+        
+        // Remove QA Checklist functionality
+        const qaChecklistTabButton = document.querySelector('[data-tab="qa-checklist"]');
+        if (qaChecklistTabButton) {
+            qaChecklistTabButton.remove();
+        }
+        const qaChecklistContent = document.getElementById('qa-checklist-content');
+        if (qaChecklistContent) {
+            qaChecklistContent.remove();
         }
     </script>
 </body>
