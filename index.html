@@ -1,1840 +1,1744 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Experience Controls</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            width: 100vw;
-            margin: 0;
-            overflow: hidden;
-        }
-        .container {
-            background-color: #ffffff;
-            border-radius: 0;
-            box-shadow: none;
-            width: 100vw;
-            height: 100vh;
-            max-width: none;
-            max-height: none;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        .top-nav {
-            display: flex;
-            flex-wrap: wrap;
-            background-color: #f9fafb;
-            border-bottom: 1px solid #e5e7eb;
-            border-radius: 0;
-            padding: 0.5rem 1rem;
-            justify-content: flex-start;
-        }
-        .top-nav .tab-button {
-            padding: 0.75rem 1.5rem;
-            border-bottom: 3px solid transparent;
-            border-left: none;
-            text-align: center;
-            flex-grow: 1;
-            background-color: #3b82f6;
-            color: white;
-            margin: 0.25rem;
-            border-radius: 0.5rem;
-        }
-        .top-nav .tab-button:hover {
-            background-color: #2563eb;
-        }
-        .top-nav .tab-button.active {
-            border-color: #ffffff;
-            background-color: #1d4ed8;
-            color: white;
-            border-bottom: 3px solid white;
-            border-left: none;
-        }
-        .tab-content {
-            display: none;
-            padding: 1.5rem;
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .input-field {
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            width: 100%;
-            box-sizing: border-box;
-            font-size: 0.9rem;
-        }
-        .btn-primary {
-            background-color: #3b82f6;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-rgba(0, 0, 0, 0.06);
-        }
-        .btn-primary:hover {
-            background-color: #2563eb;
-        }
-        .btn-secondary {
-            background-color: #6b7280;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .btn-secondary:hover {
-            background-color: #4b5563;
-        }
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-        }
-        .modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease-in-out;
-        }
-        .modal.show .modal-content {
-            transform: translateY(0);
-        }
-        .loading-spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1001;
-            display: none;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .message-box {
-            position: fixed;
-            bottom: 1rem;
-            right: 1rem;
-            background-color: #333;
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .message-box.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        th, td {
-            border: 1px solid #e5e7eb;
-            padding: 0.75rem;
-            text-align: left;
-            font-size: 0.875rem;
-        }
-        th {
-            background-color: #f9fafb;
-            font-weight: 600;
-            color: #374151;
-            white-space: nowrap;
-        }
-        tbody tr:nth-child(even) {
-            background-color: #f3f4f6;
-        }
-        tbody tr:hover {
-            background-color: #e5e7eb;
-        }
-        .action-buttons button {
-            margin-right: 0.5rem;
-            padding: 0.3rem 0.6rem;
-            border-radius: 0.3rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-        }
-        .action-buttons .edit-btn {
-            background-color: #22c55e;
-            color: white;
-        }
-        .action-buttons .edit-btn:hover {
-            background-color: #16a34a;
-        }
-        .action-buttons .delete-btn {
-            background-color: #ef4444;
-            color: white;
-        }
-        .action-buttons .delete-btn:hover {
-            background-color: #dc2626;
-        }
-        .pdf-export-content {
-            display: none;
-            padding: 1rem;
-            background-color: white;
-        }
-        @media (max-width: 768px) {
-            .container {
-                width: 100%;
-                border-radius: 0;
-                box-shadow: none;
-                min-height: 100vh;
-            }
-            .top-nav {
-                flex-direction: row;
-                justify-content: center;
-                padding: 0.5rem;
-            }
-            .top-nav .tab-button {
-                margin: 0.125rem;
-                padding: 0.5rem 0.75rem;
-            }
-            .modal-content {
-                width: 95%;
-                padding: 1rem;
-            }
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Experience Controls</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js CDN for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- SheetJS for Excel generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100vw;
+            margin: 0;
+            overflow: hidden;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 0;
+            box-shadow: none;
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            max-height: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .top-nav {
+            display: flex;
+            flex-wrap: wrap;
+            background-color: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            border-radius: 0;
+            padding: 0.5rem 1rem;
+            justify-content: flex-start;
+        }
+        .top-nav .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-bottom: 3px solid transparent;
+            border-left: none;
+            text-align: center;
+            flex-grow: 1;
+            background-color: #3b82f6;
+            color: white;
+            margin: 0.25rem;
+            border-radius: 0.5rem;
+        }
+        .top-nav .tab-button:hover {
+            background-color: #2563eb;
+        }
+        .top-nav .tab-button.active {
+            border-color: #ffffff;
+            background-color: #1d4ed8;
+            color: white;
+            border-bottom: 3px solid white;
+            border-left: none;
+        }
+        .tab-content {
+            display: none;
+            padding: 1.5rem;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .input-field {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-rgba(0, 0, 0, 0.06);
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message-box {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: #333;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .message-box.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            white-space: nowrap;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f3f4f6;
+        }
+        tbody tr:hover {
+            background-color: #e5e7eb;
+        }
+        .action-buttons button {
+            margin-right: 0.5rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.3rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .action-buttons .edit-btn {
+            background-color: #22c55e;
+            color: white;
+        }
+        .action-buttons .edit-btn:hover {
+            background-color: #16a34a;
+        }
+        .action-buttons .delete-btn {
+            background-color: #ef4444;
+            color: white;
+        }
+        .action-buttons .delete-btn:hover {
+            background-color: #dc2626;
+        }
+        .pdf-export-content {
+            display: none;
+            padding: 1rem;
+            background-color: white;
+        }
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                min-height: 100vh;
+            }
+            .top-nav {
+                flex-direction: row;
+                justify-content: center;
+                padding: 0.5rem;
+            }
+            .top-nav .tab-button {
+                margin: 0.125rem;
+                padding: 0.5rem 0.75rem;
+            }
+            .modal-content {
+                width: 95%;
+                padding: 1rem;
+            }
+        }
 
-        /* Status colors */
-        .status-green { background-color: #d1fae5; color: #065f46; font-weight: 600; }
-        .status-red { background-color: #fee2e2; color: #991b1b; font-weight: 600; }
-        .status-amber { background-color: #fef3c7; color: #92400e; font-weight: 600; }
-        .status-gray { background-color: #e5e7eb; color: #374151; font-weight: 600; }
-        
-        /* Status Badges */
-        .status-badge {
-            display: inline-block;
-            padding: 0.25em 0.5em;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            line-height: 1;
-            text-align: center;
-            white-space: nowrap;
-        }
-        .status-green-badge { background-color: #d1fae5; color: #065f46; }
-        .status-red-badge { background-color: #fee2e2; color: #991b1b; }
-        .status-amber-badge { background-color: #fef3c7; color: #92400e; }
-        .status-gray-badge { background-color: #e5e7eb; color: #374151; }
-        
-        /* Table cell styling */
-        td.status-cell {
-            padding: 0;
-            text-align: center;
-        }
-        .status-text {
-            display: block;
-            padding: 0.75rem;
-            width: 100%;
-            height: 100%;
-        }
-        .table-header-months, .table-header-quarters {
-            text-align: center;
-        }
-        .pdf-signature-area {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            margin-top: 1rem;
-            padding: 1rem;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            max-width: 400px;
-        }
-        .pdf-signature-area img {
-            height: 60px;
-            width: auto;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .pdf-signature-area span {
-            margin-left: 1rem;
-            font-style: italic;
-            color: #6b7280;
-        }
+        /* Status colors */
+        .status-green { background-color: #d1fae5; color: #065f46; font-weight: 600; }
+        .status-red { background-color: #fee2e2; color: #991b1b; font-weight: 600; }
+        .status-amber { background-color: #fef3c7; color: #92400e; font-weight: 600; }
+        .status-gray { background-color: #e5e7eb; color: #374151; font-weight: 600; }
+        
+        /* Table cell styling */
+        td.status-cell {
+            padding: 0;
+            text-align: center;
+        }
+        .status-text {
+            display: block;
+            padding: 0.75rem;
+            width: 100%;
+            height: 100%;
+        }
+        .table-header-months, .table-header-quarters {
+            text-align: center;
+        }
+        .pdf-signature-area {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            max-width: 400px;
+        }
+        .pdf-signature-area img {
+            height: 60px;
+            width: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .pdf-signature-area span {
+            margin-left: 1rem;
+            font-style: italic;
+            color: #6b7280;
+        }
 
-        /* Excel Export specific styles (hidden from normal view) */
-        #excel-export-content {
-            position: fixed;
-            top: -9999px;
-            left: -9999px;
-            width: auto;
-            height: auto;
-        }
-    </style>
+        /* Excel Export specific styles (hidden from normal view) */
+        #excel-export-content {
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: auto;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
 
-        <div id="loading-spinner" class="loading-spinner"></div>
-
-        <div id="message-box" class="message-box"></div>
-
-        <div id="login-page" class="w-full h-screen flex items-center justify-center bg-gray-100">
-        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-            <h2 class="text-3xl font-bold text-center text-blue-600 mb-8">Login to Customer Experience Controls</h2>
-            <form id="login-form" class="space-y-6">
-                <div>
-                    <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" id="login-email" placeholder="Enter your email" required class="input-field">
-                </div>
-                <div>
-                    <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input type="password" id="login-password" placeholder="Enter your password" required class="input-field">
-                    <a href="#" id="forgot-password" class="block text-sm text-blue-600 hover:underline mt-2 text-right">Forgot password?</a>
-                </div>
-                <button type="submit" class="btn-primary w-full">Login</button>
-                <p class="text-center text-sm text-gray-600 mt-4">
-                    Don't have an account? <a href="#" id="show-signup" class="text-blue-600 hover:underline">Sign Up</a>
-                </p>
-            </form>
-            <form id="signup-form" class="space-y-6 hidden">
-                <div>
-                    <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" id="signup-email" placeholder="Enter your email" required class="input-field">
-                </div>
-                <div>
-                    <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input type="password" id="signup-password" placeholder="Create a password" required class="input-field">
-                </div>
-                <button type="submit" class="btn-primary w-full">Sign Up</button>
-                <p class="text-center text-sm text-gray-600 mt-4">
-                    Already have an account? <a href="#" id="show-login" class="text-blue-600 hover:underline">Login</a>
-                </p>
-            </form>
-        </div>
-    </div>
-
-        <div id="app-page" class="container hidden">
-        <header class="flex justify-between items-center p-4 bg-purple-600 text-white">
-            <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
-            <div class="flex items-center space-x-4">
-                <span id="user-display" class="text-sm font-medium"></span>
-                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm font-medium transition-colors">Logout</button>
-            </div>
-        </header>
-
-                <nav class="top-nav tab-buttons">
-            <button class="tab-button active" data-tab="dashboard">Dashboard</button>
-            <button class="tab-button" data-tab="key-controls">Key Controls</button>
-            <button class="tab-button" data-tab="secondary-controls">Secondary Controls</button>
-            <button class="tab-button" data-tab="admin">Admin</button>
-            <button class="tab-button" data-tab="database">Database</button>
-        </nav>
-
-        <main class="flex-grow p-6 overflow-hidden">
-                        <div id="dashboard-content" class="tab-content active">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-xl font-medium text-gray-700 mb-4">Key Controls Status</h3>
-                        <canvas id="keyControlsChart"></canvas>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-xl font-medium text-gray-700 mb-4">Secondary Controls Status</h3>
-                        <canvas id="secondaryControlsChart"></canvas>
-                    </div>
-                </div>
-                <div class="mt-8">
-                    <button id="generate-all-pdf-button" class="btn-primary">Generate All Controls PDF</button>
-                </div>
-            </div>
-
-                        <div id="key-controls-content" class="tab-content">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Key Controls</h2>
-                <div class="flex flex-wrap items-center gap-4 mb-4">
-                    <input type="text" id="key-controls-search" placeholder="Search controls..." class="input-field w-full md:w-auto flex-grow">
-                    <select id="key-controls-status-filter" class="input-field w-full md:w-auto">
-                        <option value="">Filter by Status</option>
-                        <option value="On track">On track</option>
-                        <option value="Overdue">Overdue</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Closed">Closed</option>
-                        <option value="N/A">N/A</option>
-                    </select>
-                </div>
-                <div class="overflow-x-auto">
-                    <table id="key-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                        <thead>
-                            <tr>
-                                <th rowspan="2">Description</th>
-                                <th rowspan="2">How</th>
-                                <th rowspan="2">Frequency</th>
-                                <th rowspan="2">By When</th>
-                                <th rowspan="2">Evidence</th>
-                                <th colspan="3" class="table-header-quarters">Q1</th>
-                                <th colspan="3" class="table-header-quarters">Q2</th>
-                                <th colspan="3" class="table-header-quarters">Q3</th>
-                                <th colspan="3" class="table-header-quarters">Q4</th>
-                                <th rowspan="2">Annual</th>
-                                <th rowspan="2">Tracking Status</th>
-                                <th rowspan="2">Link</th>
-                                <th rowspan="2" colspan="2">Actions</th>
-                            </tr>
-                            <tr>
-                                <th class="table-header-months">JAN</th>
-                                <th class="table-header-months">FEB</th>
-                                <th class="table-header-months">MAR</th>
-                                <th class="table-header-months">APR</th>
-                                <th class="table-header-months">MAY</th>
-                                <th class="table-header-months">JUN</th>
-                                <th class="table-header-months">JUL</th>
-                                <th class="table-header-months">AUG</th>
-                                <th class="table-header-months">SEP</th>
-                                <th class="table-header-months">OCT</th>
-                                <th class="table-header-months">NOV</th>
-                                <th class="table-header-months">DEC</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                                                    </tbody>
-                    </table>
-                </div>
-                                <div class="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
-                    <h3 class="text-lg font-semibold mb-4">Sign Off</h3>
-                    <div class="flex items-center space-x-4">
-                        <input type="file" id="key-controls-signature-upload" accept="image/*" class="hidden">
-                        <button id="key-controls-upload-signature-btn" class="btn-primary">Upload Signature</button>
-                        <img id="key-controls-signature-preview" class="h-16 w-auto border rounded-md hidden" src="" alt="Signature Preview">
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-4 mt-6 justify-end">
-                    <button id="add-key-control-btn" class="btn-primary">Add New Key Control</button>
-                    <input type="file" id="upload-key-control-file" accept=".csv" class="hidden">
-                    <button id="upload-key-control-btn" class="btn-secondary">Upload Key Controls (CSV)</button>
-                    <button id="generate-key-pdf-button" class="btn-primary">Generate PDF</button>
-                    <button id="download-key-excel-button" class="btn-primary">Download as Excel</button>
-                </div>
-            </div>
-
-                        <div id="secondary-controls-content" class="tab-content">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Secondary Controls</h2>
-                <div class="flex flex-wrap items-center gap-4 mb-4">
-                    <input type="text" id="secondary-controls-search" placeholder="Search controls..." class="input-field w-full md:w-auto flex-grow">
-                    <select id="secondary-controls-status-filter" class="input-field w-full md:w-auto">
-                        <option value="">Filter by Assessment</option>
-                        <option value="Effective">Effective</option>
-                        <option value="Partially Effective">Partially Effective</option>
-                        <option value="Not Effective">Not Effective</option>
-                    </select>
-                </div>
-                <div class="overflow-x-auto">
-                    <table id="secondary-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                        <thead>
-                            <tr>
-                                <th>Description</th>
-                                <th>How</th>
-                                <th>Who</th>
-                                <th>Frequency</th>
-                                <th>By When</th>
-                                <th>Evidence</th>
-                                <th>Archived</th>
-                                <th>Date of Review</th>
-                                <th>Total Transactions</th>
-                                <th>Samples Checked</th>
-                                <th>Exceptions</th>
-                                <th>Assessment</th>
-                                <th>Required Action</th>
-                                <th>Closure Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                                                    </tbody>
-                    </table>
-                </div>
-                                <div class="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
-                    <h3 class="text-lg font-semibold mb-4">Sign Off</h3>
-                    <div class="flex items-center space-x-4">
-                        <input type="file" id="secondary-controls-signature-upload" accept="image/*" class="hidden">
-                        <button id="secondary-controls-upload-signature-btn" class="btn-primary">Upload Signature</button>
-                        <img id="secondary-controls-signature-preview" class="h-16 w-auto border rounded-md hidden" src="" alt="Signature Preview">
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-4 mt-6 justify-end">
-                    <button id="add-secondary-control-btn" class="btn-primary">Add New Secondary Control</button>
-                    <input type="file" id="upload-secondary-control-file" accept=".csv" class="hidden">
-                    <button id="upload-secondary-control-btn" class="btn-secondary">Upload Secondary Controls (CSV)</button>
-                    <button id="generate-secondary-pdf-button" class="btn-primary">Generate PDF</button>
-                    <button id="download-secondary-excel-button" class="btn-primary">Download as Excel</button>
-                </div>
-            </div>
-
-                        <div id="admin-content" class="tab-content">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Admin Panel</h2>
-                <div id="admin-content-restricted">
-                    <p class="text-red-500 font-bold mb-4">Access Denied: Admin privileges required.</p>
-                </div>
-                <div id="admin-content-allowed" class="hidden">
-                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                        <h3 class="text-xl font-medium text-gray-700 mb-4">Create New User</h3>
-                        <form id="create-user-form" class="space-y-4">
-                            <div>
-                                <label for="new-user-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                <input type="email" id="new-user-email" placeholder="New user email" required class="input-field">
-                            </div>
-                            <div>
-                                <label for="new-user-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                                <input type="password" id="new-user-password" placeholder="New user password" required class="input-field">
-                            </div>
-                            <button type="submit" class="btn-primary">Create User</button>
-                        </form>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-xl font-medium text-gray-700 mb-4">Current Users</h3>
-                        <ul id="user-list" class="list-disc pl-5 text-gray-700">
-                                                    </ul>
-                    </div>
-                </div>
-            </div>
-
-                        <div id="database-content" class="tab-content">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Generated PDF Database</h2>
-                <div class="overflow-x-auto">
-                    <table id="pdf-database-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                        <thead>
-                            <tr>
-                                <th class="w-10"><input type="checkbox" class="form-checkbox"></th>
-                                <th>Date Generated</th>
-                                <th>Month</th>
-                                <th>Control Type</th>
-                                <th class="w-24">Delete</th>
-                                <th class="w-24">Share</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                                                    </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-    </div>
-
-        <div id="control-modal" class="modal">
-        <div class="modal-content">
-            <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4">Add New Control</h3>
-            <form id="control-form" class="space-y-4">
-                                <div class="flex justify-end mt-6">
-                    <button type="submit" class="btn-primary">Save Control</button>
-                    <button type="button" id="cancel-control-modal" class="btn-secondary ml-2">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-        <div id="confirmation-modal" class="modal">
-        <div class="modal-content text-center">
-            <h3 id="confirmation-modal-title" class="text-xl font-bold text-gray-800 mb-4">Confirm Deletion</h3>
-            <p id="confirmation-modal-message" class="mb-6">Are you sure you want to delete this item? This action cannot be undone.</p>
-            <div class="flex justify-center gap-4">
-                <button id="confirm-delete-btn" class="btn-primary bg-red-600 hover:bg-red-700">Delete</button>
-                <button id="cancel-delete-btn" class="btn-secondary">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-        <div id="pdf-export-content" class="pdf-export-content">
-        <div id="pdf-content-wrapper">
-            <h1 class="text-2xl font-bold text-center mb-6">Customer Experience Controls Report</h1>
-            <h2 id="pdf-report-title" class="text-xl font-semibold mt-8 mb-4"></h2>
-            <div class="overflow-x-auto">
-                <table id="pdf-table-to-generate" class="min-w-full bg-white border border-gray-200">
-                                    </table>
-            </div>
-                        <div class="pdf-signature-area">
-                <img id="pdf-signature-image" class="h-16 w-auto border rounded-md" src="" alt="Signature" style="display:none;">
-                <div class="flex-grow ml-4">
-                    <p class="font-semibold">Signed By:</p>
-                    <p class="text-sm">Manager - John Doe</p>
-                    <p class="text-sm">Date: ${new Date().toLocaleDateString()}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-        <div id="excel-export-content" style="display: none;">
-        <table id="excel-table-to-generate"></table>
-    </div>
-
-        <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import {
-            getAuth,
-            signInAnonymously,
-            signInWithCustomToken,
-            onAuthStateChanged,
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            signOut,
-            sendPasswordResetEmail
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import {
-            getFirestore,
-            collection,
-            doc,
-            setDoc,
-            addDoc,
-            updateDoc,
-            deleteDoc,
-            onSnapshot,
-            getDocs,
-            writeBatch
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        let app;
-        let db;
-        let auth;
-        let currentUserId = null;
-        let signatureDataUrl = '';
-        const ADMIN_EMAIL = 'darius.kedera@riceallon.com';
-
-        // --- Utility Functions ---
-        function showLoadingSpinner() {
-            const spinner = document.getElementById('loading-spinner');
-            if (spinner) spinner.style.display = 'block';
-        }
-
-        function hideLoadingSpinner() {
-            const spinner = document.getElementById('loading-spinner');
-            if (spinner) spinner.style.display = 'none';
-        }
-
-        function showMessage(message, duration = 3000) {
-            const msgBox = document.getElementById('message-box');
-            if (msgBox) {
-                msgBox.textContent = message;
-                msgBox.classList.add('show');
-                setTimeout(() => {
-                    msgBox.classList.remove('show');
-                }, duration);
-            }
-        }
-
-        function showModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.add('show');
-        }
-
-        function hideModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.remove('show');
-        }
-        
-        // Exponential backoff for API calls
-        async function retryOperation(operation, maxRetries = 5, delay = 1000) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    return await operation();
-                } catch (error) {
-                    if (i < maxRetries - 1) {
-                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
-                    } else {
-                        throw error;
-                    }
-                }
-            }
-        }
-        
-        // Debounce function for search input
-        function debounce(func, delay) {
-            let timeout;
-            return function(...args) {
-                const context = this;
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(context, args), delay);
-            };
-        }
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = {
-            apiKey: "AIzaSyDEK6AOeXiZVWKXw715FGkX9_yeNaKHx_8",
-            authDomain: "controls-f11f8.firebaseapp.com",
-            projectId: "controls-f11f8",
-            storageBucket: "controls-f11f8.firebasestorage.app",
-            messagingSenderId: "316152578637",
-            appId: "1:316152578637:web:b0b3c11c9821ee8bb05204",
-            measurementId: "G-793K2F5VZC"
-        };
-
-        app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                document.getElementById('user-display').textContent = `User: ${user.email || user.uid}`;
-                document.getElementById('login-page').classList.add('hidden');
-                document.getElementById('app-page').classList.remove('hidden');
-
-                // Check for admin status and toggle admin panel visibility
-                if (user.email === ADMIN_EMAIL) {
-                    document.getElementById('admin-content-restricted').classList.add('hidden');
-                    document.getElementById('admin-content-allowed').classList.remove('hidden');
-                } else {
-                    document.getElementById('admin-content-restricted').classList.remove('hidden');
-                    document.getElementById('admin-content-allowed').classList.add('hidden');
-                }
-
-                await loadControls('keyControls', 'key-controls-table');
-                await loadControls('secondaryControls', 'secondary-controls-table');
-                await loadPdfs();
-                await loadUsers();
-                renderDashboardCharts();
-            } else {
-                currentUserId = null;
-                document.getElementById('login-page').classList.remove('hidden');
-                document.getElementById('app-page').classList.add('hidden');
-            }
-            hideLoadingSpinner();
-        });
-
-        async function initialSignIn() {
-            showLoadingSpinner();
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await retryOperation(() => signInWithCustomToken(auth, __initial_auth_token));
-                } else {
-                    await retryOperation(() => signInAnonymously(auth));
-                }
-            } catch (error) {
-                console.error("Error during initial sign-in:", error);
-                showMessage(`Authentication failed: ${error.message}`);
-            } finally {
-                hideLoadingSpinner();
-            }
-        }
-        initialSignIn();
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            showLoadingSpinner();
-            try {
-                await retryOperation(() => signInWithEmailAndPassword(auth, email, password));
-                showMessage('Logged in successfully!');
-            } catch (error) {
-                console.error("Login error:", error);
-                showMessage(`Login failed: ${error.message}`);
-            } finally {
-                hideLoadingSpinner();
-            }
-        });
-
-        document.getElementById('signup-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            showLoadingSpinner();
-            try {
-                await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
-                showMessage('Account created and logged in successfully!');
-            } catch (error) {
-                console.error("Signup error:", error);
-                showMessage(`Signup failed: ${error.message}`);
-            } finally {
-                hideLoadingSpinner();
-            }
-        });
-
-        document.getElementById('show-signup').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('signup-form').classList.remove('hidden');
-        });
-
-        document.getElementById('show-login').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('signup-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-        });
-
-        document.getElementById('logout-button').addEventListener('click', async () => {
-            showLoadingSpinner();
-            try {
-                await retryOperation(() => signOut(auth));
-                showMessage('Logged out successfully!');
-            } catch (error) {
-                console.error("Logout error:", error);
-                showMessage(`Logout failed: ${error.message}`);
-            } finally {
-                hideLoadingSpinner();
-            }
-        });
-
-        document.getElementById('forgot-password').addEventListener('click', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            if (!email) {
-                showMessage('Please enter your email address to reset your password.');
-                return;
-            }
-            showLoadingSpinner();
-            try {
-                await retryOperation(() => sendPasswordResetEmail(auth, email));
-                showMessage(`Password reset email sent to ${email}. Please check your inbox.`);
-            } catch (error) {
-                console.error("Forgot password error:", error);
-                showMessage(`Failed to send reset email: ${error.message}`);
-            } finally {
-                hideLoadingSpinner();
-            }
-        });
-
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-                button.classList.add('active');
-                document.getElementById(`${button.dataset.tab}-content`).classList.add('active');
-            });
-        });
-
-        const controlData = {
-            keyControls: [],
-            secondaryControls: [],
-            generatedPdfs: []
-        };
-        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-
-        const keyControlHeaders = [
-            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
-            { id: 'HOW', label: 'How', type: 'text' },
-            { id: 'FREQ', label: 'Frequency', type: 'select', options: ['Quarterly', 'Monthly', 'Weekly', 'Annually', 'Daily'] },
-            { id: 'BY WHEN', label: 'By When', type: 'date' },
-            { id: 'EVIDENCE OF CONTROL', label: 'Evidence of Control', type: 'text' },
-            { id: 'Q1', label: 'Q1', type: 'select', options: ['Yes', 'N/A', 'No'] },
-            { id: 'Q2', label: 'Q2', type: 'select', options: ['Yes', 'N/A', 'No'] },
-            { id: 'Q3', label: 'Q3', type: 'select', options: ['Yes', 'N/A', 'No'] },
-            { id: 'Q4', label: 'Q4', type: 'select', options: ['Yes', 'N/A', 'No'] },
-            { id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'N/A', 'No'] },
-            { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On track', 'Overdue', 'Pending', 'Closed'] },
-            { id: 'Link Name', label: 'Link Name', type: 'text' },
-            { id: 'Link URL', label: 'Link URL', type: 'url' },
-        ];
-
-        const secondaryControlHeaders = [
-            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
-            { id: 'HOW (i.e. Manual/ Automated)', label: 'How', type: 'text' },
-            { id: 'WHO (i.e. Title of reviewer)', label: 'Who', type: 'text' },
-            { id: 'FREQUENCY e.g. Daily, Weekly, Monthly', label: 'Frequency', type: 'text' },
-            { id: 'BY WHEN (TATs e.g. by 10th of ever month)', label: 'By When', type: 'date' },
-            { id: 'EVIDENCE OF CONTROL e.g What is signed-off?', label: 'Evidence of Control', type: 'text' },
-            { id: 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', label: 'How Archived', type: 'text' },
-            { id: 'Date of Review', label: 'Date of Review', type: 'date' },
-            { id: 'Total number of transactions (where applicable)', label: 'Total Transactions', type: 'number' },
-            { id: 'Samples checked (Where Applicable)', label: 'Samples Checked', type: 'text' },
-            { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
-            { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
-            { id: 'Required Action', label: 'Required Action', type: 'text' },
-            { id: 'Closure Date', label: 'Closure Date', type: 'date' }
-        ];
-
-        async function loadControls(collectionName, tableId) {
-            if (!currentUserId) return;
-            const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-            onSnapshot(controlsColRef, (snapshot) => {
-                const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                controlData[collectionName] = controls;
-                renderControlsTable(controls, tableId, collectionName);
-                renderDashboardCharts();
-            }, (error) => {
-                console.error(`Error fetching ${collectionName}:`, error);
-                showMessage(`Failed to load ${collectionName}: ${error.message}`);
-            });
-        }
-
-        async function loadPdfs() {
-            if (!currentUserId) return;
-            const pdfsColRef = collection(db, `artifacts/${appId}/public/data/generatedPdfs`);
-            onSnapshot(pdfsColRef, (snapshot) => {
-                const pdfs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                controlData.generatedPdfs = pdfs;
-                renderPdfsTable(pdfs);
-            }, (error) => {
-                console.error(`Error fetching PDFs:`, error);
-                showMessage(`Failed to load PDF records: ${error.message}`);
-            });
-        }
-        
-        function renderPdfsTable(pdfs) {
-            const tableBody = document.querySelector('#pdf-database-table tbody');
-            if (!tableBody) return;
-            tableBody.innerHTML = '';
-            pdfs.forEach(pdf => {
-                const row = tableBody.insertRow();
-                const checkboxCell = row.insertCell();
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.classList.add('form-checkbox');
-                checkboxCell.appendChild(checkbox);
-
-                row.insertCell().textContent = pdf.date;
-                row.insertCell().textContent = pdf.month;
-                row.insertCell().textContent = pdf.controlType;
-
-                const deleteCell = row.insertCell();
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.classList.add('delete-btn');
-                deleteBtn.onclick = () => showConfirmationModal(() => deletePdf(pdf.id));
-                deleteCell.appendChild(deleteBtn);
-
-                const shareCell = row.insertCell();
-                const shareBtn = document.createElement('button');
-                shareBtn.textContent = 'Share';
-                shareBtn.classList.add('btn-primary');
-                shareBtn.onclick = () => sharePdf(pdf.id);
-                shareCell.appendChild(shareBtn);
-            });
-        }
-        
-        async function deletePdf(pdfId) {
-            try {
-                await retryOperation(() => deleteDoc(doc(db, `artifacts/${appId}/public/data/generatedPdfs`, pdfId)));
-                showMessage('PDF record deleted successfully!');
-            } catch (error) {
-                console.error(`Error deleting PDF record:`, error);
-                showMessage(`Failed to delete PDF record: ${error.message}`);
-            }
-        }
-        
-        function sharePdf(pdfId) {
-            const pdfRecord = controlData.generatedPdfs.find(p => p.id === pdfId);
-            if (!pdfRecord) {
-                showMessage('PDF record not found.');
-                return;
-            }
-            const subject = `Control Report: ${pdfRecord.controlType} - ${pdfRecord.month} ${pdfRecord.date.split('-')[0]}`;
-            const body = `Please find the attached PDF report for ${pdfRecord.controlType} from ${pdfRecord.month} ${pdfRecord.date.split('-')[0]}.`;
-            
-            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            showMessage('Opening email client. Please manually attach the downloaded PDF.');
-        }
-
-        function getStatusColorClass(status) {
-            if (status === 'Yes' || status === 'On track' || status === 'Effective') {
-                return 'status-green';
-            } else if (status === 'No' || status === 'Overdue' || status === 'Not Effective') {
-                return 'status-red';
-            } else if (status === 'N/A' || status === 'Pending' || status === 'Partially Effective' || status === 'Not Started') {
-                return 'status-amber';
-            } else if (status === 'Closed') {
-                return 'status-gray';
-            }
-            return '';
-        }
-        
-        function getStatusBadgeClass(status) {
-            if (status === 'Yes' || status === 'On track' || status === 'Effective') return 'status-green-badge';
-            if (status === 'No' || status === 'Overdue' || status === 'Not Effective') return 'status-red-badge';
-            if (status === 'N/A' || status === 'Pending' || status === 'Partially Effective' || status === 'Not Started') return 'status-amber-badge';
-            if (status === 'Closed') return 'status-gray-badge';
-            return 'status-gray-badge';
-        }
-
-        function renderStatusBadge(cell, status) {
-            const statusSpan = document.createElement('span');
-            statusSpan.textContent = status || 'N/A';
-            statusSpan.classList.add('status-badge', getStatusBadgeClass(status));
-            cell.appendChild(statusSpan);
-        }
-
-        function renderControlsTable(controls, tableId, collectionName) {
-            const tableBody = document.querySelector(`#${tableId} tbody`);
-            if (!tableBody) return;
-            tableBody.innerHTML = '';
-
-            const searchTerm = document.getElementById(`${collectionName.replace('Controls', '')}-controls-search`)?.value.toLowerCase() || '';
-            const filterStatus = document.getElementById(`${collectionName.replace('Controls', '')}-controls-status-filter`)?.value || '';
-
-            const filteredControls = controls.filter(control => {
-                const matchesSearch = Object.values(control).some(value =>
-                    String(value).toLowerCase().includes(searchTerm)
-                );
-                
-                const controlStatus = collectionName === 'keyControls' ? control['Tracking Status'] : control['Assessment'];
-                const matchesFilter = !filterStatus || (controlStatus === filterStatus);
-                
-                return matchesSearch && matchesFilter;
-            });
-            
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            filteredControls.forEach(control => {
-                const row = tableBody.insertRow();
-                let needsStatusUpdate = false;
-                const byWhenDateStr = control['BY WHEN'];
-
-                if (collectionName === 'keyControls' && byWhenDateStr && control['Tracking Status'] !== 'Closed') {
-                    const byWhenDate = new Date(byWhenDateStr);
-                    byWhenDate.setHours(0, 0, 0, 0);
-
-                    if (byWhenDate < today && control['Tracking Status'] !== 'Overdue') {
-                        control['Tracking Status'] = 'Overdue';
-                        needsStatusUpdate = true;
-                    }
-                }
-                
-                const tableHeaders = tableId === 'key-controls-table' ? keyControlHeaders : secondaryControlHeaders;
-                
-                tableHeaders.forEach(header => {
-                    const cell = row.insertCell();
-
-                    if (collectionName === 'keyControls') {
-                        const frequency = control['FREQ'] || 'Monthly';
-                        
-                        if (['Q1', 'Q2', 'Q3', 'Q4', 'Annual', 'Tracking Status'].includes(header.id)) {
-                            renderStatusBadge(cell, control[header.id]);
-                        } else if (months.includes(header.id)) {
-                            renderStatusBadge(cell, control[header.id]);
-                        } else if (header.id === 'Link Name') {
-                            const linkName = control['Link Name'];
-                            const linkURL = control['Link URL'];
-                            if (linkName && linkURL) {
-                                const anchor = document.createElement('a');
-                                anchor.href = linkURL;
-                                anchor.textContent = linkName;
-                                anchor.target = '_blank';
-                                anchor.classList.add('text-blue-600', 'hover:underline');
-                                cell.appendChild(anchor);
-                            } else {
-                                cell.textContent = linkName || '';
-                            }
-                        } else if (!['Link URL'].includes(header.id)) {
-                             cell.textContent = control[header.id] || '';
-                        }
-                    } else { // Secondary Controls
-                        if (header.id === 'Assessment') {
-                            renderStatusBadge(cell, control[header.id]);
-                        } else {
-                             cell.textContent = control[header.id] || '';
-                        }
-                    }
-                });
-
-                if (collectionName === 'keyControls') {
-                    const editCell = row.insertCell();
-                    editCell.classList.add('action-buttons');
-                    const editBtn = document.createElement('button');
-                    editBtn.textContent = 'Edit';
-                    editBtn.classList.add('edit-btn');
-                    editBtn.onclick = () => openControlModal(collectionName, control.id, control);
-                    editCell.appendChild(editBtn);
-
-                    const deleteCell = row.insertCell();
-                    deleteCell.classList.add('action-buttons');
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = 'Delete';
-                    deleteBtn.classList.add('delete-btn');
-                    deleteBtn.onclick = () => showConfirmationModal(() => deleteControl(collectionName, control.id), control['KEY CONTROL DESCRIPTION']);
-                    deleteCell.appendChild(deleteBtn);
-                } else {
-                    const actionsCell = row.insertCell();
-                    actionsCell.classList.add('action-buttons');
-                    const editBtn = document.createElement('button');
-                    editBtn.textContent = 'Edit';
-                    editBtn.classList.add('edit-btn');
-                    editBtn.onclick = () => openControlModal(collectionName, control.id, control);
-                    actionsCell.appendChild(editBtn);
-
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = 'Delete';
-                    deleteBtn.classList.add('delete-btn', 'ml-1');
-                    deleteBtn.onclick = () => showConfirmationModal(() => deleteControl(collectionName, control.id), control['KEY CONTROL DESCRIPTION']);
-                    actionsCell.appendChild(deleteBtn);
-                }
-
-                if (needsStatusUpdate) {
-                    updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), { 'Tracking Status': 'Overdue' })
-                        .catch(error => console.error("Error updating status to Overdue:", error));
-                }
-            });
-        }
-
-        async function addOrUpdateControl(collectionName, controlId, data) {
-            showLoadingSpinner();
-            try {
-                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-                if (controlId) {
-                    await retryOperation(() => updateDoc(doc(controlsColRef, controlId), data));
-                    showMessage('Control updated successfully!');
-                } else {
-                    await retryOperation(() => addDoc(controlsColRef, data));
-                    showMessage('Control added successfully!');
-                }
-            } catch (error) {
-                console.error(`Error saving control to ${collectionName}:`, error);
-                showMessage(`Failed to save control: ${error.message}`);
-            } finally {
-                hideLoadingSpinner();
-                hideModal('control-modal');
-            }
-        }
-
-        let currentDeleteAction = null;
-
-        function showConfirmationModal(action, itemName = 'this item') {
-            currentDeleteAction = action;
-            document.getElementById('confirmation-modal-message').textContent = `Are you sure you want to delete "${itemName}"? This action cannot be undone.`;
-            showModal('confirmation-modal');
-        }
-
-        document.getElementById('confirm-delete-btn').addEventListener('click', () => {
-            if (currentDeleteAction) {
-                currentDeleteAction();
-                hideModal('confirmation-modal');
-            }
-        });
-        
-        document.getElementById('cancel-delete-btn').addEventListener('click', () => {
-            hideModal('confirmation-modal');
-            currentDeleteAction = null;
-        });
-
-        async function deleteControl(collectionName, controlId) {
-            showLoadingSpinner();
-            try {
-                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-                await retryOperation(() => deleteDoc(doc(controlsColRef, controlId)));
-                showMessage('Control deleted successfully!');
-            } catch (error) {
-                console.error(`Error deleting control from ${collectionName}:`, error);
-                showMessage(`Failed to delete control: ${error.message}`);
-            } finally {
-                hideLoadingSpinner();
-            }
-        }
-
-        let currentControlType = '';
-        let currentControlId = null;
-
-        function openControlModal(type, id = null, data = {}) {
-            currentControlType = type;
-            currentControlId = id;
-
-            const modalTitle = document.getElementById('modal-title');
-            const controlForm = document.getElementById('control-form');
-            if (!controlForm || !modalTitle) return;
-            controlForm.innerHTML = '';
-
-            let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
-            
-            const staticFields = headersToUse.filter(h => !months.includes(h.id) && !quarters.includes(h.id) && h.id !== 'Annual' && h.id !== 'Link URL' && h.id !== 'Link Name');
-            staticFields.forEach(header => {
-                const div = document.createElement('div');
-                div.classList.add('mb-4');
-
-                const label = document.createElement('label');
-                label.htmlFor = `form-${header.id}`;
-                label.classList.add('block', 'text-sm', 'font-medium', 'text-gray-700', 'mb-1');
-                label.textContent = header.label;
-                div.appendChild(label);
-
-                let inputElement;
-                if (header.type === 'select' && header.options) {
-                    inputElement = document.createElement('select');
-                    header.options.forEach(optionText => {
-                        const option = document.createElement('option');
-                        option.value = optionText;
-                        option.textContent = optionText;
-                        inputElement.appendChild(option);
-                    });
-                } else {
-                    inputElement = document.createElement('input');
-                    inputElement.type = header.type || 'text';
-                }
-
-                inputElement.id = `form-${header.id}`;
-                inputElement.classList.add('input-field');
-                inputElement.value = data[header.id] || '';
-                div.appendChild(inputElement);
-                controlForm.appendChild(div);
-            });
-
-            if (type === 'keyControls') {
-                const linkNameHeader = { id: 'Link Name', label: 'Link Name', type: 'text' };
-                const linkUrlHeader = { id: 'Link URL', label: 'Link URL', type: 'url' };
-
-                const linkNameDiv = document.createElement('div');
-                linkNameDiv.classList.add('mb-4');
-                linkNameDiv.innerHTML = `<label for="form-${linkNameHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkNameHeader.label}</label><input type="${linkNameHeader.type}" id="form-${linkNameHeader.id}" class="input-field" value="${data[linkNameHeader.id] || ''}">`;
-                controlForm.appendChild(linkNameDiv);
-
-                const linkUrlDiv = document.createElement('div');
-                linkUrlDiv.classList.add('mb-4');
-                linkUrlDiv.innerHTML = `<label for="form-${linkUrlHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkUrlHeader.label}</label><input type="${linkUrlHeader.type}" id="form-${linkUrlHeader.id}" class="input-field" value="${data[linkUrlHeader.id] || ''}">`;
-                controlForm.appendChild(linkUrlDiv);
-            }
-            
-            if (type === 'keyControls') {
-                const frequencySelect = document.getElementById('form-FREQ');
-                const addMonthFields = (frequency) => {
-                    document.querySelectorAll('.dynamic-fields').forEach(el => el.remove());
-
-                    const dynamicDiv = document.createElement('div');
-                    dynamicDiv.classList.add('dynamic-fields', 'space-y-4', 'mt-4');
-
-                    let fieldsToRender = [];
-                    if (frequency === 'Monthly' || frequency === 'Weekly' || frequency === 'Daily') {
-                        months.forEach(month => {
-                            fieldsToRender.push({ id: month, label: month, type: 'select', options: ['Yes', 'N/A', 'No'] });
-                        });
-                    } else if (frequency === 'Quarterly') {
-                        quarters.forEach(quarter => {
-                            fieldsToRender.push({ id: quarter, label: quarter, type: 'select', options: ['Yes', 'N/A', 'No'] });
-                        });
-                    } else if (frequency === 'Annually') {
-                        fieldsToRender.push({ id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'N/A', 'No'] });
-                    }
-
-                    fieldsToRender.forEach(field => {
-                        const div = document.createElement('div');
-                        div.classList.add('mb-4');
-                        const label = document.createElement('label');
-                        label.htmlFor = `form-${field.id}`;
-                        label.classList.add('block', 'text-sm', 'font-medium', 'text-gray-700', 'mb-1');
-                        label.textContent = field.label;
-                        div.appendChild(label);
-                        const selectElement = document.createElement('select');
-                        selectElement.id = `form-${field.id}`;
-                        selectElement.classList.add('input-field');
-                        field.options.forEach(optionText => {
-                            const option = document.createElement('option');
-                            option.value = optionText;
-                            option.textContent = optionText;
-                            selectElement.appendChild(option);
-                        });
-                        selectElement.value = data[field.id] || 'N/A';
-                        div.appendChild(selectElement);
-                        dynamicDiv.appendChild(div);
-                    });
-                    
-                    const buttonDiv = controlForm.querySelector('button[type="submit"]')?.parentNode;
-                    if (buttonDiv) {
-                        controlForm.insertBefore(dynamicDiv, buttonDiv);
-                    } else {
-                        controlForm.appendChild(dynamicDiv);
-                    }
-                };
-                
-                const currentFrequency = data['FREQ'] || 'Monthly';
-                addMonthFields(currentFrequency);
-                if(frequencySelect) {
-                    frequencySelect.addEventListener('change', (e) => {
-                        addMonthFields(e.target.value);
-                    });
-                }
-            }
-
-            const buttonDiv = document.createElement('div');
-            buttonDiv.classList.add('flex', 'justify-end', 'mt-6');
-            const saveButton = document.createElement('button');
-            saveButton.type = 'submit';
-            saveButton.classList.add('btn-primary');
-            saveButton.textContent = 'Save Control';
-            buttonDiv.appendChild(saveButton);
-
-            const cancelButton = document.createElement('button');
-            cancelButton.type = 'button';
-            cancelButton.id = 'cancel-control-modal';
-            cancelButton.classList.add('btn-secondary', 'ml-2');
-            cancelButton.textContent = 'Cancel';
-            cancelButton.onclick = () => hideModal('control-modal');
-            buttonDiv.appendChild(cancelButton);
-            controlForm.appendChild(buttonDiv);
-
-            showModal('control-modal');
-        }
-
-        document.getElementById('control-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = {};
-            let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
-            
-            headersToUse.forEach(header => {
-                const inputElement = document.getElementById(`form-${header.id}`);
-                if (inputElement) {
-                    formData[header.id] = inputElement.value;
-                }
-            });
-
-            if (currentControlType === 'keyControls') {
-                const frequency = formData['FREQ'] || 'Monthly';
-                if (frequency === 'Quarterly') {
-                    months.forEach(month => delete formData[month]);
-                } else if (frequency === 'Annually') {
-                    months.forEach(month => delete formData[month]);
-                    quarters.forEach(q => delete formData[q]);
-                } else {
-                    quarters.forEach(q => delete formData[q]);
-                    delete formData['Annual'];
-                }
-            }
-            await addOrUpdateControl(currentControlType, currentControlId, formData);
-        });
-
-        document.getElementById('add-key-control-btn').addEventListener('click', () => openControlModal('keyControls'));
-        document.getElementById('add-secondary-control-btn').addEventListener('click', () => openControlModal('secondaryControls'));
-
-        // Search and Filter event listeners
-        document.getElementById('key-controls-search').addEventListener('input', debounce(() => {
-            renderControlsTable(controlData.keyControls, 'key-controls-table', 'keyControls');
-        }, 300));
-        document.getElementById('key-controls-status-filter').addEventListener('change', () => {
-            renderControlsTable(controlData.keyControls, 'key-controls-table', 'keyControls');
-        });
-
-        document.getElementById('secondary-controls-search').addEventListener('input', debounce(() => {
-            renderControlsTable(controlData.secondaryControls, 'secondary-controls-table', 'secondaryControls');
-        }, 300));
-        document.getElementById('secondary-controls-status-filter').addEventListener('change', () => {
-            renderControlsTable(controlData.secondaryControls, 'secondary-controls-table', 'secondaryControls');
-        });
-
-
-        async function parseCSV(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const text = event.target.result;
-                    const lines = text.split('\n').filter(line => line.trim() !== '');
-                    if (lines.length === 0) {
-                        reject(new Error("CSV file is empty or malformed."));
-                        return;
-                    }
-                    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-                    const data = [];
-                    for (let i = 1; i < lines.length; i++) {
-                        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-                        if (values.length === headers.length) {
-                            const row = {};
-                            headers.forEach((header, index) => {
-                                row[header] = values[index];
-                            });
-                            data.push(row);
-                        } else if (values.length > 1) {
-                            console.warn(`Skipping malformed row ${i + 1}: Expected ${headers.length} columns, got ${values.length}. Row: ${lines[i]}`);
-                        }
-                    }
-                    resolve(data);
-                };
-                reader.onerror = (error) => reject(error);
-                reader.readAsText(file);
-            });
-        }
-
-        async function uploadControls(fileInputId, collectionName) {
-            const fileInput = document.getElementById(fileInputId);
-            const file = fileInput.files[0];
-            if (!file) {
-                showMessage('Please select a CSV file to upload.');
-                return;
-            }
-
-            showLoadingSpinner();
-            try {
-                const parsedData = await parseCSV(file);
-                if (parsedData.length === 0) {
-                    showMessage('No valid data found in the CSV file.');
-                    return;
-                }
-
-                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-                const batch = writeBatch(db);
-                let uploadCount = 0;
-
-                parsedData.forEach(item => {
-                    if (collectionName === 'keyControls') {
-                        if (item['Status']) {
-                            item['Tracking Status'] = item['Status'];
-                            delete item['Status'];
-                        }
-                        if (item['Link']) {
-                            item['Link URL'] = item['Link'];
-                            if (!item['Link Name']) {
-                                item['Link Name'] = item['Link'].split('/').pop() || 'Link';
-                            }
-                            delete item['Link'];
-                        }
-                        if (item['Link URL'] && !item['Link Name']) {
-                            item['Link Name'] = item['Link URL'].split('/').pop() || 'Link';
-                        }
-                    }
-                    const newDocRef = doc(controlsColRef);
-                    batch.set(newDocRef, item);
-                    uploadCount++;
-                });
-
-                await retryOperation(() => batch.commit());
-                showMessage(`Successfully uploaded ${uploadCount} controls to ${collectionName}.`);
-            } catch (error) {
-                console.error(`Error uploading controls to ${collectionName}:`, error);
-                showMessage(`Failed to upload controls: ${error.message}`);
-            } finally {
-                hideLoadingSpinner();
-                fileInput.value = '';
-            }
-        }
-
-        document.getElementById('upload-key-control-btn').addEventListener('click', () => {
-            document.getElementById('upload-key-control-file').click();
-        });
-        document.getElementById('upload-key-control-file').addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                uploadControls('upload-key-control-file', 'keyControls');
-            }
-        });
-
-        document.getElementById('upload-secondary-control-btn').addEventListener('click', () => {
-            document.getElementById('upload-secondary-control-file').click();
-        });
-        document.getElementById('upload-secondary-control-file').addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                uploadControls('upload-secondary-control-file', 'secondaryControls');
-            }
-        });
-        
-        let keyControlsChart, secondaryControlsChart;
-
-        function getStatusCounts(controls, collectionName) {
-            const counts = {};
-            controls.forEach(control => {
-                const status = collectionName === 'keyControls' ? (control['Tracking Status'] || 'N/A') : (control['Assessment'] || 'N/A');
-                counts[status] = (counts[status] || 0) + 1;
-            });
-            return counts;
-        }
-
-        function renderChart(chartId, title, dataCounts) {
-            const ctx = document.getElementById(chartId).getContext('2d');
-            const labels = Object.keys(dataCounts);
-            const data = Object.values(dataCounts);
-
-            const colors = [
-                'rgba(75, 192, 192, 0.6)',
-                'rgba(255, 99, 132, 0.6)',
-                'rgba(255, 206, 86, 0.6)',
-                'rgba(153, 102, 255, 0.6)',
-                'rgba(54, 162, 235, 0.6)',
-                'rgba(201, 203, 207, 0.6)'
-            ];
-
-            const borderColors = colors.map(color => color.replace('0.6', '1'));
-
-            let existingChart = Chart.getChart(ctx);
-            if (existingChart) {
-                existingChart.destroy();
-            }
-
-            return new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Number of Controls',
-                        data: data,
-                        backgroundColor: colors.slice(0, labels.length),
-                        borderColor: borderColors.slice(0, labels.length),
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: title
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderDashboardCharts() {
-            const keyCounts = getStatusCounts(controlData.keyControls, 'keyControls');
-            keyControlsChart = renderChart('keyControlsChart', 'Key Controls Status Distribution', keyCounts);
-
-            const secondaryCounts = getStatusCounts(controlData.secondaryControls, 'secondaryControls');
-            secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
-        }
-
-        async function createUser(email, password) {
-            // Check for Admin user
-            if (auth.currentUser.email !== ADMIN_EMAIL) {
-                showMessage('Access Denied: Only admins can create new users.');
-                return;
-            }
-            showLoadingSpinner();
-            try {
-                // In a real app, this would be a cloud function call
-                await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
-                showMessage(`User ${email} created successfully!`);
-                document.getElementById('create-user-form').reset();
-                await loadUsers();
-            } catch (error) {
-                console.error("Error creating user:", error);
-                showMessage(`Failed to create user: ${error.message}`);
-            } finally {
-                hideLoadingSpinner();
-            }
-        }
-
-        document.getElementById('create-user-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('new-user-email').value;
-            const password = document.getElementById('new-user-password').value;
-            await createUser(email, password);
-        });
-
-        async function loadUsers() {
-            const userList = document.getElementById('user-list');
-            if (!userList) return;
-            userList.innerHTML = '';
-            if (auth.currentUser) {
-                const listItem = document.createElement('li');
-                listItem.textContent = `Current User: ${auth.currentUser.email || auth.currentUser.uid}`;
-                userList.appendChild(listItem);
-            } else {
-                const listItem = document.createElement('li');
-                listItem.textContent = `No active user.`;
-                userList.appendChild(listItem);
-            }
-        }
-
-        document.getElementById('generate-key-pdf-button').addEventListener('click', () => generatePdfForControls('keyControls'));
-        document.getElementById('generate-secondary-pdf-button').addEventListener('click', () => generatePdfForControls('secondaryControls'));
-        document.getElementById('generate-all-pdf-button').addEventListener('click', () => generatePdfForControls('all'));
-
-        async function generatePdfForControls(type) {
-            const pdfExportContent = document.getElementById('pdf-export-content');
-            const pdfTable = document.getElementById('pdf-table-to-generate');
-            const pdfReportTitle = document.getElementById('pdf-report-title');
-            const pdfSignatureImage = document.getElementById('pdf-signature-image');
-            
-            showLoadingSpinner();
-
-            let controlsToPrint = [];
-            let title = '';
-
-            if (type === 'keyControls') {
-                controlsToPrint = controlData.keyControls;
-                title = 'Key Controls Report';
-                if(pdfReportTitle) pdfReportTitle.textContent = title;
-                populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
-            } else if (type === 'secondaryControls') {
-                controlsToPrint = controlData.secondaryControls;
-                title = 'Secondary Controls Report';
-                if(pdfReportTitle) pdfReportTitle.textContent = title;
-                populatePdfTable(pdfTable, controlsToPrint, 'secondaryControls');
-            } else if (type === 'all') {
-                 controlsToPrint = controlData.keyControls.concat(controlData.secondaryControls);
-                 title = 'All Controls Report';
-                 if(pdfReportTitle) pdfReportTitle.textContent = title;
-                 populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
-            }
-
-            if (signatureDataUrl && pdfSignatureImage) {
-                pdfSignatureImage.src = signatureDataUrl;
-                pdfSignatureImage.style.display = 'block';
-            } else if (pdfSignatureImage) {
-                pdfSignatureImage.style.display = 'none';
-            }
-            
-            if(pdfExportContent) pdfExportContent.style.display = 'block';
-            
-            const options = {
-                margin: 10,
-                filename: `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
-                jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' }
-            };
-
-            await html2pdf().set(options).from(pdfExportContent).save().then(async () => {
-                if(pdfExportContent) pdfExportContent.style.display = 'none';
-                showMessage('PDF generated successfully!');
-
-                const pdfRecord = {
-                    date: new Date().toISOString().slice(0, 10),
-                    month: new Date().toLocaleString('default', { month: 'long' }),
-                    controlType: title.replace(' Report', ''),
-                    fileName: `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`
-                };
-                await addDoc(collection(db, `artifacts/${appId}/public/data/generatedPdfs`), pdfRecord);
-            }).catch(error => {
-                console.error("Error generating PDF:", error);
-                showMessage(`Failed to generate PDF: ${error.message}`);
-                if(pdfExportContent) pdfExportContent.style.display = 'none';
-            });
-            hideLoadingSpinner();
-        }
-
-        function populatePdfTable(tableElement, controls, controlType) {
-            if (!tableElement) return;
-            const tableHeader = tableElement.querySelector('thead') || tableElement.createTHead();
-            const tableBody = tableElement.querySelector('tbody') || tableElement.createTBody();
-            tableHeader.innerHTML = '';
-            tableBody.innerHTML = '';
-
-            if (controlType === 'keyControls') {
-                const firstRow = tableHeader.insertRow();
-                const secondRow = tableHeader.insertRow();
-
-                const staticHeaders = ['Description', 'How', 'Frequency', 'By When', 'Evidence'];
-                staticHeaders.forEach(h => {
-                    const th = document.createElement('th');
-                    th.textContent = h;
-                    th.rowSpan = 2;
-                    firstRow.appendChild(th);
-                });
-                
-                const dynamicHeaders = {
-                    Q1: ['JAN', 'FEB', 'MAR'],
-                    Q2: ['APR', 'MAY', 'JUN'],
-                    Q3: ['JUL', 'AUG', 'SEP'],
-                    Q4: ['OCT', 'NOV', 'DEC']
-                };
-
-                for(const q in dynamicHeaders) {
-                    const th = document.createElement('th');
-                    th.textContent = q;
-                    th.colSpan = 3;
-                    th.classList.add('table-header-quarters');
-                    firstRow.appendChild(th);
-                }
-
-                months.forEach(month => {
-                    const thMonth = document.createElement('th');
-                    thMonth.textContent = month;
-                    thMonth.classList.add('table-header-months');
-                    secondRow.appendChild(thMonth);
-                });
-
-                const otherStaticHeaders = ['Annual', 'Tracking Status', 'Link Name'];
-                otherStaticHeaders.forEach(h => {
-                    const th = document.createElement('th');
-                    th.textContent = h;
-                    th.rowSpan = 2;
-                    firstRow.appendChild(th);
-                });
-
-                controls.forEach(control => {
-                    const row = tableBody.insertRow();
-                    
-                    const cellsToRender = [
-                        'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
-                    ];
-
-                    cellsToRender.forEach(id => {
-                        const cell = row.insertCell();
-                        cell.textContent = control[id] || '';
-                    });
-
-                    const frequency = control['FREQ'] || 'Monthly';
-                    if (frequency === 'Quarterly') {
-                        quarters.forEach(q => {
-                            const cell = row.insertCell();
-                            cell.colSpan = 3;
-                            cell.textContent = control[q] || 'N/A';
-                        });
-                    } else if (frequency === 'Annually') {
-                        const cell = row.insertCell();
-                        cell.colSpan = 12;
-                        cell.textContent = control['Annual'] || 'N/A';
-                    } else {
-                        months.forEach(month => {
-                            const cell = row.insertCell();
-                            cell.textContent = control[month] || 'N/A';
-                        });
-                    }
-                    
-                    const postDynamicHeaders = ['Annual', 'Tracking Status', 'Link Name'];
-                    postDynamicHeaders.forEach(id => {
-                         const cell = row.insertCell();
-                        if (id === 'Annual' && frequency !== 'Annually') {
-                             cell.textContent = '';
-                        } else if (id === 'Link Name') {
-                            const linkName = control['Link Name'];
-                            const linkURL = control['Link URL'];
-                            if (linkName && linkURL) {
-                                const anchor = document.createElement('a');
-                                anchor.href = linkURL;
-                                anchor.textContent = linkName;
-                                anchor.target = '_blank';
-                                anchor.classList.add('text-blue-600', 'hover:underline');
-                                cell.appendChild(anchor);
-                            } else {
-                                cell.textContent = linkName || '';
-                            }
-                        } else {
-                            cell.textContent = control[id] || '';
-                        }
-                    });
-                });
-            } else {
-                let headersToUse = controlType === 'secondaryControls' ? secondaryControlHeaders : qaChecklistHeaders;
-                 const headerRow = tableHeader.insertRow();
-                 headersToUse.forEach(header => {
-                    const th = document.createElement('th');
-                    th.textContent = header.label;
-                    headerRow.appendChild(th);
-                 });
-                const thActions = document.createElement('th');
-                thActions.textContent = "Actions";
-                headerRow.appendChild(thActions);
-
-                controls.forEach(control => {
-                    const row = tableBody.insertRow();
-                    headersToUse.forEach(header => {
-                        const cell = row.insertCell();
-                        cell.textContent = control[header.id] || '';
-                    });
-                    const actionsCell = row.insertCell();
-                    const editBtn = document.createElement('button');
-                    editBtn.textContent = 'Edit';
-                    editBtn.classList.add('edit-btn');
-                    actionsCell.appendChild(editBtn);
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = 'Delete';
-                    deleteBtn.classList.add('delete-btn', 'ml-1');
-                    actionsCell.appendChild(deleteBtn);
-                });
-            }
-        }
-
-        function handleSignatureUpload(fileInputId, previewId) {
-            const fileInput = document.getElementById(fileInputId);
-            const uploadBtn = document.getElementById(fileInputId.replace('-upload', '-btn'));
-            const previewImg = document.getElementById(previewId);
-
-            if (uploadBtn) {
-                uploadBtn.addEventListener('click', () => {
-                    fileInput?.click();
-                });
-            }
-
-            if (fileInput) {
-                fileInput.addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            signatureDataUrl = event.target.result;
-                            if (previewImg) {
-                                previewImg.src = signatureDataUrl;
-                                previewImg.classList.remove('hidden');
-                            }
-                            showMessage('Signature uploaded successfully!');
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            }
-        }
-        
-        handleSignatureUpload('key-controls-signature-upload', 'key-controls-signature-preview');
-        handleSignatureUpload('secondary-controls-signature-upload', 'secondary-controls-signature-preview');
-
-
-        document.getElementById('download-key-excel-button').addEventListener('click', () => {
-             downloadExcel('keyControls');
-        });
-        document.getElementById('download-secondary-excel-button').addEventListener('click', () => {
-             downloadExcel('secondaryControls');
-        });
-
-        function downloadExcel(controlType) {
-            const tableId = controlType === 'keyControls' ? 'key-controls-table' : 'secondary-controls-table';
-            const tableName = controlType === 'keyControls' ? 'Key Controls' : 'Secondary Controls';
-            const table = document.getElementById(tableId);
-
-            const ws = XLSX.utils.table_to_sheet(table);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, tableName);
-            
-            if (signatureDataUrl) {
-                const signatureSheet = XLSX.utils.aoa_to_sheet([["Sign Off"], ["Signed By: Manager - John Doe"], [`Date: ${new Date().toLocaleDateString()}`]]);
-                XLSX.utils.sheet_add_aoa(signatureSheet, [[signatureDataUrl]], {origin: "A5"});
-                XLSX.utils.book_append_sheet(wb, signatureSheet, "Sign Off");
-            }
-
-            XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
-        }
-        
-        // Remove QA Checklist functionality
-        const qaChecklistTabButton = document.querySelector('[data-tab="qa-checklist"]');
-        if (qaChecklistTabButton) {
-            qaChecklistTabButton.remove();
-        }
-        const qaChecklistContent = document.getElementById('qa-checklist-content');
-        if (qaChecklistContent) {
-            qaChecklistContent.remove();
-        }
-    </script>
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="loading-spinner"></div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="message-box"></div>
+
+    <!-- Login Page -->
+    <div id="login-page" class="w-full h-screen flex items-center justify-center bg-gray-100">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+            <h2 class="text-3xl font-bold text-center text-blue-600 mb-8">Login to Customer Experience Controls</h2>
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email" required class="input-field">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" required class="input-field">
+                    <a href="#" id="forgot-password" class="block text-sm text-blue-600 hover:underline mt-2 text-right">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn-primary w-full">Login</button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Don't have an account? <a href="#" id="show-signup" class="text-blue-600 hover:underline">Sign Up</a>
+                </p>
+            </form>
+            <form id="signup-form" class="space-y-6 hidden">
+                <div>
+                    <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required class="input-field">
+                </div>
+                <div>
+                    <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password" required class="input-field">
+                </div>
+                <button type="submit" class="btn-primary w-full">Sign Up</button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Already have an account? <a href="#" id="show-login" class="text-blue-600 hover:underline">Login</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application Page -->
+    <div id="app-page" class="container hidden">
+        <header class="flex justify-between items-center p-4 bg-purple-600 text-white">
+            <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
+            <div class="flex items-center space-x-4">
+                <span id="user-display" class="text-sm font-medium"></span>
+                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm font-medium transition-colors">Logout</button>
+            </div>
+        </header>
+
+        <!-- Navigation Bar (moved to top and horizontal) -->
+        <nav class="top-nav tab-buttons">
+            <button class="tab-button active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-button" data-tab="key-controls">Key Controls</button>
+            <button class="tab-button" data-tab="secondary-controls">Secondary Controls</button>
+            <button class="tab-button" data-tab="admin">Admin</button>
+            <button class="tab-button" data-tab="database">Database</button>
+        </nav>
+
+        <main class="flex-grow p-6 overflow-hidden">
+            <!-- Dashboard Tab Content -->
+            <div id="dashboard-content" class="tab-content active">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-medium text-gray-700 mb-4">Key Controls Status</h3>
+                        <canvas id="keyControlsChart"></canvas>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-medium text-gray-700 mb-4">Secondary Controls Status</h3>
+                        <canvas id="secondaryControlsChart"></canvas>
+                    </div>
+                </div>
+                <div class="mt-8">
+                    <button id="generate-all-pdf-button" class="btn-primary">Generate All Controls PDF</button>
+                </div>
+            </div>
+
+            <!-- Key Controls Tab Content -->
+            <div id="key-controls-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Key Controls</h2>
+                <div class="overflow-x-auto">
+                    <table id="key-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Description</th>
+                                <th rowspan="2">How</th>
+                                <th rowspan="2">Frequency</th>
+                                <th rowspan="2">By When</th>
+                                <th rowspan="2">Evidence</th>
+                                <th colspan="3" class="table-header-quarters">Q1</th>
+                                <th colspan="3" class="table-header-quarters">Q2</th>
+                                <th colspan="3" class="table-header-quarters">Q3</th>
+                                <th colspan="3" class="table-header-quarters">Q4</th>
+                                <th rowspan="2">Annual</th>
+                                <th rowspan="2">Tracking Status</th>
+                                <th rowspan="2">Link</th>
+                                <th rowspan="2">Edit</th>
+                                <th rowspan="2">Delete</th>
+                            </tr>
+                            <tr>
+                                <th class="table-header-months">JAN</th>
+                                <th class="table-header-months">FEB</th>
+                                <th class="table-header-months">MAR</th>
+                                <th class="table-header-months">APR</th>
+                                <th class="table-header-months">MAY</th>
+                                <th class="table-header-months">JUN</th>
+                                <th class="table-header-months">JUL</th>
+                                <th class="table-header-months">AUG</th>
+                                <th class="table-header-months">SEP</th>
+                                <th class="table-header-months">OCT</th>
+                                <th class="table-header-months">NOV</th>
+                                <th class="table-header-months">DEC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Key controls will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Sign Off Section -->
+                <div class="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
+                    <h3 class="text-lg font-semibold mb-4">Sign Off</h3>
+                    <div class="flex items-center space-x-4">
+                        <input type="file" id="key-controls-signature-upload" accept="image/*" class="hidden">
+                        <button id="key-controls-upload-signature-btn" class="btn-primary">Upload Signature</button>
+                        <img id="key-controls-signature-preview" class="h-16 w-auto border rounded-md hidden" src="" alt="Signature Preview">
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-4 mt-6 justify-end">
+                    <button id="add-key-control-btn" class="btn-primary">Add New Key Control</button>
+                    <input type="file" id="upload-key-control-file" accept=".csv" class="hidden">
+                    <button id="upload-key-control-btn" class="btn-secondary">Upload Key Controls (CSV)</button>
+                    <button id="generate-key-pdf-button" class="btn-primary">Generate PDF</button>
+                    <button id="download-key-excel-button" class="btn-primary">Download as Excel</button>
+                </div>
+            </div>
+
+            <!-- Secondary Controls Tab Content -->
+            <div id="secondary-controls-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Secondary Controls</h2>
+                <div class="overflow-x-auto">
+                    <table id="secondary-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>How</th>
+                                <th>Who</th>
+                                <th>Frequency</th>
+                                <th>By When</th>
+                                <th>Evidence</th>
+                                <th>Archived</th>
+                                <th>Date of Review</th>
+                                <th>Total Transactions</th>
+                                <th>Samples Checked</th>
+                                <th>Exceptions</th>
+                                <th>Assessment</th>
+                                <th>Required Action</th>
+                                <th>Closure Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Secondary controls will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Sign Off Section -->
+                <div class="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
+                    <h3 class="text-lg font-semibold mb-4">Sign Off</h3>
+                    <div class="flex items-center space-x-4">
+                        <input type="file" id="secondary-controls-signature-upload" accept="image/*" class="hidden">
+                        <button id="secondary-controls-upload-signature-btn" class="btn-primary">Upload Signature</button>
+                        <img id="secondary-controls-signature-preview" class="h-16 w-auto border rounded-md hidden" src="" alt="Signature Preview">
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-4 mt-6 justify-end">
+                    <button id="add-secondary-control-btn" class="btn-primary">Add New Secondary Control</button>
+                    <input type="file" id="upload-secondary-control-file" accept=".csv" class="hidden">
+                    <button id="upload-secondary-control-btn" class="btn-secondary">Upload Secondary Controls (CSV)</button>
+                    <button id="generate-secondary-pdf-button" class="btn-primary">Generate PDF</button>
+                    <button id="download-secondary-excel-button" class="btn-primary">Download as Excel</button>
+                </div>
+            </div>
+
+            <!-- Admin Tab Content -->
+            <div id="admin-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Admin Panel</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-xl font-medium text-gray-700 mb-4">Create New User</h3>
+                    <form id="create-user-form" class="space-y-4">
+                        <div>
+                            <label for="new-user-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="new-user-email" placeholder="New user email" required class="input-field">
+                        </div>
+                        <div>
+                            <label for="new-user-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" id="new-user-password" placeholder="New user password" required class="input-field">
+                        </div>
+                        <button type="submit" class="btn-primary">Create User</button>
+                    </form>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-medium text-gray-700 mb-4">Current Users</h3>
+                    <ul id="user-list" class="list-disc pl-5 text-gray-700">
+                        <!-- Users will be listed here -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Database Tab Content -->
+            <div id="database-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Generated PDF Database</h2>
+                <div class="overflow-x-auto">
+                    <table id="pdf-database-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <thead>
+                            <tr>
+                                <th class="w-10"><input type="checkbox" class="form-checkbox"></th>
+                                <th>Date Generated</th>
+                                <th>Month</th>
+                                <th>Control Type</th>
+                                <th class="w-24">Delete</th>
+                                <th class="w-24">Share</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- PDF records will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Control Modal -->
+    <div id="control-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4">Add New Control</h3>
+            <form id="control-form" class="space-y-4">
+                <!-- Fields will be dynamically generated here based on control type -->
+                <button type="submit" class="btn-primary">Save Control</button>
+                <button type="button" id="cancel-control-modal" class="btn-secondary ml-2">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hidden div for PDF generation -->
+    <div id="pdf-export-content" class="pdf-export-content">
+        <div id="pdf-content-wrapper">
+            <h1 class="text-2xl font-bold text-center mb-6">Customer Experience Controls Report</h1>
+            <h2 id="pdf-report-title" class="text-xl font-semibold mt-8 mb-4"></h2>
+            <div class="overflow-x-auto">
+                <table id="pdf-table-to-generate" class="min-w-full bg-white border border-gray-200">
+                    <!-- Table header and body will be dynamically populated -->
+                </table>
+            </div>
+            <!-- Sign Off Section for PDF -->
+            <div class="pdf-signature-area">
+                <img id="pdf-signature-image" class="h-16 w-auto border rounded-md" src="" alt="Signature" style="display:none;">
+                <div class="flex-grow ml-4">
+                    <p class="font-semibold">Signed By:</p>
+                    <p class="text-sm">Manager - John Doe</p>
+                    <p class="text-sm">Date: ${new Date().toLocaleDateString()}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden div for Excel generation -->
+    <div id="excel-export-content" style="display: none;">
+        <table id="excel-table-to-generate"></table>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {
+            getAuth,
+            signInAnonymously,
+            signInWithCustomToken,
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            sendPasswordResetEmail
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            doc,
+            setDoc,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            onSnapshot,
+            getDocs,
+            writeBatch
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let app;
+        let db;
+        let auth;
+        let currentUserId = null;
+        let signatureDataUrl = '';
+
+        // --- Utility Functions ---
+        function showLoadingSpinner() {
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.style.display = 'block';
+        }
+
+        function hideLoadingSpinner() {
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.style.display = 'none';
+        }
+
+        function showMessage(message, duration = 3000) {
+            const msgBox = document.getElementById('message-box');
+            if (msgBox) {
+                msgBox.textContent = message;
+                msgBox.classList.add('show');
+                setTimeout(() => {
+                    msgBox.classList.remove('show');
+                }, duration);
+            }
+        }
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('show');
+        }
+        
+        // Exponential backoff for API calls
+        async function retryOperation(operation, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i < maxRetries - 1) {
+                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+        }
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEK6AOeXiZVWKXw715FGkX9_yeNaKHx_8",
+            authDomain: "controls-f11f8.firebaseapp.com",
+            projectId: "controls-f11f8",
+            storageBucket: "controls-f11f8.firebasestorage.app",
+            messagingSenderId: "316152578637",
+            appId: "1:316152578637:web:b0b3c11c9821ee8bb05204",
+            measurementId: "G-793K2F5VZC"
+        };
+
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                document.getElementById('user-display').textContent = `User: ${user.email || user.uid}`;
+                document.getElementById('login-page').classList.add('hidden');
+                document.getElementById('app-page').classList.remove('hidden');
+                await loadControls('keyControls', 'key-controls-table');
+                await loadControls('secondaryControls', 'secondary-controls-table');
+                await loadPdfs();
+                await loadUsers();
+                renderDashboardCharts();
+            } else {
+                currentUserId = null;
+                document.getElementById('login-page').classList.remove('hidden');
+                document.getElementById('app-page').classList.add('hidden');
+            }
+            hideLoadingSpinner();
+        });
+
+        async function initialSignIn() {
+            showLoadingSpinner();
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await retryOperation(() => signInWithCustomToken(auth, __initial_auth_token));
+                } else {
+                    await retryOperation(() => signInAnonymously(auth));
+                }
+            } catch (error) {
+                console.error("Error during initial sign-in:", error);
+                showMessage(`Authentication failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+        initialSignIn();
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => signInWithEmailAndPassword(auth, email, password));
+                showMessage('Logged in successfully!');
+            } catch (error) {
+                console.error("Login error:", error);
+                showMessage(`Login failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                showMessage('Account created and logged in successfully!');
+            } catch (error) {
+                console.error("Signup error:", error);
+                showMessage(`Signup failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+
+        document.getElementById('show-signup').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+        });
+
+        document.getElementById('show-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        });
+
+        document.getElementById('logout-button').addEventListener('click', async () => {
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => signOut(auth));
+                showMessage('Logged out successfully!');
+            } catch (error) {
+                console.error("Logout error:", error);
+                showMessage(`Logout failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+
+        document.getElementById('forgot-password').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            if (!email) {
+                showMessage('Please enter your email address to reset your password.');
+                return;
+            }
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => sendPasswordResetEmail(auth, email));
+                showMessage(`Password reset email sent to ${email}. Please check your inbox.`);
+            } catch (error) {
+                console.error("Forgot password error:", error);
+                showMessage(`Failed to send reset email: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                button.classList.add('active');
+                document.getElementById(`${button.dataset.tab}-content`).classList.add('active');
+            });
+        });
+
+        const controlData = {
+            keyControls: [],
+            secondaryControls: [],
+            generatedPdfs: []
+        };
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+
+        const keyControlHeaders = [
+            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
+            { id: 'HOW', label: 'How', type: 'text' },
+            { id: 'FREQ', label: 'Frequency', type: 'select', options: ['Quarterly', 'Monthly', 'Weekly', 'Annually', 'Daily'] },
+            { id: 'BY WHEN', label: 'By When', type: 'date' },
+            { id: 'EVIDENCE OF CONTROL', label: 'Evidence of Control', type: 'text' },
+            { id: 'Q1', label: 'Q1', type: 'select', options: ['Yes', 'N/A', 'No'] },
+            { id: 'Q2', label: 'Q2', type: 'select', options: ['Yes', 'N/A', 'No'] },
+            { id: 'Q3', label: 'Q3', type: 'select', options: ['Yes', 'N/A', 'No'] },
+            { id: 'Q4', label: 'Q4', type: 'select', options: ['Yes', 'N/A', 'No'] },
+            { id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'N/A', 'No'] },
+            { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On track', 'Overdue', 'Pending', 'Closed'] },
+            { id: 'Link Name', label: 'Link Name', type: 'text' },
+            { id: 'Link URL', label: 'Link URL', type: 'url' },
+        ];
+
+        const secondaryControlHeaders = [
+            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
+            { id: 'HOW (i.e. Manual/ Automated)', label: 'How', type: 'text' },
+            { id: 'WHO (i.e. Title of reviewer)', label: 'Who', type: 'text' },
+            { id: 'FREQUENCY e.g. Daily, Weekly, Monthly', label: 'Frequency', type: 'text' },
+            { id: 'BY WHEN (TATs e.g. by 10th of ever month)', label: 'By When', type: 'date' },
+            { id: 'EVIDENCE OF CONTROL e.g What is signed-off?', label: 'Evidence of Control', type: 'text' },
+            { id: 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', label: 'How Archived', type: 'text' },
+            { id: 'Date of Review', label: 'Date of Review', type: 'date' },
+            { id: 'Total number of transactions (where applicable)', label: 'Total Transactions', type: 'number' },
+            { id: 'Samples checked (Where Applicable)', label: 'Samples Checked', type: 'text' },
+            { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
+            { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
+            { id: 'Required Action', label: 'Required Action', type: 'text' },
+            { id: 'Closure Date', label: 'Closure Date', type: 'date' }
+        ];
+
+        async function loadControls(collectionName, tableId) {
+            if (!currentUserId) return;
+            const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+            onSnapshot(controlsColRef, (snapshot) => {
+                const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                controlData[collectionName] = controls;
+                renderControlsTable(controls, tableId, collectionName);
+                renderDashboardCharts();
+            }, (error) => {
+                console.error(`Error fetching ${collectionName}:`, error);
+                showMessage(`Failed to load ${collectionName}: ${error.message}`);
+            });
+        }
+
+        async function loadPdfs() {
+            if (!currentUserId) return;
+            const pdfsColRef = collection(db, `artifacts/${appId}/public/data/generatedPdfs`);
+            onSnapshot(pdfsColRef, (snapshot) => {
+                const pdfs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                controlData.generatedPdfs = pdfs;
+                renderPdfsTable(pdfs);
+            }, (error) => {
+                console.error(`Error fetching PDFs:`, error);
+                showMessage(`Failed to load PDF records: ${error.message}`);
+            });
+        }
+        
+        function renderPdfsTable(pdfs) {
+            const tableBody = document.querySelector('#pdf-database-table tbody');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+            pdfs.forEach(pdf => {
+                const row = tableBody.insertRow();
+                const checkboxCell = row.insertCell();
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.classList.add('form-checkbox');
+                checkboxCell.appendChild(checkbox);
+
+                row.insertCell().textContent = pdf.date;
+                row.insertCell().textContent = pdf.month;
+                row.insertCell().textContent = pdf.controlType;
+
+                const deleteCell = row.insertCell();
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.onclick = () => deletePdf(pdf.id);
+                deleteCell.appendChild(deleteBtn);
+
+                const shareCell = row.insertCell();
+                const shareBtn = document.createElement('button');
+                shareBtn.textContent = 'Share';
+                shareBtn.classList.add('btn-primary');
+                shareBtn.onclick = () => sharePdf(pdf.id);
+                shareCell.appendChild(shareBtn);
+            });
+        }
+        
+        async function deletePdf(pdfId) {
+            if (!confirm('Are you sure you want to delete this PDF record?')) return;
+            try {
+                await retryOperation(() => deleteDoc(doc(db, `artifacts/${appId}/public/data/generatedPdfs`, pdfId)));
+                showMessage('PDF record deleted successfully!');
+            } catch (error) {
+                console.error(`Error deleting PDF record:`, error);
+                showMessage(`Failed to delete PDF record: ${error.message}`);
+            }
+        }
+        
+        function sharePdf(pdfId) {
+            const pdfRecord = controlData.generatedPdfs.find(p => p.id === pdfId);
+            if (!pdfRecord) {
+                showMessage('PDF record not found.');
+                return;
+            }
+            const subject = `Control Report: ${pdfRecord.controlType} - ${pdfRecord.month} ${pdfRecord.date.split('-')[0]}`;
+            const body = `Please find the attached PDF report for ${pdfRecord.controlType} from ${pdfRecord.month} ${pdfRecord.date.split('-')[0]}.`;
+            
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            showMessage('Opening email client. Please manually attach the downloaded PDF.');
+        }
+
+        function getStatusColorClass(status) {
+            if (status === 'Yes' || status === 'On track' || status === 'Effective') {
+                return 'status-green';
+            } else if (status === 'No' || status === 'Overdue' || status === 'Not Effective') {
+                return 'status-red';
+            } else if (status === 'N/A' || status === 'Pending' || status === 'Partially Effective' || status === 'Not Started') {
+                return 'status-amber';
+            } else if (status === 'Closed') {
+                return 'status-gray';
+            }
+            return '';
+        }
+
+        function renderStatusCell(cell, status) {
+            const statusDiv = document.createElement('div');
+            statusDiv.textContent = status || 'N/A';
+            statusDiv.classList.add('status-text');
+            const colorClass = getStatusColorClass(status);
+            if (colorClass) {
+                statusDiv.classList.add(colorClass);
+            }
+            cell.classList.add('status-cell');
+            cell.appendChild(statusDiv);
+        }
+
+        function renderControlsTable(controls, tableId, collectionName) {
+            const tableBody = document.querySelector(`#${tableId} tbody`);
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            controls.forEach(control => {
+                const row = tableBody.insertRow();
+                let needsStatusUpdate = false;
+                const byWhenDateStr = control['BY WHEN'];
+
+                if (collectionName === 'keyControls' && byWhenDateStr && control['Tracking Status'] !== 'Closed') {
+                    const byWhenDate = new Date(byWhenDateStr);
+                    byWhenDate.setHours(0, 0, 0, 0);
+
+                    if (byWhenDate < today && control['Tracking Status'] !== 'Overdue') {
+                        control['Tracking Status'] = 'Overdue';
+                        needsStatusUpdate = true;
+                    }
+                }
+                
+                const tableHeaders = tableId === 'key-controls-table' ? keyControlHeaders : secondaryControlHeaders;
+                
+                tableHeaders.forEach(header => {
+                    const cell = row.insertCell();
+
+                    if (collectionName === 'keyControls') {
+                        const frequency = control['FREQ'] || 'Monthly';
+                        
+                        if (header.id === 'FREQ') {
+                            cell.textContent = control[header.id] || '';
+                        } else if (header.id === 'BY WHEN') {
+                            cell.textContent = control[header.id] || '';
+                        } else if (months.includes(header.id)) {
+                             renderStatusCell(cell, control[header.id]);
+                        } else if (quarters.includes(header.id)) {
+                             renderStatusCell(cell, control[header.id]);
+                        } else if (header.id === 'Annual') {
+                             renderStatusCell(cell, control[header.id]);
+                        } else if (header.id === 'Tracking Status') {
+                            renderStatusCell(cell, control['Tracking Status']);
+                        } else if (header.id === 'Link Name') {
+                            const linkName = control['Link Name'];
+                            const linkURL = control['Link URL'];
+                            if (linkName && linkURL) {
+                                const anchor = document.createElement('a');
+                                anchor.href = linkURL;
+                                anchor.textContent = linkName;
+                                anchor.target = '_blank';
+                                anchor.classList.add('text-blue-600', 'hover:underline');
+                                cell.appendChild(anchor);
+                            } else {
+                                cell.textContent = linkName || '';
+                            }
+                        } else if (!['Link URL'].includes(header.id)) {
+                             cell.textContent = control[header.id] || '';
+                        }
+                    } else { // Secondary Controls
+                        if (header.id === 'Assessment') {
+                            renderStatusCell(cell, control[header.id]);
+                        } else {
+                             cell.textContent = control[header.id] || '';
+                        }
+                    }
+                });
+
+                if (collectionName === 'keyControls') {
+                    const editCell = row.insertCell();
+                    editCell.classList.add('action-buttons');
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.classList.add('edit-btn');
+                    editBtn.onclick = () => openControlModal(collectionName, control.id, control);
+                    editCell.appendChild(editBtn);
+
+                    const deleteCell = row.insertCell();
+                    deleteCell.classList.add('action-buttons');
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.classList.add('delete-btn');
+                    deleteBtn.onclick = () => deleteControl(collectionName, control.id);
+                    deleteCell.appendChild(deleteBtn);
+                } else {
+                    const actionsCell = row.insertCell();
+                    actionsCell.classList.add('action-buttons');
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.classList.add('edit-btn');
+                    editBtn.onclick = () => openControlModal(collectionName, control.id, control);
+                    actionsCell.appendChild(editBtn);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.classList.add('delete-btn', 'ml-1');
+                    deleteBtn.onclick = () => deleteControl(collectionName, control.id);
+                    actionsCell.appendChild(deleteBtn);
+                }
+
+                if (needsStatusUpdate) {
+                    updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), { 'Tracking Status': 'Overdue' })
+                        .catch(error => console.error("Error updating status to Overdue:", error));
+                }
+            });
+        }
+
+        async function addOrUpdateControl(collectionName, controlId, data) {
+            showLoadingSpinner();
+            try {
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                if (controlId) {
+                    await retryOperation(() => updateDoc(doc(controlsColRef, controlId), data));
+                    showMessage('Control updated successfully!');
+                } else {
+                    await retryOperation(() => addDoc(controlsColRef, data));
+                    showMessage('Control added successfully!');
+                }
+            } catch (error) {
+                console.error(`Error saving control to ${collectionName}:`, error);
+                showMessage(`Failed to save control: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+                hideModal('control-modal');
+            }
+        }
+
+        async function deleteControl(collectionName, controlId) {
+            if (!confirm('Are you sure you want to delete this control?')) return;
+
+            showLoadingSpinner();
+            try {
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                await retryOperation(() => deleteDoc(doc(controlsColRef, controlId)));
+                showMessage('Control deleted successfully!');
+            } catch (error) {
+                console.error(`Error deleting control from ${collectionName}:`, error);
+                showMessage(`Failed to delete control: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        let currentControlType = '';
+        let currentControlId = null;
+
+        function openControlModal(type, id = null, data = {}) {
+            currentControlType = type;
+            currentControlId = id;
+
+            const modalTitle = document.getElementById('modal-title');
+            const controlForm = document.getElementById('control-form');
+            if (!controlForm || !modalTitle) return;
+            controlForm.innerHTML = '';
+
+            let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
+            
+            const staticFields = headersToUse.filter(h => !months.includes(h.id) && !quarters.includes(h.id) && h.id !== 'Annual' && h.id !== 'Link URL' && h.id !== 'Link Name');
+            staticFields.forEach(header => {
+                const div = document.createElement('div');
+                div.classList.add('mb-4');
+
+                const label = document.createElement('label');
+                label.htmlFor = `form-${header.id}`;
+                label.classList.add('block', 'text-sm', 'font-medium', 'text-gray-700', 'mb-1');
+                label.textContent = header.label;
+                div.appendChild(label);
+
+                let inputElement;
+                if (header.type === 'select' && header.options) {
+                    inputElement = document.createElement('select');
+                    header.options.forEach(optionText => {
+                        const option = document.createElement('option');
+                        option.value = optionText;
+                        option.textContent = optionText;
+                        inputElement.appendChild(option);
+                    });
+                } else {
+                    inputElement = document.createElement('input');
+                    inputElement.type = header.type || 'text';
+                }
+
+                inputElement.id = `form-${header.id}`;
+                inputElement.classList.add('input-field');
+                inputElement.value = data[header.id] || '';
+                div.appendChild(inputElement);
+                controlForm.appendChild(div);
+            });
+
+            if (type === 'keyControls') {
+                const linkNameHeader = { id: 'Link Name', label: 'Link Name', type: 'text' };
+                const linkUrlHeader = { id: 'Link URL', label: 'Link URL', type: 'url' };
+
+                const linkNameDiv = document.createElement('div');
+                linkNameDiv.classList.add('mb-4');
+                linkNameDiv.innerHTML = `<label for="form-${linkNameHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkNameHeader.label}</label><input type="${linkNameHeader.type}" id="form-${linkNameHeader.id}" class="input-field" value="${data[linkNameHeader.id] || ''}">`;
+                controlForm.appendChild(linkNameDiv);
+
+                const linkUrlDiv = document.createElement('div');
+                linkUrlDiv.classList.add('mb-4');
+                linkUrlDiv.innerHTML = `<label for="form-${linkUrlHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkUrlHeader.label}</label><input type="${linkUrlHeader.type}" id="form-${linkUrlHeader.id}" class="input-field" value="${data[linkUrlHeader.id] || ''}">`;
+                controlForm.appendChild(linkUrlDiv);
+            }
+            
+            if (type === 'keyControls') {
+                const frequencySelect = document.getElementById('form-FREQ');
+                const addMonthFields = (frequency) => {
+                    document.querySelectorAll('.dynamic-fields').forEach(el => el.remove());
+
+                    const dynamicDiv = document.createElement('div');
+                    dynamicDiv.classList.add('dynamic-fields', 'space-y-4', 'mt-4');
+
+                    let fieldsToRender = [];
+                    if (frequency === 'Monthly' || frequency === 'Weekly' || frequency === 'Daily') {
+                        months.forEach(month => {
+                            fieldsToRender.push({ id: month, label: month, type: 'select', options: ['Yes', 'N/A', 'No'] });
+                        });
+                    } else if (frequency === 'Quarterly') {
+                        quarters.forEach(quarter => {
+                            fieldsToRender.push({ id: quarter, label: quarter, type: 'select', options: ['Yes', 'N/A', 'No'] });
+                        });
+                    } else if (frequency === 'Annually') {
+                        fieldsToRender.push({ id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'N/A', 'No'] });
+                    }
+
+                    fieldsToRender.forEach(field => {
+                        const div = document.createElement('div');
+                        div.classList.add('mb-4');
+                        const label = document.createElement('label');
+                        label.htmlFor = `form-${field.id}`;
+                        label.classList.add('block', 'text-sm', 'font-medium', 'text-gray-700', 'mb-1');
+                        label.textContent = field.label;
+                        div.appendChild(label);
+                        const selectElement = document.createElement('select');
+                        selectElement.id = `form-${field.id}`;
+                        selectElement.classList.add('input-field');
+                        field.options.forEach(optionText => {
+                            const option = document.createElement('option');
+                            option.value = optionText;
+                            option.textContent = optionText;
+                            selectElement.appendChild(option);
+                        });
+                        selectElement.value = data[field.id] || 'N/A';
+                        div.appendChild(selectElement);
+                        dynamicDiv.appendChild(div);
+                    });
+                    
+                    const buttonDiv = controlForm.querySelector('button[type="submit"]')?.parentNode;
+                    if (buttonDiv) {
+                        controlForm.insertBefore(dynamicDiv, buttonDiv);
+                    } else {
+                        controlForm.appendChild(dynamicDiv);
+                    }
+                };
+                
+                const currentFrequency = data['FREQ'] || 'Monthly';
+                addMonthFields(currentFrequency);
+                if(frequencySelect) {
+                    frequencySelect.addEventListener('change', (e) => {
+                        addMonthFields(e.target.value);
+                    });
+                }
+            }
+
+            const buttonDiv = document.createElement('div');
+            buttonDiv.classList.add('flex', 'justify-end', 'mt-6');
+            const saveButton = document.createElement('button');
+            saveButton.type = 'submit';
+            saveButton.classList.add('btn-primary');
+            saveButton.textContent = 'Save Control';
+            buttonDiv.appendChild(saveButton);
+
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.id = 'cancel-control-modal';
+            cancelButton.classList.add('btn-secondary', 'ml-2');
+            cancelButton.textContent = 'Cancel';
+            cancelButton.onclick = () => hideModal('control-modal');
+            buttonDiv.appendChild(cancelButton);
+            controlForm.appendChild(buttonDiv);
+
+            showModal('control-modal');
+        }
+
+        document.getElementById('control-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {};
+            let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
+            
+            headersToUse.forEach(header => {
+                const inputElement = document.getElementById(`form-${header.id}`);
+                if (inputElement) {
+                    formData[header.id] = inputElement.value;
+                }
+            });
+
+            if (currentControlType === 'keyControls') {
+                const frequency = formData['FREQ'] || 'Monthly';
+                if (frequency === 'Quarterly') {
+                    months.forEach(month => delete formData[month]);
+                } else if (frequency === 'Annually') {
+                    months.forEach(month => delete formData[month]);
+                    quarters.forEach(q => delete formData[q]);
+                } else {
+                    quarters.forEach(q => delete formData[q]);
+                    delete formData['Annual'];
+                }
+            }
+            await addOrUpdateControl(currentControlType, currentControlId, formData);
+        });
+
+        document.getElementById('add-key-control-btn').addEventListener('click', () => openControlModal('keyControls'));
+        document.getElementById('add-secondary-control-btn').addEventListener('click', () => openControlModal('secondaryControls'));
+
+        async function parseCSV(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const text = event.target.result;
+                    const lines = text.split('\n').filter(line => line.trim() !== '');
+                    if (lines.length === 0) {
+                        reject(new Error("CSV file is empty or malformed."));
+                        return;
+                    }
+                    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                    const data = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                        if (values.length === headers.length) {
+                            const row = {};
+                            headers.forEach((header, index) => {
+                                row[header] = values[index];
+                            });
+                            data.push(row);
+                        } else if (values.length > 1) {
+                            console.warn(`Skipping malformed row ${i + 1}: Expected ${headers.length} columns, got ${values.length}. Row: ${lines[i]}`);
+                        }
+                    }
+                    resolve(data);
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsText(file);
+            });
+        }
+
+        async function uploadControls(fileInputId, collectionName) {
+            const fileInput = document.getElementById(fileInputId);
+            const file = fileInput.files[0];
+            if (!file) {
+                showMessage('Please select a CSV file to upload.');
+                return;
+            }
+
+            showLoadingSpinner();
+            try {
+                const parsedData = await parseCSV(file);
+                if (parsedData.length === 0) {
+                    showMessage('No valid data found in the CSV file.');
+                    return;
+                }
+
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                const batch = writeBatch(db);
+                let uploadCount = 0;
+
+                parsedData.forEach(item => {
+                    if (collectionName === 'keyControls') {
+                        if (item['Status']) {
+                            item['Tracking Status'] = item['Status'];
+                            delete item['Status'];
+                        }
+                        if (item['Link']) {
+                            item['Link URL'] = item['Link'];
+                            if (!item['Link Name']) {
+                                item['Link Name'] = item['Link'].split('/').pop() || 'Link';
+                            }
+                            delete item['Link'];
+                        }
+                        if (item['Link URL'] && !item['Link Name']) {
+                            item['Link Name'] = item['Link URL'].split('/').pop() || 'Link';
+                        }
+                    }
+                    const newDocRef = doc(controlsColRef);
+                    batch.set(newDocRef, item);
+                    uploadCount++;
+                });
+
+                await retryOperation(() => batch.commit());
+                showMessage(`Successfully uploaded ${uploadCount} controls to ${collectionName}.`);
+            } catch (error) {
+                console.error(`Error uploading controls to ${collectionName}:`, error);
+                showMessage(`Failed to upload controls: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+                fileInput.value = '';
+            }
+        }
+
+        document.getElementById('upload-key-control-btn').addEventListener('click', () => {
+            document.getElementById('upload-key-control-file').click();
+        });
+        document.getElementById('upload-key-control-file').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                uploadControls('upload-key-control-file', 'keyControls');
+            }
+        });
+
+        document.getElementById('upload-secondary-control-btn').addEventListener('click', () => {
+            document.getElementById('upload-secondary-control-file').click();
+        });
+        document.getElementById('upload-secondary-control-file').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                uploadControls('upload-secondary-control-file', 'secondaryControls');
+            }
+        });
+        
+        let keyControlsChart, secondaryControlsChart;
+
+        function getStatusCounts(controls, collectionName) {
+            const counts = {};
+            controls.forEach(control => {
+                const status = collectionName === 'keyControls' ? (control['Tracking Status'] || 'N/A') : (control['Assessment'] || 'N/A');
+                counts[status] = (counts[status] || 0) + 1;
+            });
+            return counts;
+        }
+
+        function renderChart(chartId, title, dataCounts) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            const labels = Object.keys(dataCounts);
+            const data = Object.values(dataCounts);
+
+            const colors = [
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(255, 206, 86, 0.6)',
+                'rgba(153, 102, 255, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(201, 203, 207, 0.6)'
+            ];
+
+            const borderColors = colors.map(color => color.replace('0.6', '1'));
+
+            let existingChart = Chart.getChart(ctx);
+            if (existingChart) {
+                existingChart.destroy();
+            }
+
+            return new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Number of Controls',
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: borderColors.slice(0, labels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: title
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderDashboardCharts() {
+            const keyCounts = getStatusCounts(controlData.keyControls, 'keyControls');
+            keyControlsChart = renderChart('keyControlsChart', 'Key Controls Status Distribution', keyCounts);
+
+            const secondaryCounts = getStatusCounts(controlData.secondaryControls, 'secondaryControls');
+            secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
+        }
+
+        async function createUser(email, password) {
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                showMessage(`User ${email} created successfully!`);
+                document.getElementById('create-user-form').reset();
+                await loadUsers();
+            } catch (error) {
+                console.error("Error creating user:", error);
+                showMessage(`Failed to create user: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        document.getElementById('create-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('new-user-email').value;
+            const password = document.getElementById('new-user-password').value;
+            await createUser(email, password);
+        });
+
+        async function loadUsers() {
+            const userList = document.getElementById('user-list');
+            if (!userList) return;
+            userList.innerHTML = '';
+            if (auth.currentUser) {
+                const listItem = document.createElement('li');
+                listItem.textContent = `Current User: ${auth.currentUser.email || auth.currentUser.uid}`;
+                userList.appendChild(listItem);
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = `No active user.`;
+                userList.appendChild(listItem);
+            }
+        }
+
+        document.getElementById('generate-key-pdf-button').addEventListener('click', () => generatePdfForControls('keyControls'));
+        document.getElementById('generate-secondary-pdf-button').addEventListener('click', () => generatePdfForControls('secondaryControls'));
+        document.getElementById('generate-all-pdf-button').addEventListener('click', () => generatePdfForControls('all'));
+
+        async function generatePdfForControls(type) {
+            const pdfExportContent = document.getElementById('pdf-export-content');
+            const pdfTable = document.getElementById('pdf-table-to-generate');
+            const pdfReportTitle = document.getElementById('pdf-report-title');
+            const pdfSignatureImage = document.getElementById('pdf-signature-image');
+            
+            showLoadingSpinner();
+
+            let controlsToPrint = [];
+            let title = '';
+
+            if (type === 'keyControls') {
+                controlsToPrint = controlData.keyControls;
+                title = 'Key Controls Report';
+                if(pdfReportTitle) pdfReportTitle.textContent = title;
+                populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
+            } else if (type === 'secondaryControls') {
+                controlsToPrint = controlData.secondaryControls;
+                title = 'Secondary Controls Report';
+                if(pdfReportTitle) pdfReportTitle.textContent = title;
+                populatePdfTable(pdfTable, controlsToPrint, 'secondaryControls');
+            } else if (type === 'all') {
+                 controlsToPrint = controlData.keyControls.concat(controlData.secondaryControls);
+                 title = 'All Controls Report';
+                 if(pdfReportTitle) pdfReportTitle.textContent = title;
+                 populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
+            }
+
+            if (signatureDataUrl && pdfSignatureImage) {
+                pdfSignatureImage.src = signatureDataUrl;
+                pdfSignatureImage.style.display = 'block';
+            } else if (pdfSignatureImage) {
+                pdfSignatureImage.style.display = 'none';
+            }
+            
+            if(pdfExportContent) pdfExportContent.style.display = 'block';
+            
+            const options = {
+                margin: 10,
+                filename: `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' }
+            };
+
+            await html2pdf().set(options).from(pdfExportContent).save().then(async () => {
+                if(pdfExportContent) pdfExportContent.style.display = 'none';
+                showMessage('PDF generated successfully!');
+
+                const pdfRecord = {
+                    date: new Date().toISOString().slice(0, 10),
+                    month: new Date().toLocaleString('default', { month: 'long' }),
+                    controlType: title.replace(' Report', ''),
+                    fileName: `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`
+                };
+                await addDoc(collection(db, `artifacts/${appId}/public/data/generatedPdfs`), pdfRecord);
+            }).catch(error => {
+                console.error("Error generating PDF:", error);
+                showMessage(`Failed to generate PDF: ${error.message}`);
+                if(pdfExportContent) pdfExportContent.style.display = 'none';
+            });
+            hideLoadingSpinner();
+        }
+
+        function populatePdfTable(tableElement, controls, controlType) {
+            if (!tableElement) return;
+            const tableHeader = tableElement.querySelector('thead') || tableElement.createTHead();
+            const tableBody = tableElement.querySelector('tbody') || tableElement.createTBody();
+            tableHeader.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (controlType === 'keyControls') {
+                const firstRow = tableHeader.insertRow();
+                const secondRow = tableHeader.insertRow();
+
+                const staticHeaders = ['Description', 'How', 'Frequency', 'By When', 'Evidence'];
+                staticHeaders.forEach(h => {
+                    const th = document.createElement('th');
+                    th.textContent = h;
+                    th.rowSpan = 2;
+                    firstRow.appendChild(th);
+                });
+                
+                const dynamicHeaders = {
+                    Q1: ['JAN', 'FEB', 'MAR'],
+                    Q2: ['APR', 'MAY', 'JUN'],
+                    Q3: ['JUL', 'AUG', 'SEP'],
+                    Q4: ['OCT', 'NOV', 'DEC']
+                };
+
+                for(const q in dynamicHeaders) {
+                    const th = document.createElement('th');
+                    th.textContent = q;
+                    th.colSpan = 3;
+                    th.classList.add('table-header-quarters');
+                    firstRow.appendChild(th);
+                }
+
+                months.forEach(month => {
+                    const thMonth = document.createElement('th');
+                    thMonth.textContent = month;
+                    thMonth.classList.add('table-header-months');
+                    secondRow.appendChild(thMonth);
+                });
+
+                const otherStaticHeaders = ['Annual', 'Tracking Status', 'Link Name'];
+                otherStaticHeaders.forEach(h => {
+                    const th = document.createElement('th');
+                    th.textContent = h;
+                    th.rowSpan = 2;
+                    firstRow.appendChild(th);
+                });
+
+                controls.forEach(control => {
+                    const row = tableBody.insertRow();
+                    
+                    const cellsToRender = [
+                        'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
+                    ];
+
+                    cellsToRender.forEach(id => {
+                        const cell = row.insertCell();
+                        cell.textContent = control[id] || '';
+                    });
+
+                    const frequency = control['FREQ'] || 'Monthly';
+                    if (frequency === 'Quarterly') {
+                        quarters.forEach(q => {
+                            const cell = row.insertCell();
+                            cell.colSpan = 3;
+                            cell.textContent = control[q] || 'N/A';
+                        });
+                    } else if (frequency === 'Annually') {
+                        const cell = row.insertCell();
+                        cell.colSpan = 12;
+                        cell.textContent = control['Annual'] || 'N/A';
+                    } else {
+                        months.forEach(month => {
+                            const cell = row.insertCell();
+                            cell.textContent = control[month] || 'N/A';
+                        });
+                    }
+                    
+                    const postDynamicHeaders = ['Annual', 'Tracking Status', 'Link Name'];
+                    postDynamicHeaders.forEach(id => {
+                         const cell = row.insertCell();
+                        if (id === 'Annual' && frequency !== 'Annually') {
+                             cell.textContent = '';
+                        } else if (id === 'Link Name') {
+                            const linkName = control['Link Name'];
+                            const linkURL = control['Link URL'];
+                            if (linkName && linkURL) {
+                                const anchor = document.createElement('a');
+                                anchor.href = linkURL;
+                                anchor.textContent = linkName;
+                                anchor.target = '_blank';
+                                cell.appendChild(anchor);
+                            } else {
+                                cell.textContent = linkName || '';
+                            }
+                        } else {
+                            cell.textContent = control[id] || '';
+                        }
+                    });
+                });
+            } else {
+                let headersToUse = controlType === 'secondaryControls' ? secondaryControlHeaders : qaChecklistHeaders;
+                 const headerRow = tableHeader.insertRow();
+                 headersToUse.forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header.label;
+                    headerRow.appendChild(th);
+                 });
+                const thActions = document.createElement('th');
+                thActions.textContent = "Actions";
+                headerRow.appendChild(thActions);
+
+                controls.forEach(control => {
+                    const row = tableBody.insertRow();
+                    headersToUse.forEach(header => {
+                        const cell = row.insertCell();
+                        cell.textContent = control[header.id] || '';
+                    });
+                    const actionsCell = row.insertCell();
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.classList.add('edit-btn');
+                    actionsCell.appendChild(editBtn);
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.classList.add('delete-btn', 'ml-1');
+                    actionsCell.appendChild(deleteBtn);
+                });
+            }
+        }
+
+        function handleSignatureUpload(fileInputId, previewId) {
+            const fileInput = document.getElementById(fileInputId);
+            const uploadBtn = document.getElementById(fileInputId.replace('-upload', '-btn'));
+            const previewImg = document.getElementById(previewId);
+
+            if (uploadBtn) {
+                uploadBtn.addEventListener('click', () => {
+                    fileInput?.click();
+                });
+            }
+
+            if (fileInput) {
+                fileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            signatureDataUrl = event.target.result;
+                            if (previewImg) {
+                                previewImg.src = signatureDataUrl;
+                                previewImg.classList.remove('hidden');
+                            }
+                            showMessage('Signature uploaded successfully!');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        }
+        
+        handleSignatureUpload('key-controls-signature-upload', 'key-controls-signature-preview');
+        handleSignatureUpload('secondary-controls-signature-upload', 'secondary-controls-signature-preview');
+
+
+        document.getElementById('download-key-excel-button').addEventListener('click', () => {
+             downloadExcel('keyControls');
+        });
+        document.getElementById('download-secondary-excel-button').addEventListener('click', () => {
+             downloadExcel('secondaryControls');
+        });
+
+        function downloadExcel(controlType) {
+            const tableId = controlType === 'keyControls' ? 'key-controls-table' : 'secondary-controls-table';
+            const tableName = controlType === 'keyControls' ? 'Key Controls' : 'Secondary Controls';
+            const table = document.getElementById(tableId);
+
+            const ws = XLSX.utils.table_to_sheet(table);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, tableName);
+            
+            if (signatureDataUrl) {
+                const signatureSheet = XLSX.utils.aoa_to_sheet([["Sign Off"], ["Signed By: Manager - John Doe"], [`Date: ${new Date().toLocaleDateString()}`]]);
+                XLSX.utils.sheet_add_aoa(signatureSheet, [[signatureDataUrl]], {origin: "A5"});
+                XLSX.utils.book_append_sheet(wb, signatureSheet, "Sign Off");
+            }
+
+            XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+        
+        // Remove QA Checklist functionality
+        const qaChecklistTabButton = document.querySelector('[data-tab="qa-checklist"]');
+        if (qaChecklistTabButton) {
+            qaChecklistTabButton.remove();
+        }
+        const qaChecklistContent = document.getElementById('qa-checklist-content');
+        if (qaChecklistContent) {
+            qaChecklistContent.remove();
+        }
+    </script>
 </body>
 </html>
