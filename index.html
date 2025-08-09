@@ -212,8 +212,13 @@
         tbody tr:hover {
             background-color: #e5e7eb;
         }
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0.25rem;
+        }
         .action-buttons button {
-            margin-right: 0.5rem;
             padding: 0.3rem 0.6rem;
             border-radius: 0.3rem;
             font-size: 0.75rem;
@@ -1337,7 +1342,7 @@
             let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             headersToUse.forEach(header => {
-                if (header.id === 'Link' || months.includes(header.id) || quarters.includes(header.id) || header.id === 'Annual') {
+                if (header.id === 'Link') {
                      return;
                 }
                 
@@ -1452,7 +1457,7 @@
             let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             headersToUse.forEach(header => {
-                if (header.id !== 'Link') {
+                if (header.id !== 'Link' && !months.includes(header.id) && !quarters.includes(header.id) && header.id !== 'Annual') {
                     const inputElement = document.getElementById(`form-${header.id}`);
                     if (inputElement) {
                         formData[header.id] = inputElement.value;
@@ -1703,7 +1708,7 @@
             } finally {
                 hideLoadingSpinner();
             }
-        }
+        });
 
         document.getElementById('create-user-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1818,7 +1823,7 @@
                 monthsHeader.colSpan = 12;
                 topRow.appendChild(monthsHeader);
 
-                const annTrackLinkHeaders = ['Annual', 'Tracking Status', 'Link', 'Review', 'Delete', 'Due In'];
+                const annTrackLinkHeaders = ['Annual', 'Tracking Status', 'Link', 'Actions', 'Due In'];
                 annTrackLinkHeaders.forEach(h => {
                     const th = document.createElement('th');
                     th.textContent = h;
@@ -1882,10 +1887,8 @@
                         linkCell.textContent = linkName || '';
                     }
 
-                    const reviewCell = row.insertCell();
-                    reviewCell.textContent = 'Review';
-                    const deleteCell = row.insertCell();
-                    deleteCell.textContent = 'Delete';
+                    const actionsCell = row.insertCell();
+                    actionsCell.textContent = 'Review / Delete';
                     
                     const dueInCell = row.insertCell();
                     dueInCell.textContent = dueInDays;
@@ -1900,11 +1903,8 @@
                     headerRow.appendChild(th);
                  });
                 const thActions = document.createElement('th');
-                thActions.textContent = "Review";
+                thActions.textContent = "Actions";
                 headerRow.appendChild(thActions);
-                const thDelete = document.createElement('th');
-                thDelete.textContent = "Delete";
-                headerRow.appendChild(thDelete);
                 const thDueIn = document.createElement('th');
                 thDueIn.textContent = "Due In";
                 headerRow.appendChild(thDueIn);
@@ -1915,10 +1915,8 @@
                         const cell = row.insertCell();
                         cell.textContent = control[header.id] || '';
                     });
-                    const reviewCell = row.insertCell();
-                    reviewCell.textContent = 'Review';
-                    const deleteCell = row.insertCell();
-                    deleteCell.textContent = 'Delete';
+                    const actionsCell = row.insertCell();
+                    actionsCell.textContent = 'Review / Delete';
                     
                     const dueInCell = row.insertCell();
                     const today = new Date();
