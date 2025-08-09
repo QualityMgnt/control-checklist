@@ -1159,6 +1159,7 @@
                 
                 tableHeaders.forEach(header => {
                     const cell = row.insertCell();
+                    const controlId = control.id;
 
                     if (collectionName === 'keyControls') {
                         if (header.id === 'Link') {
@@ -1177,7 +1178,7 @@
                              renderStatusCell(cell, control[header.id], control, header.id);
                         } else if (header.id === 'Annual' || header.id === 'Tracking Status') {
                             renderStatusCell(cell, control[header.id], control, header.id);
-                        } else if (header.id === 'HOW' || header.id === 'EVIDENCE OF CONTROL' || header.id === 'KEY CONTROL DESCRIPTION' || header.id === 'FREQ' || header.id === 'BY WHEN' ) {
+                        } else if (header.id === 'HOW' || header.id === 'EVIDENCE OF CONTROL' || header.id === 'KEY CONTROL DESCRIPTION') {
                             const div = document.createElement('div');
                             div.textContent = control[header.id] || '';
                             div.classList.add('editable');
@@ -1194,6 +1195,17 @@
                                 input.focus();
                             };
                             cell.appendChild(div);
+                        } else if (header.id === 'BY WHEN') {
+                            const dateInput = document.createElement('input');
+                            dateInput.type = 'date';
+                            dateInput.value = control[header.id] || '';
+                            dateInput.classList.add('input-field', 'w-full');
+                            dateInput.addEventListener('change', async (e) => {
+                                const newDate = e.target.value;
+                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), { 'BY WHEN': newDate });
+                                updateStatusOnDateChange(control);
+                            });
+                            cell.appendChild(dateInput);
                         } else if (header.type === 'select') {
                             const select = document.createElement('select');
                             select.classList.add('input-field', 'w-full');
@@ -1207,7 +1219,7 @@
                             select.addEventListener('change', async (e) => {
                                 const newStatus = e.target.value;
                                 const data = { [header.id]: newStatus };
-                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), data);
+                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
                             });
                             cell.appendChild(select);
                         } else {
@@ -1354,7 +1366,7 @@
             let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             headersToUse.forEach(header => {
-                if (header.id === 'Link') {
+                if (header.id === 'Link' || months.includes(header.id) || quarters.includes(header.id) || header.id === 'Annual') {
                      return;
                 }
                 
