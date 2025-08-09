@@ -222,11 +222,11 @@
             cursor: pointer;
             transition: background-color 0.2s ease-in-out;
         }
-        .action-buttons .edit-btn {
+        .action-buttons .review-btn {
             background-color: #22c55e;
             color: white;
         }
-        .action-buttons .edit-btn:hover {
+        .action-buttons .review-btn:hover {
             background-color: #16a34a;
         }
         .action-buttons .delete-btn {
@@ -264,9 +264,6 @@
             /* Adjust table for smaller screens */
             .overflow-x-auto {
                 overflow-x: scroll;
-            }
-            .table-header-months, .table-header-quarters {
-                min-width: 50px; /* Ensure small month/quarter headers have a minimum width */
             }
         }
         /* Status colors */
@@ -334,24 +331,6 @@
             left: -9999px;
             width: auto;
             height: auto;
-        }
-        /* Custom styles for the new table header structure */
-        .key-controls-table-header th {
-            font-family: 'Garamond', serif;
-            font-size: 12px;
-            white-space: normal;
-        }
-        .key-controls-table-header .month-header {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            white-space: nowrap;
-            padding: 0.5rem 0.25rem;
-            font-size: 12px;
-            text-align: left;
-        }
-        .link-cell {
-            text-align: center;
-            vertical-align: middle;
         }
     </style>
 </head>
@@ -1044,6 +1023,20 @@
             }
             return '';
         }
+        
+        function updateStatusOnDateChange(control) {
+            const byWhenDateStr = control['BY WHEN'];
+            if (byWhenDateStr && control['Tracking Status'] !== 'Overdue' && control['Tracking Status'] !== 'Closed') {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const byWhenDate = new Date(byWhenDateStr);
+                if (byWhenDate < today) {
+                    const controlsColRef = collection(db, `artifacts/${appId}/public/data/keyControls`);
+                    updateDoc(doc(controlsColRef, control.id), { 'Tracking Status': 'Overdue' })
+                        .catch(error => console.error("Error updating status to Overdue:", error));
+                }
+            }
+        }
 
         function renderStatusCell(cell, status) {
             const statusDiv = document.createElement('div');
@@ -1067,22 +1060,23 @@
             controls.forEach(control => {
                 const row = tableBody.insertRow();
                 row.dataset.id = control.id;
-                let needsStatusUpdate = false;
+                
                 const byWhenDateStr = control['BY WHEN'];
-
                 let dueInDays = 'N/A';
+                let overdueClass = '';
                 if (byWhenDateStr) {
                     const byWhenDate = new Date(byWhenDateStr);
                     const diffTime = byWhenDate - today;
                     dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
                     if (byWhenDate < today && control['Tracking Status'] !== 'Overdue') {
-                        control['Tracking Status'] = 'Overdue';
-                        needsStatusUpdate = true;
+                        updateStatusOnDateChange(control);
+                    }
+                    if(dueInDays < 0) {
+                        overdueClass = 'overdue-text';
                     }
                 }
                 
-                const tableHeaders = tableId === 'key-controls-table' ? keyControlHeaders : secondaryControlHeaders;
+                const tableHeaders = collectionName === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
                 
                 tableHeaders.forEach(header => {
                     const cell = row.insertCell();
@@ -1102,14 +1096,42 @@
                             cell.appendChild(linkButton);
                         } else if (months.includes(header.id) || quarters.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status') {
                             renderStatusCell(cell, control[header.id]);
-                        } else if (header.id === 'HOW' || header.id === 'EVIDENCE OF CONTROL' || header.id === 'KEY CONTROL DESCRIPTION' || header.id === 'FREQ' || header.id === 'BY WHEN' ) {
+                        } else if (header.id === 'HOW' || header.id === 'EVIDENCE OF CONTROL' || header.id === 'KEY CONTROL DESCRIPTION') {
+                            cell.textContent = control[header.id] || '';
+                        } else if (header.id === 'BY WHEN') {
+                            const dateInput = document.createElement('input');
+                            dateInput.type = 'date';
+                            dateInput.value = control[header.id] || '';
+                            dateInput.classList.add('input-field', 'w-full');
+                            dateInput.addEventListener('change', async (e) => {
+                                const newDate = e.target.value;
+                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), { 'BY WHEN': newDate });
+                                updateStatusOnDateChange(control);
+                            });
+                            cell.appendChild(dateInput);
+                        } else if (header.type === 'select') {
+                            const select = document.createElement('select');
+                            select.classList.add('input-field', 'w-full');
+                            header.options.forEach(optionText => {
+                                const option = document.createElement('option');
+                                option.value = optionText;
+                                option.textContent = optionText;
+                                select.appendChild(option);
+                            });
+                            select.value = control[header.id] || '';
+                            select.addEventListener('change', async (e) => {
+                                const newStatus = e.target.value;
+                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), { [header.id]: newStatus });
+                            });
+                            cell.appendChild(select);
+                        } else {
                             cell.textContent = control[header.id] || '';
                         }
                     } else { // Secondary Controls
                         if (header.id === 'Assessment') {
                             renderStatusCell(cell, control[header.id]);
                         } else {
-                             cell.textContent = control[header.id] || '';
+                            cell.textContent = control[header.id] || '';
                         }
                     }
                 });
@@ -1119,7 +1141,7 @@
                     reviewCell.classList.add('action-buttons');
                     const reviewBtn = document.createElement('button');
                     reviewBtn.textContent = 'Review';
-                    reviewBtn.classList.add('edit-btn');
+                    reviewBtn.classList.add('review-btn');
                     reviewBtn.onclick = () => openControlModal(collectionName, control.id, control);
                     reviewCell.appendChild(reviewBtn);
 
@@ -1133,15 +1155,13 @@
 
                     const dueInCell = row.insertCell();
                     dueInCell.textContent = dueInDays;
-                    if (dueInDays < 0) {
-                        dueInCell.classList.add('overdue-text', 'font-semibold');
-                    }
+                    dueInCell.classList.add(overdueClass);
                 } else {
                     const reviewCell = row.insertCell();
                     reviewCell.classList.add('action-buttons');
                     const reviewBtn = document.createElement('button');
                     reviewBtn.textContent = 'Review';
-                    reviewBtn.classList.add('edit-btn');
+                    reviewBtn.classList.add('review-btn');
                     reviewBtn.onclick = () => openControlModal(collectionName, control.id, control);
                     reviewCell.appendChild(reviewBtn);
 
@@ -1154,10 +1174,19 @@
                     deleteCell.appendChild(deleteBtn);
                     
                     const dueInCell = row.insertCell();
-                    dueInCell.textContent = dueInDays;
-                    if (dueInDays < 0) {
-                        dueInCell.classList.add('overdue-text', 'font-semibold');
+                    const byWhenDateStrSecondary = control['BY WHEN'];
+                    let dueInDaysSecondary = 'N/A';
+                    let overdueClassSecondary = '';
+                    if (byWhenDateStrSecondary) {
+                        const byWhenDate = new Date(byWhenDateStrSecondary);
+                        const diffTime = byWhenDate - today;
+                        dueInDaysSecondary = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        if(dueInDaysSecondary < 0) {
+                            overdueClassSecondary = 'overdue-text';
+                        }
                     }
+                    dueInCell.textContent = dueInDaysSecondary;
+                    dueInCell.classList.add(overdueClassSecondary);
                 }
 
                 if (needsStatusUpdate) {
@@ -1171,11 +1200,19 @@
             showLoadingSpinner();
             try {
                 const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                
+                // Filter out undefined and empty link values for new records
+                const dataToSave = {...data};
+                if (!dataToSave['Link Name'] || dataToSave['Link Name'].trim() === '') {
+                    delete dataToSave['Link Name'];
+                    delete dataToSave['Link URL'];
+                }
+
                 if (controlId) {
-                    await retryOperation(() => updateDoc(doc(controlsColRef, controlId), data));
+                    await retryOperation(() => updateDoc(doc(controlsColRef, controlId), dataToSave));
                     showMessage('Control updated successfully!');
                 } else {
-                    await retryOperation(() => addDoc(controlsColRef, data));
+                    await retryOperation(() => addDoc(controlsColRef, dataToSave));
                     showMessage('Control added successfully!');
                 }
             } catch (error) {
@@ -1206,7 +1243,7 @@
 
         let currentControlType = '';
         let currentControlId = null;
-        let currentLink = {};
+        let currentLink = { name: '', url: '' };
 
         function openControlModal(type, id = null, data = {}) {
             currentControlType = type;
@@ -1241,9 +1278,49 @@
                         option.textContent = optionText;
                         inputElement.appendChild(option);
                     });
+                    inputElement.addEventListener('change', async (e) => {
+                        const newStatus = e.target.value;
+                        if (currentControlId) {
+                            try {
+                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { [header.id]: newStatus });
+                            } catch (error) {
+                                console.error(`Error updating field ${header.id}:`, error);
+                            }
+                        }
+                    });
+
+                } else if (header.type === 'date') {
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'date';
+                    inputElement.addEventListener('change', async (e) => {
+                        const newDate = e.target.value;
+                        if (currentControlId) {
+                            try {
+                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { [header.id]: newDate });
+                                // Recalculate 'Due In' and status
+                                const updatedControl = controlData[currentControlType].find(c => c.id === currentControlId);
+                                if (updatedControl) {
+                                    updatedControl[header.id] = newDate;
+                                    updateStatusOnDateChange(updatedControl);
+                                }
+                            } catch (error) {
+                                console.error(`Error updating date field ${header.id}:`, error);
+                            }
+                        }
+                    });
                 } else {
                     inputElement = document.createElement('input');
                     inputElement.type = header.type || 'text';
+                    inputElement.addEventListener('change', async (e) => {
+                        const newValue = e.target.value;
+                        if (currentControlId) {
+                            try {
+                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { [header.id]: newValue });
+                            } catch (error) {
+                                console.error(`Error updating field ${header.id}:`, error);
+                            }
+                        }
+                    });
                 }
 
                 inputElement.id = `form-${header.id}`;
@@ -1291,18 +1368,13 @@
                 Object.assign(formData, { 'Link Name': currentLink.name, 'Link URL': currentLink.url });
             }
 
-            if (currentControlType === 'keyControls') {
-                const frequency = formData['FREQ'] || 'Monthly';
-                if (frequency === 'Quarterly') {
-                    months.forEach(month => delete formData[month]);
-                } else if (frequency === 'Annually') {
-                    months.forEach(month => delete formData[month]);
-                    quarters.forEach(q => delete formData[q]);
-                } else {
-                    quarters.forEach(q => delete formData[q]);
-                    delete formData['Annual'];
-                }
+            // Remove empty link data before saving
+            if (!formData['Link Name']) {
+                delete formData['Link Name'];
+                delete formData['Link URL'];
             }
+            
+            // Check for new record vs update
             await addOrUpdateControl(currentControlType, currentControlId, formData);
         });
 
