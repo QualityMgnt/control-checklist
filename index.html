@@ -1230,7 +1230,9 @@
                 
                 const linkButton = document.createElement('button');
                 linkButton.textContent = linkText;
-                linkButton.classList.add('p-1', 'rounded', linkClass);
+                if(linkClass) {
+                    linkButton.classList.add('p-1', 'rounded', ...linkClass.split(' '));
+                }
                 linkButton.onclick = () => openLinkModal(linkCell);
                 linkCell.classList.add('link-cell');
                 linkCell.appendChild(linkButton);
@@ -1671,7 +1673,7 @@
             } finally {
                 hideLoadingSpinner();
             }
-        };
+        });
 
         document.getElementById('create-user-form').addEventListener('submit', async (e) => {
             e.preventDefault();
