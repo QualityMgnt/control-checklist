@@ -6,8 +6,8 @@
     <title>Customer Experience Controls</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Garamond Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js CDN for graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- html2pdf.js CDN for PDF generation -->
@@ -16,7 +16,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Garamond', sans-serif;
             background-color: #f3f4f6;
             display: flex;
             justify-content: center;
@@ -202,7 +202,7 @@
             background-color: #f9fafb;
             font-weight: 600;
             color: #374151;
-            white-space: normal; /* Ensure header text wraps */
+            white-space: normal;
         }
         tbody tr:nth-child(even) {
             background-color: #f3f4f6;
@@ -331,7 +331,14 @@
             width: auto;
             height: auto;
         }
-        
+        th, td {
+            font-family: 'Garamond', serif;
+            font-size: 12px;
+        }
+        th {
+            white-space: nowrap; /* Prevent header text from wrapping */
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -423,17 +430,20 @@
                     <table id="key-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
                         <thead>
                             <tr>
-                                <th rowspan="2" style="width: 15%;">KEY CONTROL DESCRIPTION</th>
-                                <th rowspan="2" style="width: 5%;">HOW</th>
-                                <th rowspan="2" style="width: 5%;">FREQ</th>
-                                <th rowspan="2" style="width: 8%;">BY WHEN</th>
-                                <th rowspan="2" style="width: 10%;">EVIDENCE OF CONTROL</th>
-                                <th colspan="12" class="table-header-quarters">Months</th>
-                                <th rowspan="2" style="width: 5%;">Annual</th>
-                                <th rowspan="2" style="width: 8%;">Tracking Status</th>
-                                <th rowspan="2" style="width: 10%;">Link</th>
-                                <th rowspan="2" style="width: 5%;">Edit</th>
-                                <th rowspan="2" style="width: 5%;">Delete</th>
+                                <th style="width: 15%;">KEY CONTROL DESCRIPTION</th>
+                                <th style="width: 5%;">HOW</th>
+                                <th style="width: 5%;">FREQ</th>
+                                <th style="width: 8%;">BY WHEN</th>
+                                <th style="width: 10%;">EVIDENCE OF CONTROL</th>
+                                <th colspan="3" class="table-header-quarters">Q1</th>
+                                <th colspan="3" class="table-header-quarters">Q2</th>
+                                <th colspan="3" class="table-header-quarters">Q3</th>
+                                <th colspan="3" class="table-header-quarters">Q4</th>
+                                <th style="width: 5%;">Annual</th>
+                                <th style="width: 8%;">Tracking Status</th>
+                                <th style="width: 10%;">Link</th>
+                                <th style="width: 5%;">Edit</th>
+                                <th style="width: 5%;">Delete</th>
                             </tr>
                             <tr>
                                 <th class="table-header-months" style="width: 3%;">JAN</th>
@@ -458,13 +468,6 @@
                 <!-- Sign Off Section -->
                 <div class="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
                     <h3 class="text-lg font-semibold mb-4">Sign Off</h3>
-                    <div class="flex flex-wrap gap-4 items-center">
-                        <div>
-                            <input type="file" id="key-controls-signature-upload" accept="image/*" class="hidden">
-                            <button id="key-controls-upload-signature-btn" class="btn-primary">Upload Signature</button>
-                        </div>
-                        <img id="key-controls-signature-preview" class="h-16 w-auto border rounded-md hidden" src="" alt="Signature Preview">
-                    </div>
                     <table class="signoff-table w-full max-w-sm mt-4">
                         <thead>
                             <tr>
@@ -524,13 +527,23 @@
                 <!-- Sign Off Section -->
                 <div class="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
                     <h3 class="text-lg font-semibold mb-4">Sign Off</h3>
-                    <div class="flex flex-wrap gap-4 items-center">
-                        <div>
-                            <input type="file" id="secondary-controls-signature-upload" accept="image/*" class="hidden">
-                            <button id="secondary-controls-upload-signature-btn" class="btn-primary">Upload Signature</button>
-                        </div>
-                        <img id="secondary-controls-signature-preview" class="h-16 w-auto border rounded-md hidden" src="" alt="Signature Preview">
-                    </div>
+                    <table class="signoff-table w-full max-w-sm mt-4">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Signature & Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="signoff-name-cell-secondary">Assistant Manager - </td>
+                                <td id="signoff-signature-cell-secondary" class="relative">
+                                    <img id="signoff-signature-img-secondary" class="max-h-16 w-auto border rounded-md" style="display: none;" />
+                                    <span id="signoff-date-secondary" class="absolute bottom-2 left-2 text-xs text-gray-500"></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
                 <div class="flex flex-wrap gap-4 mt-6 justify-end">
                     <button id="add-secondary-control-btn" class="btn-primary">Add New Secondary Control</button>
@@ -1610,20 +1623,29 @@
                     firstRow.appendChild(th);
                 });
                 
-                const monthHeaders = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-                const monthHeadersRow = tableHeader.insertRow();
-                
-                const monthsTh = document.createElement('th');
-                monthsTh.textContent = 'Months';
-                monthsTh.colSpan = 12;
-                monthsTh.classList.add('table-header-quarters');
-                firstRow.appendChild(monthsTh);
+                const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+                quarters.forEach(q => {
+                    const th = document.createElement('th');
+                    th.textContent = q;
+                    th.colSpan = 3;
+                    th.classList.add('table-header-quarters');
+                    firstRow.appendChild(th);
+                });
 
                 const annualTh = document.createElement('th');
                 annualTh.textContent = 'Annual';
                 annualTh.rowSpan = 2;
                 firstRow.appendChild(annualTh);
 
+                const otherStaticHeaders = ['Tracking Status', 'Link'];
+                otherStaticHeaders.forEach(h => {
+                    const th = document.createElement('th');
+                    th.textContent = h;
+                    th.rowSpan = 2;
+                    firstRow.appendChild(th);
+                });
+
+                const monthHeaders = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
                 monthHeaders.forEach(month => {
                     const thMonth = document.createElement('th');
                     thMonth.textContent = month;
