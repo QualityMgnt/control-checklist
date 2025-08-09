@@ -96,7 +96,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6c -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .btn-primary:hover {
             background-color: #2563eb;
@@ -178,7 +178,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1-rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .message-box.show {
             opacity: 1;
@@ -979,18 +979,12 @@
                     const cell = row.insertCell();
 
                     if (collectionName === 'keyControls') {
-                        const frequency = control['FREQ'] || 'Monthly';
-                        
                         if (header.id === 'FREQ') {
                             cell.textContent = control[header.id] || '';
                         } else if (header.id === 'BY WHEN') {
                             cell.textContent = control[header.id] || '';
-                        } else if (months.includes(header.id)) {
-                             renderStatusCell(cell, control[header.id]);
-                        } else if (quarters.includes(header.id)) {
-                             renderStatusCell(cell, control[header.id]);
-                        } else if (header.id === 'Annual') {
-                             renderStatusCell(cell, control[header.id]);
+                        } else if (months.includes(header.id) || quarters.includes(header.id) || header.id === 'Annual') {
+                            renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'Tracking Status') {
                             renderStatusCell(cell, control['Tracking Status']);
                         } else if (header.id === 'Link Name') {
@@ -1247,16 +1241,17 @@
             });
 
             if (currentControlType === 'keyControls') {
-                const frequency = formData['FREQ'] || 'Monthly';
-                if (frequency === 'Quarterly') {
-                    months.forEach(month => delete formData[month]);
-                } else if (frequency === 'Annually') {
-                    months.forEach(month => delete formData[month]);
-                    quarters.forEach(q => delete formData[q]);
-                } else {
-                    quarters.forEach(q => delete formData[q]);
-                    delete formData['Annual'];
-                }
+                // This block is now removed
+                // const frequency = formData['FREQ'] || 'Monthly';
+                // if (frequency === 'Quarterly') {
+                //     months.forEach(month => delete formData[month]);
+                // } else if (frequency === 'Annually') {
+                //     months.forEach(month => delete formData[month]);
+                //     quarters.forEach(q => delete formData[q]);
+                // } else {
+                //     quarters.forEach(q => delete formData[q]);
+                //     delete formData['Annual'];
+                // }
             }
             await addOrUpdateControl(currentControlType, currentControlId, formData);
         });
@@ -1599,31 +1594,17 @@
                         const cell = row.insertCell();
                         cell.textContent = control[id] || '';
                     });
-
-                    const frequency = control['FREQ'] || 'Monthly';
-                    if (frequency === 'Quarterly') {
-                        quarters.forEach(q => {
-                            const cell = row.insertCell();
-                            cell.colSpan = 3;
-                            cell.textContent = control[q] || 'N/A';
-                        });
-                    } else if (frequency === 'Annually') {
+                    
+                    const dynamicMonthHeaders = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                    dynamicMonthHeaders.forEach(month => {
                         const cell = row.insertCell();
-                        cell.colSpan = 12;
-                        cell.textContent = control['Annual'] || 'N/A';
-                    } else {
-                        months.forEach(month => {
-                            const cell = row.insertCell();
-                            cell.textContent = control[month] || 'N/A';
-                        });
-                    }
+                        cell.textContent = control[month] || 'N/A';
+                    });
                     
                     const postDynamicHeaders = ['Annual', 'Tracking Status', 'Link Name'];
                     postDynamicHeaders.forEach(id => {
                          const cell = row.insertCell();
-                        if (id === 'Annual' && frequency !== 'Annually') {
-                             cell.textContent = '';
-                        } else if (id === 'Link Name') {
+                        if (id === 'Link Name') {
                             const linkName = control['Link Name'];
                             const linkURL = control['Link URL'];
                             if (linkName && linkURL) {
@@ -1641,7 +1622,7 @@
                     });
                 });
             } else {
-                let headersToUse = controlType === 'secondaryControls' ? secondaryControlHeaders : qaChecklistHeaders;
+                let headersToUse = controlType === 'secondaryControls' ? secondaryControlHeaders : [];
                  const headerRow = tableHeader.insertRow();
                  headersToUse.forEach(header => {
                     const th = document.createElement('th');
