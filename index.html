@@ -442,6 +442,31 @@
                                 <th colspan="3" class="table-header-quarters">Q3</th>
                                 <th colspan="3" class="table-header-quarters">Q4</th>
                             </tr>
+                            <tr>
+                                <th style="width: 15%;"></th>
+                                <th style="width: 5%;"></th>
+                                <th style="width: 5%;"></th>
+                                <th style="width: 8%;"></th>
+                                <th style="width: 10%;"></th>
+                                <th class="table-header-months" style="width: 3%;">1</th>
+                                <th class="table-header-months" style="width: 3%;">2</th>
+                                <th class="table-header-months" style="width: 3%;">3</th>
+                                <th class="table-header-months" style="width: 3%;">4</th>
+                                <th class="table-header-months" style="width: 3%;">5</th>
+                                <th class="table-header-months" style="width: 3%;">6</th>
+                                <th class="table-header-months" style="width: 3%;">7</th>
+                                <th class="table-header-months" style="width: 3%;">8</th>
+                                <th class="table-header-months" style="width: 3%;">9</th>
+                                <th class="table-header-months" style="width: 3%;">10</th>
+                                <th class="table-header-months" style="width: 3%;">11</th>
+                                <th class="table-header-months" style="width: 3%;">12</th>
+                                <th style="width: 5%;"></th>
+                                <th style="width: 8%;"></th>
+                                <th style="width: 10%;"></th>
+                                <th style="width: 5%;"></th>
+                                <th style="width: 5%;"></th>
+                                <th style="width: 8%;"></th>
+                            </tr>
                         </thead>
                         <tbody>
                             <!-- Key controls will be loaded here dynamically -->
@@ -833,6 +858,7 @@
             generatedPdfs: []
         };
         const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const monthsInNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
         const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
 
         const keyControlHeaders = [
@@ -841,23 +867,23 @@
             { id: 'FREQ', label: 'Frequency', type: 'select', options: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'] },
             { id: 'BY WHEN', label: 'By When', type: 'date' },
             { id: 'EVIDENCE OF CONTROL', label: 'Evidence of Control', type: 'text' },
-            { id: 'JAN', label: 'JAN', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'FEB', label: 'FEB', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'MAR', label: 'MAR', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'APR', label: 'APR', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'MAY', label: 'MAY', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'JUN', label: 'JUN', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'JUL', label: 'JUL', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'AUG', label: 'AUG', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'SEP', label: 'SEP', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'OCT', label: 'OCT', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'NOV', label: 'NOV', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'DEC', label: 'DEC', type: 'select', options: ['Yes', 'No', 'N/A'] },
-            { id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'JAN', label: '1', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'FEB', label: '2', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'MAR', label: '3', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'APR', label: '4', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'MAY', label: '5', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'JUN', label: '6', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'JUL', label: '7', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'AUG', label: '8', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'SEP', label: '9', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'OCT', label: '10', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'NOV', label: '11', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'DEC', label: '12', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'Annual', label: 'Annual', type: 'select', options: ['Y', 'N', '-'] },
             { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On Track', 'Overdue', 'Pending'] },
             { id: 'Link', label: 'Link', type: 'link' },
         ];
-
+        
         const secondaryControlHeaders = [
             { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
             { id: 'HOW (i.e. Manual/ Automated)', label: 'How', type: 'text' },
@@ -1012,11 +1038,11 @@
         }
 
         function getStatusColorClass(status) {
-            if (status === 'Yes' || status === 'On Track' || status === 'Effective') {
+            if (status === 'Y' || status === 'On Track' || status === 'Effective') {
                 return 'status-green';
-            } else if (status === 'No' || status === 'Overdue' || status === 'Not Effective') {
+            } else if (status === 'N' || status === 'Overdue' || status === 'Not Effective') {
                 return 'status-red';
-            } else if (status === 'N/A' || status === 'Pending' || status === 'Partially Effective' || status === 'Not Started') {
+            } else if (status === '-' || status === 'Pending' || status === 'Partially Effective') {
                 return 'status-amber';
             } else if (status === 'Closed') {
                 return 'status-gray';
@@ -1040,7 +1066,7 @@
 
         function renderStatusCell(cell, status) {
             const statusDiv = document.createElement('div');
-            statusDiv.textContent = status || 'N/A';
+            statusDiv.textContent = status || '-';
             statusDiv.classList.add('status-text');
             const colorClass = getStatusColorClass(status);
             if (colorClass) {
@@ -1062,7 +1088,7 @@
                 row.dataset.id = control.id;
                 
                 const byWhenDateStr = control['BY WHEN'];
-                let dueInDays = 'N/A';
+                let dueInDays = '-';
                 let overdueClass = '';
                 if (byWhenDateStr) {
                     const byWhenDate = new Date(byWhenDateStr);
@@ -1094,7 +1120,7 @@
                             linkButton.onclick = () => openLinkModal(cell);
                             cell.classList.add('link-cell');
                             cell.appendChild(linkButton);
-                        } else if (months.includes(header.id) || quarters.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status') {
+                        } else if (months.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status') {
                             renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'HOW' || header.id === 'EVIDENCE OF CONTROL' || header.id === 'KEY CONTROL DESCRIPTION') {
                             cell.textContent = control[header.id] || '';
@@ -1175,7 +1201,7 @@
                     
                     const dueInCell = row.insertCell();
                     const byWhenDateStrSecondary = control['BY WHEN'];
-                    let dueInDaysSecondary = 'N/A';
+                    let dueInDaysSecondary = '-';
                     let overdueClassSecondary = '';
                     if (byWhenDateStrSecondary) {
                         const byWhenDate = new Date(byWhenDateStrSecondary);
@@ -1196,8 +1222,22 @@
             try {
                 const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
                 
-                // Filter out undefined and empty link values for new records
                 const dataToSave = {...data};
+                
+                // For new records, explicitly set months/annual to '-' if not provided
+                if (!controlId) {
+                    if (collectionName === 'keyControls') {
+                        keyControlHeaders.filter(h => h.id.match(/(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|Annual)/)).forEach(header => {
+                            if (!dataToSave[header.id]) {
+                                dataToSave[header.id] = '-';
+                            }
+                        });
+                        if (!dataToSave['Tracking Status']) {
+                             dataToSave['Tracking Status'] = 'Pending';
+                        }
+                    }
+                }
+                
                 if (!dataToSave['Link Name'] || dataToSave['Link Name'].trim() === '') {
                     delete dataToSave['Link Name'];
                     delete dataToSave['Link URL'];
@@ -1238,13 +1278,11 @@
 
         let currentControlType = '';
         let currentControlId = null;
-        let currentLink = { name: '', url: '' };
 
         function openControlModal(type, id = null, data = {}) {
             currentControlType = type;
             currentControlId = id;
-            currentLink = { name: data['Link Name'], url: data['Link URL'] };
-
+            
             const modalTitle = document.getElementById('modal-title');
             const controlForm = document.getElementById('control-form');
             if (!controlForm || !modalTitle) return;
@@ -1254,7 +1292,10 @@
             let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             headersToUse.forEach(header => {
-                if (header.id === 'Link') return;
+                if (header.id === 'Link' || months.includes(header.id) || quarters.includes(header.id) || header.id === 'Annual') {
+                     return;
+                }
+                
                 const div = document.createElement('div');
                 div.classList.add('mb-4');
 
@@ -1273,60 +1314,35 @@
                         option.textContent = optionText;
                         inputElement.appendChild(option);
                     });
-                    inputElement.addEventListener('change', async (e) => {
-                        const newStatus = e.target.value;
-                        if (currentControlId) {
-                            try {
-                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { [header.id]: newStatus });
-                            } catch (error) {
-                                console.error(`Error updating field ${header.id}:`, error);
-                            }
-                        }
-                    });
-
-                } else if (header.type === 'date') {
-                    inputElement = document.createElement('input');
-                    inputElement.type = 'date';
-                    inputElement.addEventListener('change', async (e) => {
-                        const newDate = e.target.value;
-                        if (currentControlId) {
-                            try {
-                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { [header.id]: newDate });
-                                // Recalculate 'Due In' and status
-                                const updatedControl = controlData[currentControlType].find(c => c.id === currentControlId);
-                                if (updatedControl) {
-                                    updatedControl[header.id] = newDate;
-                                    updateStatusOnDateChange(updatedControl);
-                                }
-                            } catch (error) {
-                                console.error(`Error updating date field ${header.id}:`, error);
-                            }
-                        }
-                    });
+                    inputElement.value = data[header.id] || '';
                 } else {
                     inputElement = document.createElement('input');
                     inputElement.type = header.type || 'text';
-                    inputElement.addEventListener('change', async (e) => {
-                        const newValue = e.target.value;
-                        if (currentControlId) {
-                            try {
-                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { [header.id]: newValue });
-                            } catch (error) {
-                                console.error(`Error updating field ${header.id}:`, error);
-                            }
-                        }
-                    });
+                    inputElement.value = data[header.id] || '';
                 }
-
+                
                 inputElement.id = `form-${header.id}`;
                 inputElement.classList.add('input-field');
-                inputElement.value = data[header.id] || '';
                 div.appendChild(inputElement);
                 controlForm.appendChild(div);
             });
             
+            const linkNameHeader = { id: 'Link Name', label: 'Link Name', type: 'text' };
+            const linkUrlHeader = { id: 'Link URL', label: 'Link URL', type: 'url' };
+            
+            const linkNameDiv = document.createElement('div');
+            linkNameDiv.classList.add('mb-4');
+            linkNameDiv.innerHTML = `<label for="form-${linkNameHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkNameHeader.label}</label><input type="${linkNameHeader.type}" id="form-${linkNameHeader.id}" class="input-field" value="${data[linkNameHeader.id] || ''}">`;
+            controlForm.appendChild(linkNameDiv);
+
+            const linkUrlDiv = document.createElement('div');
+            linkUrlDiv.classList.add('mb-4');
+            linkUrlDiv.innerHTML = `<label for="form-${linkUrlHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkUrlHeader.label}</label><input type="${linkUrlHeader.type}" id="form-${linkUrlHeader.id}" class="input-field" value="${data[linkUrlHeader.id] || ''}">`;
+            controlForm.appendChild(linkUrlDiv);
+
             const buttonDiv = document.createElement('div');
             buttonDiv.classList.add('flex', 'justify-end', 'mt-6');
+            
             const saveButton = document.createElement('button');
             saveButton.type = 'submit';
             saveButton.classList.add('btn-primary');
@@ -1340,6 +1356,7 @@
             cancelButton.textContent = 'Cancel';
             cancelButton.onclick = () => hideModal('control-modal');
             buttonDiv.appendChild(cancelButton);
+
             controlForm.appendChild(buttonDiv);
             
             showModal('control-modal');
@@ -1351,13 +1368,21 @@
             let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             headersToUse.forEach(header => {
-                if (header.id !== 'Link') {
+                if (header.id !== 'Link' && !months.includes(header.id) && !quarters.includes(header.id) && header.id !== 'Annual') {
                     const inputElement = document.getElementById(`form-${header.id}`);
                     if (inputElement) {
                         formData[header.id] = inputElement.value;
                     }
                 }
             });
+            
+            const linkName = document.getElementById('form-Link Name')?.value;
+            const linkURL = document.getElementById('form-Link URL')?.value;
+            
+            if (linkName && linkURL) {
+                formData['Link Name'] = linkName;
+                formData['Link URL'] = linkURL;
+            }
             
             // Check for new record vs update
             await addOrUpdateControl(currentControlType, currentControlId, formData);
@@ -1481,7 +1506,7 @@
         function getStatusCounts(controls, collectionName) {
             const counts = {};
             controls.forEach(control => {
-                const status = control['Tracking Status'] || control['Assessment'] || 'N/A';
+                const status = control['Tracking Status'] || control['Assessment'] || '-';
                 counts[status] = (counts[status] || 0) + 1;
             });
             return counts;
@@ -1507,9 +1532,9 @@
                     case 'Overdue': return '#f87171';
                     case 'Pending': return '#fbbf24';
                     case 'Closed': return '#6b7280';
-                    case 'Yes': return '#34d399';
-                    case 'No': return '#f87171';
-                    case 'N/A': return '#fbbf24';
+                    case 'Y': return '#34d399';
+                    case 'N': return '#f87171';
+                    case '-': return '#fbbf24';
                     case 'Effective': return '#34d399';
                     case 'Partially Effective': return '#fbbf24';
                     case 'Not Effective': return '#f87171';
@@ -1699,7 +1724,7 @@
                     middleRow.appendChild(th);
                 });
 
-                const monthHeaders = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                const monthHeaders = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
                 monthHeaders.forEach(month => {
                     const thMonth = document.createElement('th');
                     thMonth.textContent = month;
@@ -1725,11 +1750,11 @@
 
                     months.forEach(month => {
                         const cell = row.insertCell();
-                        cell.textContent = control[month] || 'N/A';
+                        cell.textContent = control[month] || '-';
                     });
                     
                     const annualCell = row.insertCell();
-                    annualCell.textContent = control['Annual'] || 'N/A';
+                    annualCell.textContent = control['Annual'] || '-';
 
                     const trackingStatusCell = row.insertCell();
                     trackingStatusCell.textContent = control['Tracking Status'] || '';
@@ -1788,7 +1813,7 @@
                     const dueInCell = row.insertCell();
                     const today = new Date();
                     const byWhenDateStr = control['BY WHEN'];
-                    let dueInDays = 'N/A';
+                    let dueInDays = '-';
                     if (byWhenDateStr) {
                         const byWhenDate = new Date(byWhenDateStr);
                         const diffTime = byWhenDate - today;
