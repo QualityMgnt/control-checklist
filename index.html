@@ -1151,7 +1151,22 @@
                         } else if (months.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status') {
                             renderStatusCell(cell, control[header.id]);
                         } else if (header.id === 'HOW' || header.id === 'EVIDENCE OF CONTROL' || header.id === 'KEY CONTROL DESCRIPTION') {
-                            cell.textContent = control[header.id] || '';
+                             const div = document.createElement('div');
+                             div.textContent = control[header.id] || '';
+                             div.classList.add('editable');
+                             div.onclick = (e) => {
+                                 const input = document.createElement('input');
+                                 input.value = e.target.textContent;
+                                 input.classList.add('input-field');
+                                 input.onblur = async (ev) => {
+                                     const newValue = ev.target.value;
+                                     await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), { [header.id]: newValue });
+                                     e.target.textContent = newValue;
+                                 };
+                                 e.target.parentNode.replaceChild(input, e.target);
+                                 input.focus();
+                             };
+                             cell.appendChild(div);
                         } else if (header.id === 'BY WHEN') {
                             const dateInput = document.createElement('input');
                             dateInput.type = 'date';
