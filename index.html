@@ -178,7 +178,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            box-shadow: 0 4px 6px -1-rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6c -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .message-box.show {
             opacity: 1;
@@ -188,12 +188,14 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
+            table-layout: fixed; /* Ensures a fixed layout to prevent stretching */
         }
         th, td {
             border: 1px solid #e5e7eb;
             padding: 0.75rem;
             text-align: left;
             font-size: 0.875rem;
+            word-wrap: break-word; /* Prevents overflow in cells */
         }
         th {
             background-color: #f9fafb;
@@ -398,31 +400,31 @@
                     <table id="key-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
                         <thead>
                             <tr>
-                                <th rowspan="2">Description</th>
-                                <th rowspan="2">How</th>
-                                <th rowspan="2">Frequency</th>
-                                <th rowspan="2">By When</th>
-                                <th rowspan="2">Evidence</th>
+                                <th rowspan="2" style="width: 15%;">Description</th>
+                                <th rowspan="2" style="width: 5%;">How</th>
+                                <th rowspan="2" style="width: 5%;">Frequency</th>
+                                <th rowspan="2" style="width: 8%;">By When</th>
+                                <th rowspan="2" style="width: 10%;">Evidence</th>
                                 <th colspan="12" class="table-header-quarters">Months</th>
-                                <th rowspan="2">Annual</th>
-                                <th rowspan="2">Tracking Status</th>
-                                <th rowspan="2">Link</th>
-                                <th rowspan="2">Edit</th>
-                                <th rowspan="2">Delete</th>
+                                <th rowspan="2" style="width: 5%;">Annual</th>
+                                <th rowspan="2" style="width: 8%;">Tracking Status</th>
+                                <th rowspan="2" style="width: 10%;">Link</th>
+                                <th rowspan="2" style="width: 5%;">Edit</th>
+                                <th rowspan="2" style="width: 5%;">Delete</th>
                             </tr>
                             <tr>
-                                <th class="table-header-months">JAN</th>
-                                <th class="table-header-months">FEB</th>
-                                <th class="table-header-months">MAR</th>
-                                <th class="table-header-months">APR</th>
-                                <th class="table-header-months">MAY</th>
-                                <th class="table-header-months">JUN</th>
-                                <th class="table-header-months">JUL</th>
-                                <th class="table-header-months">AUG</th>
-                                <th class="table-header-months">SEP</th>
-                                <th class="table-header-months">OCT</th>
-                                <th class="table-header-months">NOV</th>
-                                <th class="table-header-months">DEC</th>
+                                <th class="table-header-months" style="width: 3%;">JAN</th>
+                                <th class="table-header-months" style="width: 3%;">FEB</th>
+                                <th class="table-header-months" style="width: 3%;">MAR</th>
+                                <th class="table-header-months" style="width: 3%;">APR</th>
+                                <th class="table-header-months" style="width: 3%;">MAY</th>
+                                <th class="table-header-months" style="width: 3%;">JUN</th>
+                                <th class="table-header-months" style="width: 3%;">JUL</th>
+                                <th class="table-header-months" style="width: 3%;">AUG</th>
+                                <th class="table-header-months" style="width: 3%;">SEP</th>
+                                <th class="table-header-months" style="width: 3%;">OCT</th>
+                                <th class="table-header-months" style="width: 3%;">NOV</th>
+                                <th class="table-header-months" style="width: 3%;">DEC</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -531,6 +533,7 @@
                                 <th>Date Generated</th>
                                 <th>Month</th>
                                 <th>Control Type</th>
+                                <th>Attachment</th> <!-- New Attachment column -->
                                 <th class="w-24">Delete</th>
                                 <th class="w-24">Share</th>
                             </tr>
@@ -883,6 +886,14 @@
                 row.insertCell().textContent = pdf.month;
                 row.insertCell().textContent = pdf.controlType;
 
+                const attachmentCell = row.insertCell();
+                const downloadLink = document.createElement('a');
+                downloadLink.href = pdf.downloadUrl; // Assuming downloadUrl is stored
+                downloadLink.textContent = pdf.fileName;
+                downloadLink.target = '_blank';
+                downloadLink.classList.add('text-blue-600', 'hover:underline');
+                attachmentCell.appendChild(downloadLink);
+
                 const deleteCell = row.insertCell();
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'Delete';
@@ -976,6 +987,8 @@
                     const cell = row.insertCell();
 
                     if (collectionName === 'keyControls') {
+                        const frequency = control['FREQ'] || 'Monthly';
+                        
                         if (header.id === 'FREQ') {
                             cell.textContent = control[header.id] || '';
                         } else if (header.id === 'BY WHEN') {
@@ -1511,15 +1524,16 @@
                 jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' }
             };
 
-            await html2pdf().set(options).from(pdfExportContent).save().then(async () => {
+            await html2pdf().set(options).from(pdfExportContent).save().then(async (pdf) => {
                 if(pdfExportContent) pdfExportContent.style.display = 'none';
                 showMessage('PDF generated successfully!');
-
+                
                 const pdfRecord = {
                     date: new Date().toISOString().slice(0, 10),
                     month: new Date().toLocaleString('default', { month: 'long' }),
                     controlType: title.replace(' Report', ''),
-                    fileName: `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`
+                    fileName: `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
+                    downloadUrl: URL.createObjectURL(pdf.output('blob'))
                 };
                 await addDoc(collection(db, `artifacts/${appId}/public/data/generatedPdfs`), pdfRecord);
             }).catch(error => {
@@ -1706,6 +1720,7 @@
 
             XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
         }
+
     </script>
 </body>
 </html>
