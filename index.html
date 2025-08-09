@@ -323,6 +323,12 @@
             max-width: 150px;
             height: auto;
         }
+        .logo-display {
+            max-height: 40px;
+            width: auto;
+            margin-right: 1rem;
+            border-radius: 0.5rem;
+        }
 
         /* Excel Export specific styles (hidden from normal view) */
         #excel-export-content {
@@ -345,6 +351,9 @@
     <!-- Login Page -->
     <div id="login-page" class="w-full h-screen flex items-center justify-center bg-gray-100">
         <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+            <div class="flex justify-center mb-4">
+                <img id="login-logo-preview" class="h-20 w-auto hidden" src="" alt="Company Logo">
+            </div>
             <h2 class="text-3xl font-bold text-center text-purple-600 mb-8">Login to Customer Experience Controls</h2>
             <form id="login-form" class="space-y-6">
                 <div>
@@ -383,6 +392,7 @@
         <header class="flex justify-between items-center p-4 bg-purple-600 text-white shadow-md">
             <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
             <div class="flex items-center space-x-4">
+                <img id="header-logo-preview" class="logo-display hidden" src="" alt="Company Logo">
                 <span id="user-display" class="text-sm font-medium"></span>
                 <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm font-medium transition-colors">Logout</button>
             </div>
@@ -393,7 +403,8 @@
             <button class="tab-button active" data-tab="dashboard">Dashboard</button>
             <button class="tab-button" data-tab="key-controls">Key Controls</button>
             <button class="tab-button" data-tab="secondary-controls">Secondary Controls</button>
-            <button class="tab-button" data-tab="admin">Admin</button>
+            <button class="tab-button" data-tab="reports">Reports</button>
+            <button class="tab-button" data-tab="logo-upload">Upload Logo</button>
             <button class="tab-button" data-tab="database">Database</button>
         </nav>
 
@@ -423,17 +434,17 @@
                     <table id="key-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
                         <thead>
                             <tr>
-                                <th rowspan="2" style="width: 15%;">KEY CONTROL DESCRIPTION</th>
-                                <th rowspan="2" style="width: 5%;">HOW</th>
-                                <th rowspan="2" style="width: 5%;">FREQ</th>
-                                <th rowspan="2" style="width: 8%;">BY WHEN</th>
-                                <th rowspan="2" style="width: 10%;">EVIDENCE OF CONTROL</th>
+                                <th rowspan="3" style="width: 15%;">KEY CONTROL DESCRIPTION</th>
+                                <th rowspan="3" style="width: 5%;">HOW</th>
+                                <th rowspan="3" style="width: 5%;">FREQ</th>
+                                <th rowspan="3" style="width: 8%;">BY WHEN</th>
+                                <th rowspan="3" style="width: 10%;">EVIDENCE OF CONTROL</th>
                                 <th colspan="12">Months</th>
-                                <th rowspan="2" style="width: 5%;">Annual</th>
-                                <th rowspan="2" style="width: 8%;">Tracking Status</th>
-                                <th rowspan="2" style="width: 10%;">Link</th>
-                                <th colspan="2" rowspan="2" style="width: 10%;">Actions</th>
-                                <th rowspan="2" style="width: 8%;">Due In</th>
+                                <th rowspan="3" style="width: 5%;">Annual</th>
+                                <th rowspan="3" style="width: 8%;">Tracking Status</th>
+                                <th rowspan="3" style="width: 10%;">Link</th>
+                                <th colspan="2" rowspan="3" style="width: 10%;">Actions</th>
+                                <th rowspan="3" style="width: 8%;">Due In</th>
                             </tr>
                             <tr>
                                 <th colspan="3" class="table-header-quarters">Q1</th>
@@ -442,11 +453,6 @@
                                 <th colspan="3" class="table-header-quarters">Q4</th>
                             </tr>
                             <tr>
-                                <th style="width: 15%;"></th>
-                                <th style="width: 5%;"></th>
-                                <th style="width: 5%;"></th>
-                                <th style="width: 8%;"></th>
-                                <th style="width: 10%;"></th>
                                 <th class="table-header-months" style="width: 3%;">1</th>
                                 <th class="table-header-months" style="width: 3%;">2</th>
                                 <th class="table-header-months" style="width: 3%;">3</th>
@@ -459,12 +465,6 @@
                                 <th class="table-header-months" style="width: 3%;">10</th>
                                 <th class="table-header-months" style="width: 3%;">11</th>
                                 <th class="table-header-months" style="width: 3%;">12</th>
-                                <th style="width: 5%;"></th>
-                                <th style="width: 8%;"></th>
-                                <th style="width: 10%;"></th>
-                                <th style="width: 5%;"></th>
-                                <th style="width: 5%;"></th>
-                                <th style="width: 8%;"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -520,6 +520,31 @@
                     <button id="generate-secondary-pdf-button" class="btn-primary">Generate PDF</button>
                     <button id="download-secondary-excel-button" class="btn-primary">Download as Excel</button>
                     <button id="share-secondary-button" class="btn-primary">Share</button>
+                </div>
+            </div>
+            
+            <!-- Reports Tab Content -->
+            <div id="reports-content" class="tab-content">
+                <iframe src="reports.html" class="w-full h-full border-0"></iframe>
+            </div>
+
+            <!-- Logo Upload Tab Content -->
+            <div id="logo-upload-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Upload Company Logo</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-xl font-medium text-gray-700 mb-4">Select and Upload Logo</h3>
+                    <input type="file" id="logo-file-input" accept="image/*" class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-purple-50 file:text-purple-700
+                        hover:file:bg-purple-100
+                    "/>
+                    <p class="mt-2 text-sm text-gray-500">The logo will be displayed on the login page, system header, and PDF reports.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-medium text-gray-700 mb-4">Logo Preview</h3>
+                    <img id="logo-preview" class="max-h-40 w-auto rounded-lg shadow-md hidden" src="" alt="Logo Preview">
                 </div>
             </div>
 
@@ -611,7 +636,10 @@
     <!-- Hidden div for PDF generation -->
     <div id="pdf-export-content" class="pdf-export-content">
         <div id="pdf-content-wrapper">
-            <h1 class="text-2xl font-bold text-center mb-6">Customer Experience Controls Report</h1>
+            <div class="flex justify-between items-start mb-6">
+                <h1 class="text-2xl font-bold">Customer Experience Controls Report</h1>
+                <img id="pdf-logo-preview" class="max-h-20 w-auto" src="" alt="Company Logo">
+            </div>
             <h2 id="pdf-report-title" class="text-xl font-semibold mt-8 mb-4"></h2>
             <div class="overflow-x-auto">
                 <table id="pdf-table-to-generate" class="min-w-full bg-white border border-gray-200">
@@ -665,8 +693,9 @@
         let db;
         let auth;
         let currentUserId = null;
-        let signatureDataUrl = '';
-
+        let logoDataUrl = '';
+        let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        
         // --- Utility Functions ---
         function showLoadingSpinner() {
             const spinner = document.getElementById('loading-spinner');
@@ -739,6 +768,7 @@
                 await loadControls('secondaryControls', 'secondary-controls-table');
                 await loadPdfs();
                 await loadUsers();
+                loadLogo();
                 renderDashboardCharts();
             } else {
                 currentUserId = null;
@@ -831,7 +861,7 @@
             }
             showLoadingSpinner();
             try {
-                await retryOperation(() => sendPasswordResetEmail(auth, email));
+                await retryOperation(() => sendPasswordResetResetEmail(auth, email));
                 showMessage(`Password reset email sent to ${email}. Please check your inbox.`);
             } catch (error) {
                 console.error("Forgot password error:", error);
@@ -856,10 +886,10 @@
             secondaryControls: [],
             generatedPdfs: []
         };
-        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        
         const monthsInNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
         const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-
+        
         const keyControlHeaders = [
             { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
             { id: 'HOW', label: 'How', type: 'text' },
@@ -1310,6 +1340,8 @@
                 let inputElement;
                 if (header.type === 'select' && header.options) {
                     inputElement = document.createElement('select');
+                    inputElement.id = `form-${header.id}`;
+                    inputElement.classList.add('input-field');
                     header.options.forEach(optionText => {
                         const option = document.createElement('option');
                         option.value = optionText;
@@ -1317,14 +1349,51 @@
                         inputElement.appendChild(option);
                     });
                     inputElement.value = data[header.id] || '';
+                    inputElement.addEventListener('change', async (e) => {
+                        const newStatus = e.target.value;
+                        if (currentControlId) {
+                            try {
+                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { [header.id]: newStatus });
+                            } catch (error) {
+                                console.error(`Error updating field ${header.id}:`, error);
+                            }
+                        }
+                    });
+
+                } else if (header.type === 'date') {
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'date';
+                    inputElement.id = `form-${header.id}`;
+                    inputElement.classList.add('input-field');
+                    inputElement.value = data[header.id] || '';
+                    inputElement.addEventListener('change', async (e) => {
+                        const newDate = e.target.value;
+                        if (currentControlId) {
+                            try {
+                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { 'BY WHEN': newDate });
+                            } catch (error) {
+                                console.error(`Error updating date field ${header.id}:`, error);
+                            }
+                        }
+                    });
                 } else {
                     inputElement = document.createElement('input');
                     inputElement.type = header.type || 'text';
+                    inputElement.id = `form-${header.id}`;
+                    inputElement.classList.add('input-field');
                     inputElement.value = data[header.id] || '';
+                    inputElement.addEventListener('change', async (e) => {
+                        const newValue = e.target.value;
+                        if (currentControlId) {
+                            try {
+                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { [header.id]: newValue });
+                            } catch (error) {
+                                console.error(`Error updating field ${header.id}:`, error);
+                            }
+                        }
+                    });
                 }
                 
-                inputElement.id = `form-${header.id}`;
-                inputElement.classList.add('input-field');
                 div.appendChild(inputElement);
                 controlForm.appendChild(div);
             });
@@ -1386,7 +1455,6 @@
                 formData['Link URL'] = linkURL;
             }
             
-            // Check for new record vs update
             await addOrUpdateControl(currentControlType, currentControlId, formData);
         });
 
@@ -1501,6 +1569,38 @@
              } else {
                  showMessage('No recent Secondary Controls PDF found to share.');
              }
+        });
+        
+        function loadLogo() {
+            const logoPreview = document.getElementById('logo-preview');
+            const loginLogo = document.getElementById('login-logo-preview');
+            const headerLogo = document.getElementById('header-logo-preview');
+            const pdfLogo = document.getElementById('pdf-logo-preview');
+            
+            const logoUrl = localStorage.getItem('companyLogo');
+            if(logoUrl) {
+                logoPreview.src = logoUrl;
+                logoPreview.classList.remove('hidden');
+                loginLogo.src = logoUrl;
+                loginLogo.classList.remove('hidden');
+                headerLogo.src = logoUrl;
+                headerLogo.classList.remove('hidden');
+                pdfLogo.src = logoUrl;
+            }
+        }
+        
+        document.getElementById('logo-file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const logoUrl = event.target.result;
+                    localStorage.setItem('companyLogo', logoUrl);
+                    loadLogo();
+                    showMessage('Logo uploaded successfully!');
+                };
+                reader.readAsDataURL(file);
+            }
         });
 
         let keyControlsChart, secondaryControlsChart;
@@ -1630,6 +1730,7 @@
             const pdfExportContent = document.getElementById('pdf-export-content');
             const pdfTable = document.getElementById('pdf-table-to-generate');
             const pdfReportTitle = document.getElementById('pdf-report-title');
+            const pdfLogoPreview = document.getElementById('pdf-logo-preview');
             
             showLoadingSpinner();
 
@@ -1639,18 +1740,20 @@
             if (type === 'keyControls') {
                 controlsToPrint = controlData.keyControls;
                 title = 'Key Controls Report';
-                if(pdfReportTitle) pdfReportTitle.textContent = title;
-                populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
             } else if (type === 'secondaryControls') {
                 controlsToPrint = controlData.secondaryControls;
                 title = 'Secondary Controls Report';
-                if(pdfReportTitle) pdfReportTitle.textContent = title;
-                populatePdfTable(pdfTable, controlsToPrint, 'secondaryControls');
             } else if (type === 'all') {
                  controlsToPrint = controlData.keyControls.concat(controlData.secondaryControls);
                  title = 'All Controls Report';
-                 if(pdfReportTitle) pdfReportTitle.textContent = title;
-                 populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
+            }
+            if(pdfReportTitle) pdfReportTitle.textContent = title;
+            populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
+            if (logoDataUrl) {
+                pdfLogoPreview.src = logoDataUrl;
+                pdfLogoPreview.classList.remove('hidden');
+            } else {
+                pdfLogoPreview.classList.add('hidden');
             }
             
             if(pdfExportContent) pdfExportContent.style.display = 'block';
