@@ -432,8 +432,7 @@
                                 <th rowspan="2" style="width: 5%;">Annual</th>
                                 <th rowspan="2" style="width: 8%;">Tracking Status</th>
                                 <th rowspan="2" style="width: 10%;">Link</th>
-                                <th rowspan="2" style="width: 5%;">Review</th>
-                                <th rowspan="2" style="width: 5%;">Delete</th>
+                                <th colspan="2" rowspan="2" style="width: 10%;">Actions</th>
                                 <th rowspan="2" style="width: 8%;">Due In</th>
                             </tr>
                             <tr>
@@ -1238,7 +1237,10 @@
                     }
                 }
                 
-                if (!dataToSave['Link Name'] || dataToSave['Link Name'].trim() === '') {
+                // Ensure Link Name and URL are only saved if they have values
+                const linkName = dataToSave['Link Name'];
+                const linkURL = dataToSave['Link URL'];
+                if (!linkName || linkName.trim() === '') {
                     delete dataToSave['Link Name'];
                     delete dataToSave['Link URL'];
                 }
