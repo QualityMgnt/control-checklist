@@ -138,7 +138,7 @@
             background-color: white;
             padding: 2rem;
             border-radius: 1rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 20px 25px -5-px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             max-width: 600px;
             width: 90%;
             max-height: 90vh;
@@ -1188,11 +1188,6 @@
                     dueInCell.textContent = dueInDaysSecondary;
                     dueInCell.classList.add(overdueClassSecondary);
                 }
-
-                if (needsStatusUpdate) {
-                    updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), { 'Tracking Status': 'Overdue' })
-                        .catch(error => console.error("Error updating status to Overdue:", error));
-                }
             });
         }
 
@@ -1364,16 +1359,6 @@
                 }
             });
             
-            if (currentControlType === 'keyControls') {
-                Object.assign(formData, { 'Link Name': currentLink.name, 'Link URL': currentLink.url });
-            }
-
-            // Remove empty link data before saving
-            if (!formData['Link Name']) {
-                delete formData['Link Name'];
-                delete formData['Link URL'];
-            }
-            
             // Check for new record vs update
             await addOrUpdateControl(currentControlType, currentControlId, formData);
         });
@@ -1433,22 +1418,6 @@
                 let uploadCount = 0;
 
                 parsedData.forEach(item => {
-                    if (collectionName === 'keyControls') {
-                        if (item['Status']) {
-                            item['Tracking Status'] = item['Status'];
-                            delete item['Status'];
-                        }
-                        if (item['Link']) {
-                            item['Link URL'] = item['Link'];
-                            if (!item['Link Name']) {
-                                item['Link Name'] = item['Link'].split('/').pop() || 'Link';
-                            }
-                            delete item['Link'];
-                        }
-                        if (item['Link URL'] && !item['Link Name']) {
-                            item['Link Name'] = item['Link URL'].split('/').pop() || 'Link';
-                        }
-                    }
                     const newDocRef = doc(controlsColRef);
                     batch.set(newDocRef, item);
                     uploadCount++;
@@ -1512,7 +1481,7 @@
         function getStatusCounts(controls, collectionName) {
             const counts = {};
             controls.forEach(control => {
-                const status = collectionName === 'keyControls' ? (control['Tracking Status'] || 'N/A') : (control['Assessment'] || 'N/A');
+                const status = control['Tracking Status'] || control['Assessment'] || 'N/A';
                 counts[status] = (counts[status] || 0) + 1;
             });
             return counts;
