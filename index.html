@@ -1178,7 +1178,7 @@
                              renderStatusCell(cell, control[header.id], control, header.id);
                         } else if (header.id === 'Annual' || header.id === 'Tracking Status') {
                             renderStatusCell(cell, control[header.id], control, header.id);
-                        } else if (header.id === 'HOW' || header.id === 'EVIDENCE OF CONTROL' || header.id === 'KEY CONTROL DESCRIPTION') {
+                        } else if (header.id === 'HOW' || header.id === 'EVIDENCE OF CONTROL' || header.id === 'KEY CONTROL DESCRIPTION' || header.id === 'FREQ' || header.id === 'BY WHEN') {
                             const div = document.createElement('div');
                             div.textContent = control[header.id] || '';
                             div.classList.add('editable');
@@ -1195,17 +1195,6 @@
                                 input.focus();
                             };
                             cell.appendChild(div);
-                        } else if (header.id === 'BY WHEN') {
-                            const dateInput = document.createElement('input');
-                            dateInput.type = 'date';
-                            dateInput.value = control[header.id] || '';
-                            dateInput.classList.add('input-field', 'w-full');
-                            dateInput.addEventListener('change', async (e) => {
-                                const newDate = e.target.value;
-                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), { 'BY WHEN': newDate });
-                                updateStatusOnDateChange(control);
-                            });
-                            cell.appendChild(dateInput);
                         } else if (header.type === 'select') {
                             const select = document.createElement('select');
                             select.classList.add('input-field', 'w-full');
@@ -1366,7 +1355,7 @@
             let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             headersToUse.forEach(header => {
-                if (header.id === 'Link' || months.includes(header.id) || quarters.includes(header.id) || header.id === 'Annual') {
+                if (header.id === 'Link') {
                      return;
                 }
                 
