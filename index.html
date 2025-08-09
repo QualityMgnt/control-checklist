@@ -16,7 +16,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
-            font-family: 'Garamond', sans-serif;
+            font-family: 'Garamond', serif;
             background-color: #f3f4f6;
             display: flex;
             justify-content: center;
@@ -56,18 +56,18 @@
             border-left: none;
             text-align: center;
             flex-grow: 1;
-            background-color: #3b82f6;
+            background-color: #7c3aed; /* Purple */
             color: white;
             margin: 0.25rem;
             border-radius: 0.5rem;
             transition: all 0.3s ease-in-out;
         }
         .top-nav .tab-button:hover {
-            background-color: #2563eb;
+            background-color: #6d28d9; /* Darker Purple */
         }
         .top-nav .tab-button.active {
             border-color: #ffffff;
-            background-color: #1d4ed8;
+            background-color: #5b21b6; /* Even Darker Purple */
             color: white;
             border-bottom: 3px solid white;
             border-left: none;
@@ -90,7 +90,7 @@
             font-size: 0.9rem;
         }
         .btn-primary {
-            background-color: #3b82f6;
+            background-color: #7c3aed; /* Purple */
             color: white;
             padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
@@ -100,7 +100,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .btn-primary:hover {
-            background-color: #2563eb;
+            background-color: #6d28d9; /* Darker Purple */
         }
         .btn-secondary {
             background-color: #6b7280;
@@ -151,7 +151,7 @@
         }
         .loading-spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #3b82f6;
+            border-left-color: #7c3aed;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -203,7 +203,7 @@
             background-color: #f9fafb;
             font-weight: 600;
             color: #374151;
-            white-space: nowrap;
+            white-space: normal;
             text-align: center;
             font-size: 12px;
         }
@@ -274,6 +274,7 @@
         .status-red { background-color: #fee2e2; color: #991b1b; font-weight: 600; }
         .status-amber { background-color: #fef3c7; color: #92400e; font-weight: 600; }
         .status-gray { background-color: #e5e7eb; color: #374151; font-weight: 600; }
+        .overdue-text { color: #dc2626; }
         
         /* Table cell styling */
         td.status-cell {
@@ -334,6 +335,24 @@
             width: auto;
             height: auto;
         }
+        /* Custom styles for the new table header structure */
+        .key-controls-table-header th {
+            font-family: 'Garamond', serif;
+            font-size: 12px;
+            white-space: normal;
+        }
+        .key-controls-table-header .month-header {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            white-space: nowrap;
+            padding: 0.5rem 0.25rem;
+            font-size: 12px;
+            text-align: left;
+        }
+        .link-cell {
+            text-align: center;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -347,7 +366,7 @@
     <!-- Login Page -->
     <div id="login-page" class="w-full h-screen flex items-center justify-center bg-gray-100">
         <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-            <h2 class="text-3xl font-bold text-center text-blue-600 mb-8">Login to Customer Experience Controls</h2>
+            <h2 class="text-3xl font-bold text-center text-purple-600 mb-8">Login to Customer Experience Controls</h2>
             <form id="login-form" class="space-y-6">
                 <div>
                     <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -356,11 +375,11 @@
                 <div>
                     <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                     <input type="password" id="login-password" placeholder="Enter your password" required class="input-field">
-                    <a href="#" id="forgot-password" class="block text-sm text-blue-600 hover:underline mt-2 text-right">Forgot password?</a>
+                    <a href="#" id="forgot-password" class="block text-sm text-purple-600 hover:underline mt-2 text-right">Forgot password?</a>
                 </div>
                 <button type="submit" class="btn-primary w-full">Login</button>
                 <p class="text-center text-sm text-gray-600 mt-4">
-                    Don't have an account? <a href="#" id="show-signup" class="text-blue-600 hover:underline">Sign Up</a>
+                    Don't have an account? <a href="#" id="show-signup" class="text-purple-600 hover:underline">Sign Up</a>
                 </p>
             </form>
             <form id="signup-form" class="space-y-6 hidden">
@@ -374,7 +393,7 @@
                 </div>
                 <button type="submit" class="btn-primary w-full">Sign Up</button>
                 <p class="text-center text-sm text-gray-600 mt-4">
-                    Already have an account? <a href="#" id="show-login" class="text-blue-600 hover:underline">Login</a>
+                    Already have an account? <a href="#" id="show-login" class="text-purple-600 hover:underline">Login</a>
                 </p>
             </form>
         </div>
@@ -382,7 +401,7 @@
 
     <!-- Main Application Page -->
     <div id="app-page" class="container hidden">
-        <header class="flex justify-between items-center p-4 bg-blue-600 text-white shadow-md">
+        <header class="flex justify-between items-center p-4 bg-purple-600 text-white shadow-md">
             <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
             <div class="flex items-center space-x-4">
                 <span id="user-display" class="text-sm font-medium"></span>
@@ -404,11 +423,11 @@
             <div id="dashboard-content" class="tab-content active">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="bg-white p-6 rounded-lg shadow-md" style="width: 4in; height: 4in;">
                         <h3 class="text-xl font-medium text-gray-700 mb-4">Key Controls Status</h3>
                         <canvas id="keyControlsChart"></canvas>
                     </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="bg-white p-6 rounded-lg shadow-md" style="width: 4in; height: 4in;">
                         <h3 class="text-xl font-medium text-gray-700 mb-4">Secondary Controls Status</h3>
                         <canvas id="secondaryControlsChart"></canvas>
                     </div>
@@ -434,8 +453,9 @@
                                 <th rowspan="2" style="width: 5%;">Annual</th>
                                 <th rowspan="2" style="width: 8%;">Tracking Status</th>
                                 <th rowspan="2" style="width: 10%;">Link</th>
-                                <th rowspan="2" style="width: 5%;">Edit</th>
+                                <th rowspan="2" style="width: 5%;">Review</th>
                                 <th rowspan="2" style="width: 5%;">Delete</th>
+                                <th rowspan="2" style="width: 8%;">Due In</th>
                             </tr>
                             <tr>
                                 <th colspan="3" class="table-header-quarters">Q1</th>
@@ -443,63 +463,19 @@
                                 <th colspan="3" class="table-header-quarters">Q3</th>
                                 <th colspan="3" class="table-header-quarters">Q4</th>
                             </tr>
-                            <tr>
-                                <th style="width: 15%;"></th>
-                                <th style="width: 5%;"></th>
-                                <th style="width: 5%;"></th>
-                                <th style="width: 8%;"></th>
-                                <th style="width: 10%;"></th>
-                                <th class="table-header-months" style="width: 3%;">JAN</th>
-                                <th class="table-header-months" style="width: 3%;">FEB</th>
-                                <th class="table-header-months" style="width: 3%;">MAR</th>
-                                <th class="table-header-months" style="width: 3%;">APR</th>
-                                <th class="table-header-months" style="width: 3%;">MAY</th>
-                                <th class="table-header-months" style="width: 3%;">JUN</th>
-                                <th class="table-header-months" style="width: 3%;">JUL</th>
-                                <th class="table-header-months" style="width: 3%;">AUG</th>
-                                <th class="table-header-months" style="width: 3%;">SEP</th>
-                                <th class="table-header-months" style="width: 3%;">OCT</th>
-                                <th class="table-header-months" style="width: 3%;">NOV</th>
-                                <th class="table-header-months" style="width: 3%;">DEC</th>
-                                <th style="width: 5%;"></th>
-                                <th style="width: 8%;"></th>
-                                <th style="width: 10%;"></th>
-                                <th style="width: 5%;"></th>
-                                <th style="width: 5%;"></th>
-                            </tr>
                         </thead>
                         <tbody>
                             <!-- Key controls will be loaded here dynamically -->
                         </tbody>
                     </table>
                 </div>
-                <!-- Sign Off Section -->
-                <div class="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
-                    <h3 class="text-lg font-semibold mb-4">Sign Off</h3>
-                    <table class="signoff-table w-full max-w-sm mt-4">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Signature & Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td id="signoff-name-cell">Assistant Manager - </td>
-                                <td id="signoff-signature-cell" class="relative">
-                                    <img id="signoff-signature-img" class="max-h-16 w-auto border rounded-md" style="display: none;" />
-                                    <span id="signoff-date" class="absolute bottom-2 left-2 text-xs text-gray-500"></span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
                 <div class="flex flex-wrap gap-4 mt-6 justify-end">
-                    <button id="add-key-control-btn" class="btn-primary">Add New Key Control</button>
+                    <button id="add-key-control-btn" class="btn-primary">Add New Control</button>
                     <input type="file" id="upload-key-control-file" accept=".csv" class="hidden">
-                    <button id="upload-key-control-btn" class="btn-secondary">Upload Key Controls (CSV)</button>
+                    <button id="upload-key-control-btn" class="btn-secondary">Upload Controls (CSV)</button>
                     <button id="generate-key-pdf-button" class="btn-primary">Generate PDF</button>
                     <button id="download-key-excel-button" class="btn-primary">Download as Excel</button>
+                    <button id="share-key-button" class="btn-primary">Share</button>
                 </div>
             </div>
 
@@ -524,7 +500,9 @@
                                 <th>Assessment</th>
                                 <th>Required Action</th>
                                 <th>Closure Date</th>
-                                <th>Actions</th>
+                                <th>Review</th>
+                                <th>Delete</th>
+                                <th>Due In</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -532,33 +510,13 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- Sign Off Section -->
-                <div class="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
-                    <h3 class="text-lg font-semibold mb-4">Sign Off</h3>
-                    <table class="signoff-table w-full max-w-sm mt-4">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Signature & Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td id="signoff-name-cell-secondary">Assistant Manager - </td>
-                                <td id="signoff-signature-cell-secondary" class="relative">
-                                    <img id="signoff-signature-img-secondary" class="max-h-16 w-auto border rounded-md" style="display: none;" />
-                                    <span id="signoff-date-secondary" class="absolute bottom-2 left-2 text-xs text-gray-500"></span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
                 <div class="flex flex-wrap gap-4 mt-6 justify-end">
-                    <button id="add-secondary-control-btn" class="btn-primary">Add New Secondary Control</button>
+                    <button id="add-secondary-control-btn" class="btn-primary">Add New Control</button>
                     <input type="file" id="upload-secondary-control-file" accept=".csv" class="hidden">
-                    <button id="upload-secondary-control-btn" class="btn-secondary">Upload Secondary Controls (CSV)</button>
+                    <button id="upload-secondary-control-btn" class="btn-secondary">Upload Controls (CSV)</button>
                     <button id="generate-secondary-pdf-button" class="btn-primary">Generate PDF</button>
                     <button id="download-secondary-excel-button" class="btn-primary">Download as Excel</button>
+                    <button id="share-secondary-button" class="btn-primary">Share</button>
                 </div>
             </div>
 
@@ -618,8 +576,31 @@
             <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4">Add New Control</h3>
             <form id="control-form" class="space-y-4">
                 <!-- Fields will be dynamically generated here based on control type -->
-                <button type="submit" class="btn-primary">Save Control</button>
-                <button type="button" id="cancel-control-modal" class="btn-secondary ml-2">Cancel</button>
+                <div class="flex justify-end mt-6">
+                    <button type="submit" class="btn-primary">Save Control</button>
+                    <button type="button" id="cancel-control-modal" class="btn-secondary ml-2">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Link Modal -->
+    <div id="link-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Add Link</h3>
+            <form id="link-form" class="space-y-4">
+                <div>
+                    <label for="link-name-input" class="block text-sm font-medium text-gray-700 mb-1">Link Name</label>
+                    <input type="text" id="link-name-input" class="input-field" placeholder="e.g., Google Drive">
+                </div>
+                <div>
+                    <label for="link-url-input" class="block text-sm font-medium text-gray-700 mb-1">Link URL</label>
+                    <input type="url" id="link-url-input" class="input-field" placeholder="e.g., https://drive.google.com/folder">
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button type="submit" class="btn-primary">Save Link</button>
+                    <button type="button" id="cancel-link-modal" class="btn-secondary ml-2">Cancel</button>
+                </div>
             </form>
         </div>
     </div>
@@ -878,17 +859,24 @@
         const keyControlHeaders = [
             { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
             { id: 'HOW', label: 'How', type: 'text' },
-            { id: 'FREQ', label: 'Frequency', type: 'select', options: ['Quarterly', 'Monthly', 'Weekly', 'Annually', 'Daily'] },
+            { id: 'FREQ', label: 'Frequency', type: 'select', options: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'] },
             { id: 'BY WHEN', label: 'By When', type: 'date' },
             { id: 'EVIDENCE OF CONTROL', label: 'Evidence of Control', type: 'text' },
-            { id: 'Q1', label: 'Q1', type: 'select', options: ['Yes', 'N/A', 'No'] },
-            { id: 'Q2', label: 'Q2', type: 'select', options: ['Yes', 'N/A', 'No'] },
-            { id: 'Q3', label: 'Q3', type: 'select', options: ['Yes', 'N/A', 'No'] },
-            { id: 'Q4', label: 'Q4', type: 'select', options: ['Yes', 'N/A', 'No'] },
-            { id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'N/A', 'No'] },
-            { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On track', 'Overdue', 'Pending', 'Closed'] },
-            { id: 'Link Name', label: 'Link Name', type: 'text' },
-            { id: 'Link URL', label: 'Link URL', type: 'url' },
+            { id: 'JAN', label: 'JAN', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'FEB', label: 'FEB', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'MAR', label: 'MAR', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'APR', label: 'APR', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'MAY', label: 'MAY', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'JUN', label: 'JUN', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'JUL', label: 'JUL', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'AUG', label: 'AUG', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'SEP', label: 'SEP', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'OCT', label: 'OCT', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'NOV', label: 'NOV', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'DEC', label: 'DEC', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'No', 'N/A'] },
+            { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On Track', 'Overdue', 'Pending'] },
+            { id: 'Link', label: 'Link', type: 'link' },
         ];
 
         const secondaryControlHeaders = [
@@ -907,6 +895,50 @@
             { id: 'Required Action', label: 'Required Action', type: 'text' },
             { id: 'Closure Date', label: 'Closure Date', type: 'date' }
         ];
+        
+        let currentLinkCell = null;
+
+        function openLinkModal(cell) {
+            currentLinkCell = cell;
+            const controlId = cell.closest('tr').dataset.id;
+            const controlType = cell.closest('table').id.includes('key') ? 'keyControls' : 'secondaryControls';
+            const control = controlData[controlType].find(c => c.id === controlId);
+            const linkNameInput = document.getElementById('link-name-input');
+            const linkUrlInput = document.getElementById('link-url-input');
+
+            linkNameInput.value = control?.['Link Name'] || '';
+            linkUrlInput.value = control?.['Link URL'] || '';
+            
+            showModal('link-modal');
+        }
+        
+        document.getElementById('link-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const linkName = document.getElementById('link-name-input').value;
+            const linkUrl = document.getElementById('link-url-input').value;
+
+            if (currentLinkCell) {
+                const controlId = currentLinkCell.closest('tr').dataset.id;
+                const controlType = currentLinkCell.closest('table').id.includes('key') ? 'keyControls' : 'secondaryControls';
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${controlType}`);
+                
+                try {
+                    await updateDoc(doc(controlsColRef, controlId), {
+                        'Link Name': linkName,
+                        'Link URL': linkUrl
+                    });
+                    showMessage('Link updated successfully!');
+                } catch (error) {
+                    console.error("Error updating link:", error);
+                    showMessage(`Failed to update link: ${error.message}`);
+                }
+            }
+            hideModal('link-modal');
+        });
+        
+        document.getElementById('cancel-link-modal').addEventListener('click', () => {
+            hideModal('link-modal');
+        });
 
         async function loadControls(collectionName, tableId) {
             if (!currentUserId) return;
@@ -976,7 +1008,8 @@
         }
         
         async function deletePdf(pdfId) {
-            if (!confirm('Are you sure you want to delete this PDF record?')) return;
+            const confirmed = window.confirm('Are you sure you want to delete this PDF record?');
+            if (!confirmed) return;
             try {
                 await retryOperation(() => deleteDoc(doc(db, `artifacts/${appId}/public/data/generatedPdfs`, pdfId)));
                 showMessage('PDF record deleted successfully!');
@@ -1000,7 +1033,7 @@
         }
 
         function getStatusColorClass(status) {
-            if (status === 'Yes' || status === 'On track' || status === 'Effective') {
+            if (status === 'Yes' || status === 'On Track' || status === 'Effective') {
                 return 'status-green';
             } else if (status === 'No' || status === 'Overdue' || status === 'Not Effective') {
                 return 'status-red';
@@ -1033,13 +1066,16 @@
 
             controls.forEach(control => {
                 const row = tableBody.insertRow();
+                row.dataset.id = control.id;
                 let needsStatusUpdate = false;
                 const byWhenDateStr = control['BY WHEN'];
 
-                if (collectionName === 'keyControls' && byWhenDateStr && control['Tracking Status'] !== 'Closed') {
+                let dueInDays = 'N/A';
+                if (byWhenDateStr) {
                     const byWhenDate = new Date(byWhenDateStr);
-                    byWhenDate.setHours(0, 0, 0, 0);
-
+                    const diffTime = byWhenDate - today;
+                    dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
                     if (byWhenDate < today && control['Tracking Status'] !== 'Overdue') {
                         control['Tracking Status'] = 'Overdue';
                         needsStatusUpdate = true;
@@ -1052,31 +1088,22 @@
                     const cell = row.insertCell();
 
                     if (collectionName === 'keyControls') {
-                        const frequency = control['FREQ'] || 'Monthly';
-                        
-                        if (header.id === 'FREQ') {
-                            cell.textContent = control[header.id] || '';
-                        } else if (header.id === 'BY WHEN') {
-                            cell.textContent = control[header.id] || '';
-                        } else if (months.includes(header.id) || quarters.includes(header.id) || header.id === 'Annual') {
-                            renderStatusCell(cell, control[header.id]);
-                        } else if (header.id === 'Tracking Status') {
-                            renderStatusCell(cell, control['Tracking Status']);
-                        } else if (header.id === 'Link Name') {
+                        if (header.id === 'Link') {
                             const linkName = control['Link Name'];
                             const linkURL = control['Link URL'];
-                            if (linkName && linkURL) {
-                                const anchor = document.createElement('a');
-                                anchor.href = linkURL;
-                                anchor.textContent = linkName;
-                                anchor.target = '_blank';
-                                anchor.classList.add('text-blue-600', 'hover:underline');
-                                cell.appendChild(anchor);
-                            } else {
-                                cell.textContent = linkName || '';
-                            }
-                        } else if (!['Link URL'].includes(header.id)) {
-                             cell.textContent = control[header.id] || '';
+                            const linkText = linkName || 'Add Link';
+                            const linkClass = linkName ? 'text-blue-600 hover:underline' : 'text-gray-500';
+                            
+                            const linkButton = document.createElement('button');
+                            linkButton.textContent = linkText;
+                            linkButton.classList.add('p-1', 'rounded', linkClass);
+                            linkButton.onclick = () => openLinkModal(cell);
+                            cell.classList.add('link-cell');
+                            cell.appendChild(linkButton);
+                        } else if (months.includes(header.id) || quarters.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status') {
+                            renderStatusCell(cell, control[header.id]);
+                        } else if (header.id === 'HOW' || header.id === 'EVIDENCE OF CONTROL' || header.id === 'KEY CONTROL DESCRIPTION' || header.id === 'FREQ' || header.id === 'BY WHEN' ) {
+                            cell.textContent = control[header.id] || '';
                         }
                     } else { // Secondary Controls
                         if (header.id === 'Assessment') {
@@ -1088,13 +1115,13 @@
                 });
 
                 if (collectionName === 'keyControls') {
-                    const editCell = row.insertCell();
-                    editCell.classList.add('action-buttons');
-                    const editBtn = document.createElement('button');
-                    editBtn.textContent = 'Edit';
-                    editBtn.classList.add('edit-btn');
-                    editBtn.onclick = () => openControlModal(collectionName, control.id, control);
-                    editCell.appendChild(editBtn);
+                    const reviewCell = row.insertCell();
+                    reviewCell.classList.add('action-buttons');
+                    const reviewBtn = document.createElement('button');
+                    reviewBtn.textContent = 'Review';
+                    reviewBtn.classList.add('edit-btn');
+                    reviewBtn.onclick = () => openControlModal(collectionName, control.id, control);
+                    reviewCell.appendChild(reviewBtn);
 
                     const deleteCell = row.insertCell();
                     deleteCell.classList.add('action-buttons');
@@ -1103,20 +1130,34 @@
                     deleteBtn.classList.add('delete-btn');
                     deleteBtn.onclick = () => deleteControl(collectionName, control.id);
                     deleteCell.appendChild(deleteBtn);
-                } else {
-                    const actionsCell = row.insertCell();
-                    actionsCell.classList.add('action-buttons');
-                    const editBtn = document.createElement('button');
-                    editBtn.textContent = 'Edit';
-                    editBtn.classList.add('edit-btn');
-                    editBtn.onclick = () => openControlModal(collectionName, control.id, control);
-                    actionsCell.appendChild(editBtn);
 
+                    const dueInCell = row.insertCell();
+                    dueInCell.textContent = dueInDays;
+                    if (dueInDays < 0) {
+                        dueInCell.classList.add('overdue-text', 'font-semibold');
+                    }
+                } else {
+                    const reviewCell = row.insertCell();
+                    reviewCell.classList.add('action-buttons');
+                    const reviewBtn = document.createElement('button');
+                    reviewBtn.textContent = 'Review';
+                    reviewBtn.classList.add('edit-btn');
+                    reviewBtn.onclick = () => openControlModal(collectionName, control.id, control);
+                    reviewCell.appendChild(reviewBtn);
+
+                    const deleteCell = row.insertCell();
+                    deleteCell.classList.add('action-buttons');
                     const deleteBtn = document.createElement('button');
                     deleteBtn.textContent = 'Delete';
                     deleteBtn.classList.add('delete-btn', 'ml-1');
                     deleteBtn.onclick = () => deleteControl(collectionName, control.id);
-                    actionsCell.appendChild(deleteBtn);
+                    deleteCell.appendChild(deleteBtn);
+                    
+                    const dueInCell = row.insertCell();
+                    dueInCell.textContent = dueInDays;
+                    if (dueInDays < 0) {
+                        dueInCell.classList.add('overdue-text', 'font-semibold');
+                    }
                 }
 
                 if (needsStatusUpdate) {
@@ -1147,7 +1188,8 @@
         }
 
         async function deleteControl(collectionName, controlId) {
-            if (!confirm('Are you sure you want to delete this control?')) return;
+            const confirmed = window.confirm('Are you sure you want to delete this control?');
+            if (!confirmed) return;
 
             showLoadingSpinner();
             try {
@@ -1164,20 +1206,23 @@
 
         let currentControlType = '';
         let currentControlId = null;
+        let currentLink = {};
 
         function openControlModal(type, id = null, data = {}) {
             currentControlType = type;
             currentControlId = id;
+            currentLink = { name: data['Link Name'], url: data['Link URL'] };
 
             const modalTitle = document.getElementById('modal-title');
             const controlForm = document.getElementById('control-form');
             if (!controlForm || !modalTitle) return;
             controlForm.innerHTML = '';
+            modalTitle.textContent = id ? 'Edit Control' : 'Add New Control';
 
             let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
-            const staticFields = headersToUse.filter(h => !months.includes(h.id) && !quarters.includes(h.id) && h.id !== 'Annual' && h.id !== 'Link URL' && h.id !== 'Link Name');
-            staticFields.forEach(header => {
+            headersToUse.forEach(header => {
+                if (header.id === 'Link') return;
                 const div = document.createElement('div');
                 div.classList.add('mb-4');
 
@@ -1207,82 +1252,7 @@
                 div.appendChild(inputElement);
                 controlForm.appendChild(div);
             });
-
-            if (type === 'keyControls') {
-                const linkNameHeader = { id: 'Link Name', label: 'Link Name', type: 'text' };
-                const linkUrlHeader = { id: 'Link URL', label: 'Link URL', type: 'url' };
-
-                const linkNameDiv = document.createElement('div');
-                linkNameDiv.classList.add('mb-4');
-                linkNameDiv.innerHTML = `<label for="form-${linkNameHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkNameHeader.label}</label><input type="${linkNameHeader.type}" id="form-${linkNameHeader.id}" class="input-field" value="${data[linkNameHeader.id] || ''}">`;
-                controlForm.appendChild(linkNameDiv);
-
-                const linkUrlDiv = document.createElement('div');
-                linkUrlDiv.classList.add('mb-4');
-                linkUrlDiv.innerHTML = `<label for="form-${linkUrlHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkUrlHeader.label}</label><input type="${linkUrlHeader.type}" id="form-${linkUrlHeader.id}" class="input-field" value="${data[linkUrlHeader.id] || ''}">`;
-                controlForm.appendChild(linkUrlDiv);
-            }
             
-            if (type === 'keyControls') {
-                const frequencySelect = document.getElementById('form-FREQ');
-                const addMonthFields = (frequency) => {
-                    document.querySelectorAll('.dynamic-fields').forEach(el => el.remove());
-
-                    const dynamicDiv = document.createElement('div');
-                    dynamicDiv.classList.add('dynamic-fields', 'space-y-4', 'mt-4');
-
-                    let fieldsToRender = [];
-                    if (frequency === 'Monthly' || frequency === 'Weekly' || frequency === 'Daily') {
-                        months.forEach(month => {
-                            fieldsToRender.push({ id: month, label: month, type: 'select', options: ['Yes', 'N/A', 'No'] });
-                        });
-                    } else if (frequency === 'Quarterly') {
-                        quarters.forEach(quarter => {
-                            fieldsToRender.push({ id: quarter, label: quarter, type: 'select', options: ['Yes', 'N/A', 'No'] });
-                        });
-                    } else if (frequency === 'Annually') {
-                        fieldsToRender.push({ id: 'Annual', label: 'Annual', type: 'select', options: ['Yes', 'N/A', 'No'] });
-                    }
-
-                    fieldsToRender.forEach(field => {
-                        const div = document.createElement('div');
-                        div.classList.add('mb-4');
-                        const label = document.createElement('label');
-                        label.htmlFor = `form-${field.id}`;
-                        label.classList.add('block', 'text-sm', 'font-medium', 'text-gray-700', 'mb-1');
-                        label.textContent = field.label;
-                        div.appendChild(label);
-                        const selectElement = document.createElement('select');
-                        selectElement.id = `form-${field.id}`;
-                        selectElement.classList.add('input-field');
-                        field.options.forEach(optionText => {
-                            const option = document.createElement('option');
-                            option.value = optionText;
-                            option.textContent = optionText;
-                            selectElement.appendChild(option);
-                        });
-                        selectElement.value = data[field.id] || 'N/A';
-                        div.appendChild(selectElement);
-                        dynamicDiv.appendChild(div);
-                    });
-                    
-                    const buttonDiv = controlForm.querySelector('button[type="submit"]')?.parentNode;
-                    if (buttonDiv) {
-                        controlForm.insertBefore(dynamicDiv, buttonDiv);
-                    } else {
-                        controlForm.appendChild(dynamicDiv);
-                    }
-                };
-                
-                const currentFrequency = data['FREQ'] || 'Monthly';
-                addMonthFields(currentFrequency);
-                if(frequencySelect) {
-                    frequencySelect.addEventListener('change', (e) => {
-                        addMonthFields(e.target.value);
-                    });
-                }
-            }
-
             const buttonDiv = document.createElement('div');
             buttonDiv.classList.add('flex', 'justify-end', 'mt-6');
             const saveButton = document.createElement('button');
@@ -1299,7 +1269,7 @@
             cancelButton.onclick = () => hideModal('control-modal');
             buttonDiv.appendChild(cancelButton);
             controlForm.appendChild(buttonDiv);
-
+            
             showModal('control-modal');
         }
 
@@ -1309,11 +1279,17 @@
             let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             headersToUse.forEach(header => {
-                const inputElement = document.getElementById(`form-${header.id}`);
-                if (inputElement) {
-                    formData[header.id] = inputElement.value;
+                if (header.id !== 'Link') {
+                    const inputElement = document.getElementById(`form-${header.id}`);
+                    if (inputElement) {
+                        formData[header.id] = inputElement.value;
+                    }
                 }
             });
+            
+            if (currentControlType === 'keyControls') {
+                Object.assign(formData, { 'Link Name': currentLink.name, 'Link URL': currentLink.url });
+            }
 
             if (currentControlType === 'keyControls') {
                 const frequency = formData['FREQ'] || 'Monthly';
@@ -1435,6 +1411,30 @@
             }
         });
         
+        document.getElementById('share-key-button').addEventListener('click', () => {
+             // Logic to find a recent PDF record and share it
+             const latestPdf = controlData.generatedPdfs
+                .filter(p => p.controlType === 'Key Controls')
+                .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+             if(latestPdf) {
+                 sharePdf(latestPdf.id);
+             } else {
+                 showMessage('No recent Key Controls PDF found to share.');
+             }
+        });
+        
+        document.getElementById('share-secondary-button').addEventListener('click', () => {
+             // Logic to find a recent PDF record and share it
+             const latestPdf = controlData.generatedPdfs
+                .filter(p => p.controlType === 'Secondary Controls')
+                .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+             if(latestPdf) {
+                 sharePdf(latestPdf.id);
+             } else {
+                 showMessage('No recent Secondary Controls PDF found to share.');
+             }
+        });
+
         let keyControlsChart, secondaryControlsChart;
 
         function getStatusCounts(controls, collectionName) {
@@ -1452,21 +1452,35 @@
             const data = Object.values(dataCounts);
 
             const colors = [
-                'rgba(75, 192, 192, 0.6)',
-                'rgba(255, 99, 132, 0.6)',
-                'rgba(255, 206, 86, 0.6)',
-                'rgba(153, 102, 255, 0.6)',
-                'rgba(54, 162, 235, 0.6)',
-                'rgba(201, 203, 207, 0.6)'
+                '#34d399', /* Green for On Track */
+                '#f87171', /* Red for Overdue */
+                '#fbbf24', /* Amber for Pending */
+                '#6b7280', /* Gray for Closed */
+                '#8b5cf6', /* Purple */
+                '#3b82f6'  /* Blue */
             ];
-
-            const borderColors = colors.map(color => color.replace('0.6', '1'));
+            
+            const backgroundColors = labels.map(label => {
+                switch(label) {
+                    case 'On Track': return '#34d399';
+                    case 'Overdue': return '#f87171';
+                    case 'Pending': return '#fbbf24';
+                    case 'Closed': return '#6b7280';
+                    case 'Yes': return '#34d399';
+                    case 'No': return '#f87171';
+                    case 'N/A': return '#fbbf24';
+                    case 'Effective': return '#34d399';
+                    case 'Partially Effective': return '#fbbf24';
+                    case 'Not Effective': return '#f87171';
+                    default: return '#e5e7eb';
+                }
+            });
 
             let existingChart = Chart.getChart(ctx);
             if (existingChart) {
                 existingChart.destroy();
             }
-
+            
             return new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -1474,9 +1488,9 @@
                     datasets: [{
                         label: 'Number of Controls',
                         data: data,
-                        backgroundColor: colors.slice(0, labels.length),
-                        borderColor: borderColors.slice(0, labels.length),
-                        borderWidth: 1
+                        backgroundColor: backgroundColors,
+                        borderColor: 'white',
+                        borderWidth: 2
                     }]
                 },
                 options: {
@@ -1548,7 +1562,6 @@
             const pdfExportContent = document.getElementById('pdf-export-content');
             const pdfTable = document.getElementById('pdf-table-to-generate');
             const pdfReportTitle = document.getElementById('pdf-report-title');
-            const pdfSignatureImage = document.getElementById('pdf-signature-image');
             
             showLoadingSpinner();
 
@@ -1570,13 +1583,6 @@
                  title = 'All Controls Report';
                  if(pdfReportTitle) pdfReportTitle.textContent = title;
                  populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
-            }
-
-            if (signatureDataUrl && pdfSignatureImage) {
-                pdfSignatureImage.src = signatureDataUrl;
-                pdfSignatureImage.style.display = 'block';
-            } else if (pdfSignatureImage) {
-                pdfSignatureImage.style.display = 'none';
             }
             
             if(pdfExportContent) pdfExportContent.style.display = 'block';
@@ -1617,144 +1623,141 @@
             tableBody.innerHTML = '';
 
             if (controlType === 'keyControls') {
-                // The new header structure
-                const firstRow = tableHeader.insertRow();
-                const secondRow = tableHeader.insertRow();
-                
+                const topRow = tableHeader.insertRow();
+                const middleRow = tableHeader.insertRow();
+                const bottomRow = tableHeader.insertRow();
+
                 const mainHeaders = [
                     'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
                 ];
                 mainHeaders.forEach(h => {
                     const th = document.createElement('th');
                     th.textContent = h;
-                    th.rowSpan = 2;
-                    firstRow.appendChild(th);
+                    th.rowSpan = 3;
+                    topRow.appendChild(th);
                 });
 
                 const monthsHeader = document.createElement('th');
                 monthsHeader.textContent = 'Months';
                 monthsHeader.colSpan = 12;
-                firstRow.appendChild(monthsHeader);
+                topRow.appendChild(monthsHeader);
 
-                const annTrackLinkHeaders = ['Annual', 'Tracking Status', 'Link'];
+                const annTrackLinkHeaders = ['Annual', 'Tracking Status', 'Link', 'Review', 'Delete', 'Due In'];
                 annTrackLinkHeaders.forEach(h => {
                     const th = document.createElement('th');
                     th.textContent = h;
-                    th.rowSpan = 2;
-                    firstRow.appendChild(th);
+                    th.rowSpan = 3;
+                    topRow.appendChild(th);
                 });
 
-                const q1 = document.createElement('th');
-                q1.textContent = 'Q1';
-                q1.colSpan = 3;
-                secondRow.appendChild(q1);
+                const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+                quarters.forEach(q => {
+                    const th = document.createElement('th');
+                    th.textContent = q;
+                    th.colSpan = 3;
+                    middleRow.appendChild(th);
+                });
 
-                const q2 = document.createElement('th');
-                q2.textContent = 'Q2';
-                q2.colSpan = 3;
-                secondRow.appendChild(q2);
-
-                const q3 = document.createElement('th');
-                q3.textContent = 'Q3';
-                q3.colSpan = 3;
-                secondRow.appendChild(q3);
-
-                const q4 = document.createElement('th');
-                q4.textContent = 'Q4';
-                q4.colSpan = 3;
-                secondRow.appendChild(q4);
-
+                const monthHeaders = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                monthHeaders.forEach(month => {
+                    const thMonth = document.createElement('th');
+                    thMonth.textContent = month;
+                    bottomRow.appendChild(thMonth);
+                });
+                
                 controls.forEach(control => {
                     const row = tableBody.insertRow();
+                    const today = new Date();
+                    const byWhenDateStr = control['BY WHEN'];
+                    const byWhenDate = new Date(byWhenDateStr);
+                    const diffTime = byWhenDate - today;
+                    const dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                     
                     const cellsToRender = [
-                        'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL',
-                        'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
-                        'Annual', 'Tracking Status', 'Link Name'
+                        'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
                     ];
 
                     cellsToRender.forEach(key => {
                         const cell = row.insertCell();
-                        if (key === 'Link Name') {
-                            const linkName = control['Link Name'];
-                            const linkURL = control['Link URL'];
-                            if (linkName && linkURL) {
-                                const anchor = document.createElement('a');
-                                anchor.href = linkURL;
-                                anchor.textContent = linkName;
-                                anchor.target = '_blank';
-                                cell.appendChild(anchor);
-                            } else {
-                                cell.textContent = linkName || '';
-                            }
-                        } else {
-                            cell.textContent = control[key] || '';
-                        }
+                        cell.textContent = control[key] || '';
                     });
+
+                    months.forEach(month => {
+                        const cell = row.insertCell();
+                        cell.textContent = control[month] || 'N/A';
+                    });
+                    
+                    const annualCell = row.insertCell();
+                    annualCell.textContent = control['Annual'] || 'N/A';
+
+                    const trackingStatusCell = row.insertCell();
+                    trackingStatusCell.textContent = control['Tracking Status'] || '';
+
+                    const linkCell = row.insertCell();
+                    const linkName = control['Link Name'];
+                    const linkURL = control['Link URL'];
+                    if (linkName && linkURL) {
+                        const anchor = document.createElement('a');
+                        anchor.href = linkURL;
+                        anchor.textContent = linkName;
+                        anchor.target = '_blank';
+                        linkCell.appendChild(anchor);
+                    } else {
+                        linkCell.textContent = linkName || '';
+                    }
+
+                    const reviewCell = row.insertCell();
+                    reviewCell.textContent = 'Review';
+                    const deleteCell = row.insertCell();
+                    deleteCell.textContent = 'Delete';
+                    
+                    const dueInCell = row.insertCell();
+                    dueInCell.textContent = dueInDays;
+
                 });
             } else {
-                let headersToUse = controlType === 'secondaryControls' ? secondaryControlHeaders : [];
+                let headersToUse = secondaryControlHeaders.map(h => h.label);
                  const headerRow = tableHeader.insertRow();
                  headersToUse.forEach(header => {
                     const th = document.createElement('th');
-                    th.textContent = header.label;
+                    th.textContent = header;
                     headerRow.appendChild(th);
                  });
                 const thActions = document.createElement('th');
-                thActions.textContent = "Actions";
+                thActions.textContent = "Review";
                 headerRow.appendChild(thActions);
+                const thDelete = document.createElement('th');
+                thDelete.textContent = "Delete";
+                headerRow.appendChild(thDelete);
+                const thDueIn = document.createElement('th');
+                thDueIn.textContent = "Due In";
+                headerRow.appendChild(thDueIn);
 
                 controls.forEach(control => {
                     const row = tableBody.insertRow();
-                    headersToUse.forEach(header => {
+                    secondaryControlHeaders.forEach(header => {
                         const cell = row.insertCell();
                         cell.textContent = control[header.id] || '';
                     });
-                    const actionsCell = row.insertCell();
-                    const editBtn = document.createElement('button');
-                    editBtn.textContent = 'Edit';
-                    editBtn.classList.add('edit-btn');
-                    actionsCell.appendChild(editBtn);
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = 'Delete';
-                    deleteBtn.classList.add('delete-btn', 'ml-1');
-                    actionsCell.appendChild(deleteBtn);
-                });
-            }
-        }
-        function handleSignatureUpload(fileInputId, previewId) {
-            const fileInput = document.getElementById(fileInputId);
-            const uploadBtn = document.getElementById(fileInputId.replace('-upload', '-btn'));
-            const previewImg = document.getElementById(previewId);
-
-            if (uploadBtn) {
-                uploadBtn.addEventListener('click', () => {
-                    fileInput?.click();
-                });
-            }
-
-            if (fileInput) {
-                fileInput.addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            signatureDataUrl = event.target.result;
-                            if (previewImg) {
-                                previewImg.src = signatureDataUrl;
-                                previewImg.classList.remove('hidden');
-                            }
-                            showMessage('Signature uploaded successfully!');
-                        };
-                        reader.readAsDataURL(file);
+                    const reviewCell = row.insertCell();
+                    reviewCell.textContent = 'Review';
+                    const deleteCell = row.insertCell();
+                    deleteCell.textContent = 'Delete';
+                    
+                    const dueInCell = row.insertCell();
+                    const today = new Date();
+                    const byWhenDateStr = control['BY WHEN'];
+                    let dueInDays = 'N/A';
+                    if (byWhenDateStr) {
+                        const byWhenDate = new Date(byWhenDateStr);
+                        const diffTime = byWhenDate - today;
+                        dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                     }
+                    dueInCell.textContent = dueInDays;
+
                 });
             }
         }
-        
-        handleSignatureUpload('key-controls-signature-upload', 'key-controls-signature-preview');
-        handleSignatureUpload('secondary-controls-signature-upload', 'secondary-controls-signature-preview');
-
 
         document.getElementById('download-key-excel-button').addEventListener('click', () => {
              downloadExcel('keyControls');
@@ -1772,12 +1775,6 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, tableName);
             
-            if (signatureDataUrl) {
-                const signatureSheet = XLSX.utils.aoa_to_sheet([["Sign Off"], ["Signed By: Manager - John Doe"], [`Date: ${new Date().toLocaleDateString()}`]]);
-                XLSX.utils.sheet_add_aoa(signatureSheet, [[signatureDataUrl]], {origin: "A5"});
-                XLSX.utils.book_append_sheet(wb, signatureSheet, "Sign Off");
-            }
-
             XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
         }
 
