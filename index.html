@@ -1097,7 +1097,7 @@
             }
         }
 
-        function renderStatusCell(cell, status) {
+        function renderStatusCell(cell, status, control, headerId) {
             const statusDiv = document.createElement('div');
             statusDiv.textContent = status || '-';
             statusDiv.classList.add('status-text');
@@ -1106,6 +1106,26 @@
                 statusDiv.classList.add(colorClass);
             }
             cell.classList.add('status-cell');
+            cell.onclick = () => {
+                const select = document.createElement('select');
+                const options = (headerId === 'Annual' || monthsInNumbers.includes(headerId)) ? ['Y', 'N', '-'] : ['On Track', 'Overdue', 'Pending'];
+                options.forEach(optionText => {
+                    const option = document.createElement('option');
+                    option.value = optionText;
+                    option.textContent = optionText;
+                    select.appendChild(option);
+                });
+                select.value = status || '-';
+                select.classList.add('w-full', 'h-full', 'p-1', 'bg-white', 'text-sm');
+                select.onchange = async (e) => {
+                    const newStatus = e.target.value;
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/keyControls`, control.id), { [headerId]: newStatus });
+                    renderControlsTable(controlData['keyControls'], 'key-controls-table', 'keyControls');
+                };
+                cell.innerHTML = '';
+                cell.appendChild(select);
+                select.focus();
+            };
             cell.appendChild(statusDiv);
         }
 
@@ -1153,8 +1173,10 @@
                             linkButton.onclick = () => openLinkModal(cell);
                             cell.classList.add('link-cell');
                             cell.appendChild(linkButton);
-                        } else if (months.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status') {
-                            renderStatusCell(cell, control[header.id]);
+                        } else if (months.includes(header.id)) {
+                             renderStatusCell(cell, control[header.id], control, header.id);
+                        } else if (header.id === 'Annual' || header.id === 'Tracking Status') {
+                            renderStatusCell(cell, control[header.id], control, header.id);
                         } else if (header.id === 'HOW' || header.id === 'EVIDENCE OF CONTROL' || header.id === 'KEY CONTROL DESCRIPTION') {
                              const div = document.createElement('div');
                              div.textContent = control[header.id] || '';
@@ -1367,49 +1389,18 @@
                         inputElement.appendChild(option);
                     });
                     inputElement.value = data[header.id] || '';
-                    inputElement.addEventListener('change', async (e) => {
-                        const newStatus = e.target.value;
-                        if (currentControlId) {
-                            try {
-                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { [header.id]: newStatus });
-                            } catch (error) {
-                                console.error(`Error updating field ${header.id}:`, error);
-                            }
-                        }
-                    });
-
                 } else if (header.type === 'date') {
                     inputElement = document.createElement('input');
                     inputElement.type = 'date';
                     inputElement.id = `form-${header.id}`;
                     inputElement.classList.add('input-field');
                     inputElement.value = data[header.id] || '';
-                    inputElement.addEventListener('change', async (e) => {
-                        const newDate = e.target.value;
-                        if (currentControlId) {
-                            try {
-                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { 'BY WHEN': newDate });
-                            } catch (error) {
-                                console.error(`Error updating date field ${header.id}:`, error);
-                            }
-                        }
-                    });
                 } else {
                     inputElement = document.createElement('input');
                     inputElement.type = header.type || 'text';
                     inputElement.id = `form-${header.id}`;
                     inputElement.classList.add('input-field');
                     inputElement.value = data[header.id] || '';
-                    inputElement.addEventListener('change', async (e) => {
-                        const newValue = e.target.value;
-                        if (currentControlId) {
-                            try {
-                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${currentControlType}`, currentControlId), { [header.id]: newValue });
-                            } catch (error) {
-                                console.error(`Error updating field ${header.id}:`, error);
-                            }
-                        }
-                    });
                 }
                 
                 div.appendChild(inputElement);
@@ -1457,7 +1448,7 @@
             let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             headersToUse.forEach(header => {
-                if (header.id !== 'Link' && !months.includes(header.id) && !quarters.includes(header.id) && header.id !== 'Annual') {
+                if (header.id !== 'Link') {
                     const inputElement = document.getElementById(`form-${header.id}`);
                     if (inputElement) {
                         formData[header.id] = inputElement.value;
