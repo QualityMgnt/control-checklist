@@ -1108,7 +1108,7 @@
             cell.classList.add('status-cell');
             cell.onclick = () => {
                 const select = document.createElement('select');
-                const options = (headerId === 'Annual' || months.includes(headerId)) ? ['Y', 'N', '-'] : ['On Track', 'Overdue', 'Pending'];
+                const options = (headerId === 'Annual' || ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'].includes(headerId)) ? ['Y', 'N', '-'] : ['On Track', 'Overdue', 'Pending'];
                 options.forEach(optionText => {
                     const option = document.createElement('option');
                     option.value = optionText;
