@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { font-family: 'Garamond', serif; background-color: #f3f4f6; padding: 2rem; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .input-field, select { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem; }
+        .btn-primary { background-color: #7c3aed; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; }
+        .btn-secondary { background-color: #6b7280; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; table-layout: fixed; }
+        th, td { border: 1px solid #e5e7eb; padding: 0.75rem; font-size: 12px; font-family: 'Garamond', serif; word-wrap: break-word; text-align: left; }
+        th { background-color: #f9fafb; font-weight: 600; text-align: center; white-space: nowrap; }
+        .status-green { background-color: #d1fae5; color: #065f46; font-weight: 600; }
+        .status-red { background-color: #fee2e2; color: #991b1b; font-weight: 600; }
+        .status-amber { background-color: #fef3c7; color: #92400e; font-weight: 600; }
+        .status-gray { background-color: #e5e7eb; color: #374151; font-weight: 600; }
+        .overdue-text { color: #dc2626; }
+        .message-box { position: fixed; bottom: 1rem; right: 1rem; background-color: #333; color: white; padding: 1rem 1.5rem; border-radius: 0.5rem; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .message-box.show { opacity: 1; visibility: visible; }
+        .loading-spinner { border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: #7c3aed; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1001; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="loading-spinner" class="loading-spinner"></div>
+    <div id="message-box" class="message-box"></div>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-purple-600 mb-6">Report Generator</h1>
+
+        <div class="space-y-4">
+            <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex-1 min-w-[200px]">
+                    <label for="date-filter" class="block text-sm font-medium text-gray-700">Date Filter</label>
+                    <input type="date" id="date-filter" class="w-full input-field">
+                </div>
+                <div class="flex-1 min-w-[200px]">
+                    <label for="type-filter" class="block text-sm font-medium text-gray-700">Control Type</label>
+                    <select id="type-filter" class="w-full input-field">
+                        <option value="all">All</option>
+                        <option value="keyControls">Key Controls</option>
+                        <option value="secondaryControls">Secondary Controls</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[200px]">
+                    <label for="status-filter" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select id="status-filter" class="w-full input-field">
+                        <option value="all">All</option>
+                        <option value="On Track">On Track</option>
+                        <option value="Overdue">Overdue</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button id="generate-report-btn" class="btn-primary mr-2">Generate Report</button>
+                <button id="download-report-btn" class="btn-primary">Download as PDF</button>
+            </div>
+        </div>
+
+        <div id="report-content" class="mt-8 overflow-x-auto">
+            <table id="report-table" class="min-w-full">
+                <!-- Report data will be rendered here -->
+            </table>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEK6AOeXiZVWKXw715FGkX9_yeNaKHx_8",
+            authDomain: "controls-f11f8.firebaseapp.com",
+            projectId: "controls-f11f8",
+            storageBucket: "controls-f11f8.firebasestorage.app",
+            messagingSenderId: "316152578637",
+            appId: "1:316152578637:web:b0b3c11c9821ee8bb05204",
+            measurementId: "G-793K2F5VZC"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        let allControls = { keyControls: [], secondaryControls: [] };
+
+        async function initialSignIn() {
+            try { await signInAnonymously(auth); } catch (error) { console.error("Anonymous sign-in failed:", error); }
+        }
+        initialSignIn();
+
+        function showLoadingSpinner() { const spinner = document.getElementById('loading-spinner'); if (spinner) spinner.style.display = 'block'; }
+        function hideLoadingSpinner() { const spinner = document.getElementById('loading-spinner'); if (spinner) spinner.style.display = 'none'; }
+        function showMessage(message, duration = 3000) { const msgBox = document.getElementById('message-box'); if (msgBox) { msgBox.textContent = message; msgBox.classList.add('show'); setTimeout(() => { msgBox.classList.remove('show'); }, duration); } }
+
+        document.getElementById('generate-report-btn').addEventListener('click', fetchAndRenderReport);
+        document.getElementById('download-report-btn').addEventListener('click', downloadPdfReport);
+
+        async function fetchAndRenderReport() {
+            showLoadingSpinner();
+            const typeFilter = document.getElementById('type-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            const dateFilter = document.getElementById('date-filter').value;
+
+            try {
+                let filteredControls = [];
+                const fetchPromises = [];
+
+                if (typeFilter === 'all' || typeFilter === 'keyControls') {
+                    fetchPromises.push(getDocs(collection(db, `artifacts/${appId}/public/data/keyControls`)));
+                }
+                if (typeFilter === 'all' || typeFilter === 'secondaryControls') {
+                    fetchPromises.push(getDocs(collection(db, `artifacts/${appId}/public/data/secondaryControls`)));
+                }
+
+                const querySnapshots = await Promise.all(fetchPromises);
+                querySnapshots.forEach(snapshot => {
+                    snapshot.forEach(doc => {
+                        filteredControls.push({ id: doc.id, ...doc.data() });
+                    });
+                });
+
+                filteredControls = filteredControls.filter(control => {
+                    const matchesStatus = statusFilter === 'all' || (control['Tracking Status'] === statusFilter || control['Assessment'] === statusFilter);
+                    const matchesDate = !dateFilter || control['Date of Review'] === dateFilter || control['BY WHEN'] === dateFilter;
+                    return matchesStatus && matchesDate;
+                });
+                renderReportTable(filteredControls);
+                showMessage('Report generated successfully.');
+            } catch (error) {
+                console.error('Error fetching report data:', error);
+                showMessage('Failed to generate report.');
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        function renderReportTable(controls) {
+            const table = document.getElementById('report-table');
+            let tableHtml = `
+                <thead>
+                    <tr>
+                        <th>KEY CONTROL DESCRIPTION</th>
+                        <th>HOW</th>
+                        <th>FREQ</th>
+                        <th>BY WHEN</th>
+                        <th>EVIDENCE OF CONTROL</th>
+                        <th>Status</th>
+                        <th>Link</th>
+                        <th>Due In</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            controls.forEach(control => {
+                let dueInDays = 'N/A';
+                if (control['BY WHEN']) {
+                    const byWhenDate = new Date(control['BY WHEN']);
+                    const diffTime = byWhenDate - today;
+                    dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                }
+                const status = control['Tracking Status'] || control['Assessment'];
+                const statusClass = (status === 'Overdue' || status === 'Not Effective' || status === 'No') ? 'status-red' : (status === 'On Track' || status === 'Effective' || status === 'Yes') ? 'status-green' : 'status-amber';
+                const dueInClass = dueInDays < 0 ? 'overdue-text' : '';
+
+                tableHtml += `
+                    <tr>
+                        <td>${control['KEY CONTROL DESCRIPTION'] || ''}</td>
+                        <td>${control['HOW'] || control['HOW (i.e. Manual/ Automated)'] || ''}</td>
+                        <td>${control['FREQ'] || control['FREQUENCY e.g. Daily, Weekly, Monthly'] || ''}</td>
+                        <td>${control['BY WHEN'] || ''}</td>
+                        <td>${control['EVIDENCE OF CONTROL'] || ''}</td>
+                        <td class="${statusClass}">${status || ''}</td>
+                        <td><a href="${control['Link URL'] || '#'}" target="_blank">${control['Link Name'] || ''}</a></td>
+                        <td class="${dueInClass}">${dueInDays}</td>
+                    </tr>
+                `;
+            });
+            tableHtml += '</tbody>';
+            table.innerHTML = tableHtml;
+        }
+
+        async function downloadPdfReport() {
+            const content = document.getElementById('report-content');
+            showLoadingSpinner();
+            const options = {
+                margin: 10,
+                filename: `Report_${new Date().toISOString().slice(0,10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' }
+            };
+            try {
+                await html2pdf().set(options).from(content).save();
+                showMessage('PDF downloaded successfully!');
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                showMessage('Failed to generate PDF.');
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+    </script>
+</body>
+</html>
