@@ -54,6 +54,9 @@
                         <option value="On Track">On Track</option>
                         <option value="Overdue">Overdue</option>
                         <option value="Pending">Pending</option>
+                        <option value="Effective">Effective</option>
+                        <option value="Partially Effective">Partially Effective</option>
+                        <option value="Not Effective">Not Effective</option>
                     </select>
                 </div>
             </div>
@@ -76,6 +79,25 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // --- Utility Functions ---
+        function showLoadingSpinner() { const spinner = document.getElementById('loading-spinner'); if (spinner) spinner.style.display = 'block'; }
+        function hideLoadingSpinner() { const spinner = document.getElementById('loading-spinner'); if (spinner) spinner.style.display = 'none'; }
+        function showMessage(message, duration = 3000) { const msgBox = document.getElementById('message-box'); if (msgBox) { msgBox.textContent = message; msgBox.classList.add('show'); setTimeout(() => { msgBox.classList.remove('show'); }, duration); } }
+
+        async function retryOperation(operation, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i < maxRetries - 1) {
+                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+        }
+        
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = {
             apiKey: "AIzaSyDEK6AOeXiZVWKXw715FGkX9_yeNaKHx_8",
@@ -93,13 +115,15 @@
         let allControls = { keyControls: [], secondaryControls: [] };
 
         async function initialSignIn() {
-            try { await signInAnonymously(auth); } catch (error) { console.error("Anonymous sign-in failed:", error); }
+            try { 
+                await retryOperation(() => signInAnonymously(auth)); 
+                fetchAndRenderReport();
+            } catch (error) { 
+                console.error("Anonymous sign-in failed:", error);
+                showMessage("Authentication failed. Please check your Firebase configuration.");
+            }
         }
         initialSignIn();
-
-        function showLoadingSpinner() { const spinner = document.getElementById('loading-spinner'); if (spinner) spinner.style.display = 'block'; }
-        function hideLoadingSpinner() { const spinner = document.getElementById('loading-spinner'); if (spinner) spinner.style.display = 'none'; }
-        function showMessage(message, duration = 3000) { const msgBox = document.getElementById('message-box'); if (msgBox) { msgBox.textContent = message; msgBox.classList.add('show'); setTimeout(() => { msgBox.classList.remove('show'); }, duration); } }
 
         document.getElementById('generate-report-btn').addEventListener('click', fetchAndRenderReport);
         document.getElementById('download-report-btn').addEventListener('click', downloadPdfReport);
@@ -111,24 +135,24 @@
             const dateFilter = document.getElementById('date-filter').value;
 
             try {
-                let filteredControls = [];
+                let fetchedControls = [];
                 const fetchPromises = [];
 
                 if (typeFilter === 'all' || typeFilter === 'keyControls') {
-                    fetchPromises.push(getDocs(collection(db, `artifacts/${appId}/public/data/keyControls`)));
+                    fetchPromises.push(retryOperation(() => getDocs(collection(db, `artifacts/${appId}/public/data/keyControls`))));
                 }
                 if (typeFilter === 'all' || typeFilter === 'secondaryControls') {
-                    fetchPromises.push(getDocs(collection(db, `artifacts/${appId}/public/data/secondaryControls`)));
+                    fetchPromises.push(retryOperation(() => getDocs(collection(db, `artifacts/${appId}/public/data/secondaryControls`))));
                 }
 
                 const querySnapshots = await Promise.all(fetchPromises);
                 querySnapshots.forEach(snapshot => {
                     snapshot.forEach(doc => {
-                        filteredControls.push({ id: doc.id, ...doc.data() });
+                        fetchedControls.push({ id: doc.id, ...doc.data() });
                     });
                 });
 
-                filteredControls = filteredControls.filter(control => {
+                const filteredControls = fetchedControls.filter(control => {
                     const matchesStatus = statusFilter === 'all' || (control['Tracking Status'] === statusFilter || control['Assessment'] === statusFilter);
                     const matchesDate = !dateFilter || control['Date of Review'] === dateFilter || control['BY WHEN'] === dateFilter;
                     return matchesStatus && matchesDate;
@@ -145,6 +169,7 @@
 
         function renderReportTable(controls) {
             const table = document.getElementById('report-table');
+            if (!table) return;
             let tableHtml = `
                 <thead>
                     <tr>
@@ -182,7 +207,7 @@
                         <td>${control['BY WHEN'] || ''}</td>
                         <td>${control['EVIDENCE OF CONTROL'] || ''}</td>
                         <td class="${statusClass}">${status || ''}</td>
-                        <td><a href="${control['Link URL'] || '#'}" target="_blank">${control['Link Name'] || ''}</a></td>
+                        <td><a href="${control['Link URL'] || '#'}" target="_blank">${control['Link Name'] || 'No Link'}</a></td>
                         <td class="${dueInClass}">${dueInDays}</td>
                     </tr>
                 `;
@@ -211,7 +236,6 @@
                 hideLoadingSpinner();
             }
         }
-
     </script>
 </body>
 </html>
