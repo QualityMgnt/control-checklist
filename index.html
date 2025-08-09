@@ -60,6 +60,7 @@
             color: white;
             margin: 0.25rem;
             border-radius: 0.5rem;
+            transition: all 0.3s ease-in-out;
         }
         .top-nav .tab-button:hover {
             background-color: #2563eb;
@@ -96,7 +97,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out;
-            box-shadow: 0 4px 6c -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .btn-primary:hover {
             background-color: #2563eb;
@@ -178,7 +179,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            box-shadow: 0 4px 6c -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .message-box.show {
             opacity: 1;
@@ -188,14 +189,14 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
-            table-layout: fixed; /* Ensures a fixed layout to prevent stretching */
+            table-layout: fixed;
         }
         th, td {
             border: 1px solid #e5e7eb;
             padding: 0.75rem;
             text-align: left;
             font-size: 0.875rem;
-            word-wrap: break-word; /* Prevents overflow in cells */
+            word-wrap: break-word;
         }
         th {
             background-color: #f9fafb;
@@ -257,8 +258,14 @@
                 width: 95%;
                 padding: 1rem;
             }
+            /* Adjust table for smaller screens */
+            .overflow-x-auto {
+                overflow-x: scroll;
+            }
+            .table-header-months, .table-header-quarters {
+                min-width: 50px; /* Ensure small month/quarter headers have a minimum width */
+            }
         }
-
         /* Status colors */
         .status-green { background-color: #d1fae5; color: #065f46; font-weight: 600; }
         .status-red { background-color: #fee2e2; color: #991b1b; font-weight: 600; }
@@ -309,6 +316,7 @@
             width: auto;
             height: auto;
         }
+        
     </style>
 </head>
 <body>
@@ -357,7 +365,7 @@
 
     <!-- Main Application Page -->
     <div id="app-page" class="container hidden">
-        <header class="flex justify-between items-center p-4 bg-purple-600 text-white">
+        <header class="flex justify-between items-center p-4 bg-blue-600 text-white shadow-md">
             <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
             <div class="flex items-center space-x-4">
                 <span id="user-display" class="text-sm font-medium"></span>
@@ -533,7 +541,7 @@
                                 <th>Date Generated</th>
                                 <th>Month</th>
                                 <th>Control Type</th>
-                                <th>Attachment</th> <!-- New Attachment column -->
+                                <th>Attachment</th>
                                 <th class="w-24">Delete</th>
                                 <th class="w-24">Share</th>
                             </tr>
@@ -888,7 +896,7 @@
 
                 const attachmentCell = row.insertCell();
                 const downloadLink = document.createElement('a');
-                downloadLink.href = pdf.downloadUrl; // Assuming downloadUrl is stored
+                downloadLink.href = pdf.downloadUrl;
                 downloadLink.textContent = pdf.fileName;
                 downloadLink.target = '_blank';
                 downloadLink.classList.add('text-blue-600', 'hover:underline');
@@ -1555,7 +1563,10 @@
                 const firstRow = tableHeader.insertRow();
                 const secondRow = tableHeader.insertRow();
 
-                const staticHeaders = ['Description', 'How', 'Frequency', 'By When', 'Evidence'];
+                const staticHeaders = [
+                    'Description', 'How', 'Frequency', 'By When', 'Evidence', 'Tracking Status', 'Link'
+                ];
+
                 staticHeaders.forEach(h => {
                     const th = document.createElement('th');
                     th.textContent = h;
@@ -1563,58 +1574,37 @@
                     firstRow.appendChild(th);
                 });
                 
-                const dynamicHeaders = {
-                    Q1: ['JAN', 'FEB', 'MAR'],
-                    Q2: ['APR', 'MAY', 'JUN'],
-                    Q3: ['JUL', 'AUG', 'SEP'],
-                    Q4: ['OCT', 'NOV', 'DEC']
-                };
+                const monthHeaders = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                const monthHeadersRow = tableHeader.insertRow();
+                
+                const monthsTh = document.createElement('th');
+                monthsTh.textContent = 'Months';
+                monthsTh.colSpan = 12;
+                monthsTh.classList.add('table-header-quarters');
+                firstRow.appendChild(monthsTh);
 
-                for(const q in dynamicHeaders) {
-                    const th = document.createElement('th');
-                    th.textContent = q;
-                    th.colSpan = 3;
-                    th.classList.add('table-header-quarters');
-                    firstRow.appendChild(th);
-                }
+                const annualTh = document.createElement('th');
+                annualTh.textContent = 'Annual';
+                annualTh.rowSpan = 2;
+                firstRow.appendChild(annualTh);
 
-                months.forEach(month => {
+                monthHeaders.forEach(month => {
                     const thMonth = document.createElement('th');
                     thMonth.textContent = month;
                     thMonth.classList.add('table-header-months');
                     secondRow.appendChild(thMonth);
                 });
-
-                const otherStaticHeaders = ['Annual', 'Tracking Status', 'Link Name'];
-                otherStaticHeaders.forEach(h => {
-                    const th = document.createElement('th');
-                    th.textContent = h;
-                    th.rowSpan = 2;
-                    firstRow.appendChild(th);
-                });
-
+                
                 controls.forEach(control => {
                     const row = tableBody.insertRow();
-                    
-                    const cellsToRender = [
-                        'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
+                    const dataKeys = [
+                        'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL',
+                        'Tracking Status', 'Link Name'
                     ];
 
-                    cellsToRender.forEach(id => {
+                    dataKeys.forEach(key => {
                         const cell = row.insertCell();
-                        cell.textContent = control[id] || '';
-                    });
-                    
-                    const dynamicMonthHeaders = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-                    dynamicMonthHeaders.forEach(month => {
-                        const cell = row.insertCell();
-                        cell.textContent = control[month] || 'N/A';
-                    });
-                    
-                    const postDynamicHeaders = ['Annual', 'Tracking Status', 'Link Name'];
-                    postDynamicHeaders.forEach(id => {
-                         const cell = row.insertCell();
-                        if (id === 'Link Name') {
+                        if (key === 'Link Name') {
                             const linkName = control['Link Name'];
                             const linkURL = control['Link URL'];
                             if (linkName && linkURL) {
@@ -1627,9 +1617,18 @@
                                 cell.textContent = linkName || '';
                             }
                         } else {
-                            cell.textContent = control[id] || '';
+                            cell.textContent = control[key] || '';
                         }
                     });
+
+                    months.forEach(month => {
+                        const cell = row.insertCell();
+                        cell.textContent = control[month] || 'N/A';
+                    });
+                    
+                    const annualCell = row.insertCell();
+                    annualCell.textContent = control['Annual'] || 'N/A';
+
                 });
             } else {
                 let headersToUse = controlType === 'secondaryControls' ? secondaryControlHeaders : [];
@@ -1661,7 +1660,6 @@
                 });
             }
         }
-
         function handleSignatureUpload(fileInputId, previewId) {
             const fileInput = document.getElementById(fileInputId);
             const uploadBtn = document.getElementById(fileInputId.replace('-upload', '-btn'));
