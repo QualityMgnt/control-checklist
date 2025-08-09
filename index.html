@@ -189,13 +189,13 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
-            table-layout: fixed;
+            table-layout: auto; /* Changed to auto-adjust */
         }
         th, td {
             border: 1px solid #e5e7eb;
             padding: 0.75rem;
             text-align: left;
-            font-size: 0.875rem;
+            font-size: 10px; /* Reduced font size */
             word-wrap: break-word;
             font-family: 'Garamond', serif;
         }
@@ -205,7 +205,6 @@
             color: #374151;
             white-space: normal;
             text-align: center;
-            font-size: 12px;
         }
         tbody tr:nth-child(even) {
             background-color: #f3f4f6;
@@ -861,7 +860,7 @@
             }
             showLoadingSpinner();
             try {
-                await retryOperation(() => sendPasswordResetResetEmail(auth, email));
+                await retryOperation(() => sendPasswordResetEmail(auth, email));
                 showMessage(`Password reset email sent to ${email}. Please check your inbox.`);
             } catch (error) {
                 console.error("Forgot password error:", error);
@@ -1192,21 +1191,20 @@
                 });
 
                 if (collectionName === 'keyControls') {
-                    const reviewCell = row.insertCell();
-                    reviewCell.classList.add('action-buttons');
+                    const actionsCell = row.insertCell();
+                    actionsCell.classList.add('action-buttons', 'flex', 'flex-col', 'gap-1', 'p-1', 'h-full');
+                    
                     const reviewBtn = document.createElement('button');
                     reviewBtn.textContent = 'Review';
                     reviewBtn.classList.add('review-btn');
                     reviewBtn.onclick = () => openControlModal(collectionName, control.id, control);
-                    reviewCell.appendChild(reviewBtn);
+                    actionsCell.appendChild(reviewBtn);
 
-                    const deleteCell = row.insertCell();
-                    deleteCell.classList.add('action-buttons');
                     const deleteBtn = document.createElement('button');
                     deleteBtn.textContent = 'Delete';
                     deleteBtn.classList.add('delete-btn');
                     deleteBtn.onclick = () => deleteControl(collectionName, control.id);
-                    deleteCell.appendChild(deleteBtn);
+                    actionsCell.appendChild(deleteBtn);
 
                     const dueInCell = row.insertCell();
                     dueInCell.textContent = dueInDays;
@@ -1439,21 +1437,13 @@
             let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
             
             headersToUse.forEach(header => {
-                if (header.id !== 'Link' && !months.includes(header.id) && !quarters.includes(header.id) && header.id !== 'Annual') {
+                if (header.id !== 'Link') {
                     const inputElement = document.getElementById(`form-${header.id}`);
                     if (inputElement) {
                         formData[header.id] = inputElement.value;
                     }
                 }
             });
-            
-            const linkName = document.getElementById('form-Link Name')?.value;
-            const linkURL = document.getElementById('form-Link URL')?.value;
-            
-            if (linkName && linkURL) {
-                formData['Link Name'] = linkName;
-                formData['Link URL'] = linkURL;
-            }
             
             await addOrUpdateControl(currentControlType, currentControlId, formData);
         });
