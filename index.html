@@ -399,22 +399,6 @@
                     Don't have an account? <a href="#" id="show-signup" class="text-purple-600 hover:underline">Sign Up</a>
                 </p>
             </form>
-
-            <form id="signup-form" class="space-y-6 hidden">
-                <h2 class="text-3xl font-bold text-center text-purple-600 mb-8">Sign Up</h2>
-                <div>
-                    <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" id="signup-email" placeholder="Enter your email" required class="input-field">
-                </div>
-                <div>
-                    <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input type="password" id="signup-password" placeholder="Enter a password" required class="input-field">
-                </div>
-                <button type="submit" class="btn-primary w-full">Sign Up</button>
-                <p class="text-center text-sm text-gray-600 mt-4">
-                    Already have an account? <a href="#" id="show-login" class="text-purple-600 hover:underline">Log In</a>
-                </p>
-            </form>
         </div>
     </div>
 
@@ -581,6 +565,18 @@
                             <label for="new-user-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                             <input type="email" id="new-user-email" placeholder="New user email" required class="input-field">
                         </div>
+                         <div>
+                            <label for="new-user-fullname" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="new-user-fullname" placeholder="New user full name" required class="input-field">
+                        </div>
+                        <div>
+                            <label for="new-user-department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                            <select id="new-user-department" required class="input-field">
+                                <option value="" disabled selected>Select Department</option>
+                                <option value="Contact Centre">Contact Centre</option>
+                                <option value="Customer Service">Customer Service</option>
+                            </select>
+                        </div>
                         <div>
                             <label for="new-user-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                             <input type="password" id="new-user-password" placeholder="New user password" required class="input-field">
@@ -712,6 +708,8 @@
             updateDoc,
             deleteDoc,
             onSnapshot,
+            query,
+            where,
             getDocs,
             writeBatch
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -725,6 +723,7 @@
         const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         const monthsInNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
         const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+        let currentUserData = {};
         
         const keyControlHeaders = [
             { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
@@ -774,7 +773,6 @@
         
         let currentLinkCell = null;
         
-        // These variables are now declared only once.
         let keyControlsChart, secondaryControlsChart;
 
         // --- Utility Functions ---
@@ -842,7 +840,17 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                document.getElementById('user-display').textContent = `User: ${user.email || user.uid}`;
+                // Fetch user data from Firestore
+                const userDocRef = doc(db, `artifacts/${appId}/users`, user.uid);
+                const userDoc = await retryOperation(() => getDoc(userDocRef));
+                if (userDoc.exists()) {
+                    currentUserData = userDoc.data();
+                    document.getElementById('user-display').textContent = `User: ${currentUserData.fullName || user.email}`;
+                } else {
+                    currentUserData = { department: 'unknown', fullName: 'Unknown User' };
+                    document.getElementById('user-display').textContent = `User: ${user.email}`;
+                }
+                
                 document.getElementById('login-page').classList.add('hidden');
                 document.getElementById('app-page').classList.remove('hidden');
                 
@@ -854,6 +862,7 @@
                 renderDashboardCharts();
             } else {
                 currentUserId = null;
+                currentUserData = {};
                 document.getElementById('login-page').classList.remove('hidden');
                 document.getElementById('app-page').classList.add('hidden');
             }
@@ -888,22 +897,6 @@
             } catch (error) {
                 console.error("Login error:", error);
                 showMessage(`Login failed: ${error.message}`);
-            } finally {
-                hideLoadingSpinner();
-            }
-        });
-
-        document.getElementById('signup-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            showLoadingSpinner();
-            try {
-                await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
-                showMessage('Account created and logged in successfully!');
-            } catch (error) {
-                console.error("Signup error:", error);
-                showMessage(`Signup failed: ${error.message}`);
             } finally {
                 hideLoadingSpinner();
             }
@@ -963,6 +956,7 @@
             });
         });
         
+        let currentLinkCell = null;
         function openLinkModal(cell) {
             currentLinkCell = cell;
             const controlId = cell.closest('tr').dataset.id;
@@ -1006,9 +1000,13 @@
         });
 
         async function loadControls(collectionName, tableId) {
-            if (!currentUserId) return;
+            if (!currentUserId || !currentUserData.department) return;
             const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-            onSnapshot(controlsColRef, (snapshot) => {
+            
+            // Filter by department
+            const q = query(controlsColRef, where('Department', '==', currentUserData.department));
+            
+            onSnapshot(q, (snapshot) => {
                 const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 controlData[collectionName] = controls;
                 renderControlsTable(controls, tableId, collectionName);
@@ -1299,6 +1297,10 @@
                     await retryOperation(() => updateDoc(doc(controlsColRef, controlId), dataToSave));
                     showMessage('Control updated successfully!');
                 } else {
+                    // Set department for the new control based on the current user's department
+                    if(currentUserData.department) {
+                       dataToSave.Department = currentUserData.department;
+                    }
                     await retryOperation(() => addDoc(controlsColRef, dataToSave));
                     showMessage('Control added successfully!');
                 }
@@ -1500,6 +1502,10 @@
 
                 parsedData.forEach(item => {
                     const newDocRef = doc(controlsColRef);
+                    // Add department to the imported data
+                    if(currentUserData.department) {
+                       item.Department = currentUserData.department;
+                    }
                     batch.set(newDocRef, item);
                     uploadCount++;
                 });
@@ -1590,6 +1596,9 @@
             }
         });
 
+        // These variables are now declared only once.
+        let keyControlsChart, secondaryControlsChart;
+
         function getStatusCounts(controls, collectionName) {
             const counts = {};
             controls.forEach(control => {
@@ -1672,10 +1681,16 @@
             secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
         }
 
-        async function createUser(email, password) {
+        async function createUser(email, password, fullName, department) {
             showLoadingSpinner();
             try {
-                await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                const userCredential = await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                const user = userCredential.user;
+                await retryOperation(() => setDoc(doc(db, `artifacts/${appId}/users`, user.uid), {
+                    email: user.email,
+                    fullName: fullName,
+                    department: department
+                }));
                 showMessage(`User ${email} created successfully!`);
                 document.getElementById('create-user-form').reset();
                 await loadUsers();
@@ -1691,22 +1706,32 @@
             e.preventDefault();
             const email = document.getElementById('new-user-email').value;
             const password = document.getElementById('new-user-password').value;
-            await createUser(email, password);
+            const fullName = document.getElementById('new-user-fullname').value;
+            const department = document.getElementById('new-user-department').value;
+            await createUser(email, password, fullName, department);
         });
 
         async function loadUsers() {
             const userList = document.getElementById('user-list');
             if (!userList) return;
             userList.innerHTML = '';
-            if (auth.currentUser) {
+            
+            const usersColRef = collection(db, `artifacts/${appId}/users`);
+            const usersSnapshot = await retryOperation(() => getDocs(usersColRef));
+            
+            if (usersSnapshot.empty) {
                 const listItem = document.createElement('li');
-                listItem.textContent = `Current User: ${auth.currentUser.email || auth.currentUser.uid}`;
+                listItem.textContent = `No users found.`;
                 userList.appendChild(listItem);
-            } else {
-                const listItem = document.createElement('li');
-                listItem.textContent = `No active user.`;
-                userList.appendChild(listItem);
+                return;
             }
+
+            usersSnapshot.forEach(userDoc => {
+                const user = userDoc.data();
+                const listItem = document.createElement('li');
+                listItem.textContent = `${user.fullName} (${user.email}) - ${user.department}`;
+                userList.appendChild(listItem);
+            });
         }
 
         document.getElementById('generate-key-pdf-button').addEventListener('click', () => generatePdfForControls('keyControls'));
