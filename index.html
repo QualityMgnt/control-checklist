@@ -725,6 +725,10 @@
         const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
         let currentUserData = {};
         
+        // These variables are now declared once to prevent SyntaxErrors
+        let keyControlsChart, secondaryControlsChart;
+        let currentLinkCell = null;
+
         const keyControlHeaders = [
             { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
             { id: 'HOW', label: 'How', type: 'text' },
@@ -771,9 +775,6 @@
             generatedPdfs: []
         };
         
-        let currentLinkCell = null;
-        let keyControlsChart, secondaryControlsChart;
-
         // --- Utility Functions ---
         function showLoadingSpinner() {
             const spinner = document.getElementById('loading-spinner');
@@ -971,8 +972,6 @@
             });
         });
         
-        // This is the correct, single declaration of currentLinkCell
-        let currentLinkCell = null;
         function openLinkModal(cell) {
             currentLinkCell = cell;
             const controlId = cell.closest('tr').dataset.id;
@@ -1700,7 +1699,7 @@
                 const userCredential = await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
                 const user = userCredential.user;
                 await retryOperation(() => setDoc(doc(db, `artifacts/${appId}/users`, user.uid), {
-                    email: user.email,
+                    email: email,
                     fullName: fullName,
                     department: department
                 }));
