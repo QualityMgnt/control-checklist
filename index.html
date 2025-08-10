@@ -714,7 +714,7 @@
             writeBatch
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- GLOBAL VARIABLE DECLARATIONS ---
+        // --- GLOBAL VARIABLE DECLARATIONS (Declared once to prevent SyntaxError) ---
         let app;
         let db;
         let auth;
@@ -772,7 +772,6 @@
         };
         
         let currentLinkCell = null;
-        
         let keyControlsChart, secondaryControlsChart;
 
         // --- Utility Functions ---
@@ -901,6 +900,22 @@
                 hideLoadingSpinner();
             }
         });
+        
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                showMessage('Account created and logged in successfully!');
+            } catch (error) {
+                console.error("Signup error:", error);
+                showMessage(`Signup failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
 
         document.getElementById('show-signup').addEventListener('click', (e) => {
             e.preventDefault();
@@ -956,6 +971,7 @@
             });
         });
         
+        // This is the correct, single declaration of currentLinkCell
         let currentLinkCell = null;
         function openLinkModal(cell) {
             currentLinkCell = cell;
@@ -1595,10 +1611,7 @@
                 reader.readAsDataURL(file);
             }
         });
-
-        // These variables are now declared only once.
-        let keyControlsChart, secondaryControlsChart;
-
+        
         function getStatusCounts(controls, collectionName) {
             const counts = {};
             controls.forEach(control => {
