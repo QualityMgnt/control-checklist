@@ -742,6 +742,7 @@
             generatedPdfs: []
         };
         
+        // Corrected: Removed the duplicate declaration of currentLinkCell
         let currentLinkCell = null;
         let keyControlsChart, secondaryControlsChart;
 
@@ -814,13 +815,12 @@
                 document.getElementById('login-page').classList.add('hidden');
                 document.getElementById('app-page').classList.remove('hidden');
                 
-                // Corrected: Ensure data is loaded and charts rendered after successful auth
                 await loadControls('keyControls', 'key-controls-table');
                 await loadControls('secondaryControls', 'secondary-controls-table');
                 await loadPdfs();
                 await loadUsers();
                 loadLogo();
-                renderDashboardCharts(); // Now safe to call
+                renderDashboardCharts();
             } else {
                 currentUserId = null;
                 document.getElementById('login-page').classList.remove('hidden');
@@ -884,7 +884,6 @@
             document.getElementById('signup-form').classList.remove('hidden');
         });
 
-        // Corrected: Added the missing event listener for the show-login link
         document.getElementById('show-login').addEventListener('click', (e) => {
             e.preventDefault();
             document.getElementById('signup-form').classList.add('hidden');
@@ -984,7 +983,6 @@
                 const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 controlData[collectionName] = controls;
                 renderControlsTable(controls, tableId, collectionName);
-                // Corrected: Only render charts after data is loaded
                 if (collectionName === 'keyControls' || collectionName === 'secondaryControls') {
                     renderDashboardCharts();
                 }
@@ -1139,7 +1137,7 @@
             today.setHours(0, 0, 0, 0);
 
             controls.forEach(control => {
-                const row = tableBody.insertRow();
+                const row = tableBody.insert-row();
                 row.dataset.id = control.id;
                 
                 const byWhenDateStr = control['BY WHEN'];
@@ -1772,9 +1770,9 @@
             tableBody.innerHTML = '';
 
             if (controlType === 'keyControls') {
-                const topRow = tableHeader.insertRow();
-                const middleRow = tableHeader.insertRow();
-                const bottomRow = tableHeader.insertRow();
+                const topRow = tableHeader.insert-row();
+                const middleRow = tableHeader.insert-row();
+                const bottomRow = tableHeader.insert-row();
 
                 const mainHeaders = [
                     'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
@@ -1816,7 +1814,7 @@
                 });
                 
                 controls.forEach(control => {
-                    const row = tableBody.insertRow();
+                    const row = tableBody.insert-row();
                     const today = new Date();
                     const byWhenDateStr = control['BY WHEN'];
                     const byWhenDate = new Date(byWhenDateStr);
@@ -1865,7 +1863,7 @@
                 });
             } else {
                 let headersToUse = secondaryControlHeaders.map(h => h.label);
-                 const headerRow = tableHeader.insertRow();
+                 const headerRow = tableHeader.insert-row();
                  headersToUse.forEach(header => {
                      const th = document.createElement('th');
                      th.textContent = header;
@@ -1879,7 +1877,7 @@
                 headerRow.appendChild(thDueIn);
 
                 controls.forEach(control => {
-                    const row = tableBody.insertRow();
+                    const row = tableBody.insert-row();
                     secondaryControlHeaders.forEach(header => {
                         const cell = row.insertCell();
                         cell.textContent = control[header.id] || '';
