@@ -184,7 +184,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
-            table-layout: auto; /* Changed to auto-adjust */
+            table-layout: auto;
         }
         th, td {
             border: 1px solid #0a113d; /* Navy blue border */
@@ -340,13 +340,35 @@
             right: 2rem;
             max-height: 60px;
         }
-        /* Excel Export specific styles (hidden from normal view) */
         #excel-export-content {
             position: fixed;
             top: -9999px;
             left: -9999px;
             width: auto;
             height: auto;
+        }
+
+        /* New CSS for PDF signoff table */
+        .pdf-signoff-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+        .pdf-signoff-table th, .pdf-signoff-table td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 14px;
+        }
+        .pdf-signoff-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .pdf-signoff-table .signature-box {
+            height: 60px;
+            border: 1px solid #ccc;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -583,6 +605,7 @@
                                 <th>Month</th>
                                 <th>Control Type</th>
                                 <th>Attachment</th>
+                                <th class="w-24">Download</th>
                                 <th class="w-24">Delete</th>
                                 <th class="w-24">Share</th>
                             </tr>
@@ -638,21 +661,28 @@
                 <table id="pdf-table-to-generate" class="min-w-full bg-white border border-gray-200">
                     </table>
             </div>
-            <div class="pdf-signature-area">
-                <p class="font-semibold text-lg mb-2">Sign-off by:</p>
-                <div id="pdf-signed-by-section" class="flex flex-col">
-                    <p id="pdf-sign-off-by-name" class="font-semibold"></p>
-                    <img id="pdf-signature-image" class="h-16 w-auto border rounded-md" src="" alt="Signature" style="display:none;">
-                </div>
-
-                <p class="font-semibold text-lg mb-2 mt-4">Approved by:</p>
-                <div class="flex flex-col">
-                    <p class="font-semibold">Eric Muthengi</p>
-                    <div class="h-16 w-40 border rounded-md bg-gray-100 flex items-center justify-center text-gray-400 text-sm italic">
-                        Signature Here
-                    </div>
-                </div>
-            </div>
+            <table class="pdf-signoff-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">Assistant Manager</th>
+                        <th style="width: 50%;">Group Manager - Customer Experience</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <p>Name: <span id="signoff-assistant-name">Darius Kedera</span></p>
+                            <p>Signature & Date:</p>
+                            <div class="signature-box"></div>
+                        </td>
+                        <td>
+                            <p>Name: <span id="signoff-group-manager-name">Eric Muthengi</span></p>
+                            <p>Signature & Date:</p>
+                            <div class="signature-box"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -741,7 +771,7 @@
             generatedPdfs: []
         };
         
-        // These variables are now declared only once.
+        let currentLinkCell = null;
         let keyControlsChart, secondaryControlsChart;
 
         // --- Utility Functions ---
@@ -1025,6 +1055,13 @@
                 downloadLink.target = '_blank';
                 downloadLink.classList.add('text-blue-600', 'hover:underline');
                 attachmentCell.appendChild(downloadLink);
+
+                const downloadCell = row.insertCell();
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Download';
+                downloadBtn.classList.add('btn-primary', 'py-1', 'px-2', 'text-xs');
+                downloadBtn.onclick = () => window.open(pdf.downloadUrl, '_blank');
+                downloadCell.appendChild(downloadBtn);
 
                 const deleteCell = row.insertCell();
                 const deleteBtn = document.createElement('button');
@@ -1551,8 +1588,7 @@
             }
         });
 
-        // The following lines were duplicates and have been removed.
-        // let keyControlsChart, secondaryControlsChart;
+        let keyControlsChart, secondaryControlsChart;
 
         function getStatusCounts(controls, collectionName) {
             const counts = {};
@@ -1697,7 +1733,7 @@
                 title = 'All Controls Report';
             }
             if(pdfReportTitle) pdfReportTitle.textContent = title;
-            populatePdfTable(pdfTable, controlsToPrint, 'keyControls');
+            populatePdfTable(pdfTable, controlsToPrint, type); // Pass type to populatePdfTable
             if (logoDataUrl) {
                 pdfLogoPreview.src = logoDataUrl;
                 pdfLogoPreview.classList.remove('hidden');
@@ -1742,7 +1778,8 @@
             tableHeader.innerHTML = '';
             tableBody.innerHTML = '';
 
-            if (controlType === 'keyControls') {
+            // Generate header for the PDF report
+            if (controlType === 'keyControls' || controlType === 'all') {
                 const topRow = tableHeader.insertRow();
                 const middleRow = tableHeader.insertRow();
                 const bottomRow = tableHeader.insertRow();
@@ -1785,35 +1822,47 @@
                     thMonth.style.width = '3%';
                     bottomRow.appendChild(thMonth);
                 });
+            } else if (controlType === 'secondaryControls') {
+                const headerRow = tableHeader.insertRow();
+                const headersToUse = secondaryControlHeaders.map(h => h.label);
+                headersToUse.forEach(header => {
+                     const th = document.createElement('th');
+                     th.textContent = header;
+                     headerRow.appendChild(th);
+                });
+                const thActions = document.createElement('th');
+                thActions.textContent = "Actions";
+                headerRow.appendChild(thActions);
+                const thDueIn = document.createElement('th');
+                thDueIn.textContent = "Due In";
+                headerRow.appendChild(thDueIn);
+            }
+            
+            // Generate table body content
+            controls.forEach(control => {
+                const row = tableBody.insertRow();
+                const today = new Date();
+                const byWhenDateStr = control['BY WHEN'];
+                const byWhenDate = new Date(byWhenDateStr);
+                const diffTime = byWhenDate - today;
+                const dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 
-                controls.forEach(control => {
-                    const row = tableBody.insertRow();
-                    const today = new Date();
-                    const byWhenDateStr = control['BY WHEN'];
-                    const byWhenDate = new Date(byWhenDateStr);
-                    const diffTime = byWhenDate - today;
-                    const dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
+                if (controlType === 'keyControls' || controlType === 'all') {
                     const cellsToRender = [
                         'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
                     ];
-
                     cellsToRender.forEach(key => {
                         const cell = row.insertCell();
                         cell.textContent = control[key] || '';
                     });
-
                     months.forEach(month => {
                         const cell = row.insertCell();
                         cell.textContent = control[month] || '-';
                     });
-                    
                     const annualCell = row.insertCell();
                     annualCell.textContent = control['Annual'] || '-';
-
                     const trackingStatusCell = row.insertCell();
                     trackingStatusCell.textContent = control['Tracking Status'] || '';
-
                     const linkCell = row.insertCell();
                     const linkName = control['Link Name'];
                     const linkURL = control['Link URL'];
@@ -1826,51 +1875,22 @@
                     } else {
                         linkCell.textContent = linkName || '';
                     }
-
                     const actionsCell = row.insertCell();
                     actionsCell.textContent = 'Review / Delete';
-                    
                     const dueInCell = row.insertCell();
                     dueInCell.textContent = dueInDays;
 
-                });
-            } else {
-                let headersToUse = secondaryControlHeaders.map(h => h.label);
-                 const headerRow = tableHeader.insertRow();
-                 headersToUse.forEach(header => {
-                     const th = document.createElement('th');
-                     th.textContent = header;
-                     headerRow.appendChild(th);
-                 });
-                const thActions = document.createElement('th');
-                thActions.textContent = "Actions";
-                headerRow.appendChild(thActions);
-                const thDueIn = document.createElement('th');
-                thDueIn.textContent = "Due In";
-                headerRow.appendChild(thDueIn);
-
-                controls.forEach(control => {
-                    const row = tableBody.insertRow();
+                } else if (controlType === 'secondaryControls') {
                     secondaryControlHeaders.forEach(header => {
                         const cell = row.insertCell();
                         cell.textContent = control[header.id] || '';
                     });
                     const actionsCell = row.insertCell();
                     actionsCell.textContent = 'Review / Delete';
-                    
                     const dueInCell = row.insertCell();
-                    const today = new Date();
-                    const byWhenDateStr = control['BY WHEN'];
-                    let dueInDays = '-';
-                    if (byWhenDateStr) {
-                        const byWhenDate = new Date(byWhenDateStr);
-                        const diffTime = byWhenDate - today;
-                        dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    }
                     dueInCell.textContent = dueInDays;
-
-                });
-            }
+                }
+            });
         }
 
         document.getElementById('download-key-excel-button').addEventListener('click', () => {
