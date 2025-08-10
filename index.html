@@ -741,7 +741,6 @@
             generatedPdfs: []
         };
         
-        // Corrected: Single declaration of currentLinkCell
         let currentLinkCell = null;
         let keyControlsChart, secondaryControlsChart;
 
@@ -931,7 +930,7 @@
             });
         });
 
-        // Corrected: The duplicate declaration was removed.
+        let currentLinkCell = null;
         function openLinkModal(cell) {
             currentLinkCell = cell;
             const controlId = cell.closest('tr').dataset.id;
@@ -1577,6 +1576,7 @@
             }
         });
 
+        // Corrected: Single declaration of chart variables
         let keyControlsChart, secondaryControlsChart;
 
         function getStatusCounts(controls, collectionName) {
