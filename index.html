@@ -664,8 +664,8 @@
             <table class="pdf-signoff-table">
                 <thead>
                     <tr>
-                        <th style="width: 50%;">Assistant Manager</th>
-                        <th style="width: 50%;">Group Manager - Customer Experience</th>
+                        <th style="width: 50%; border-bottom: 2px solid black;">Assistant Manager -</th>
+                        <th style="width: 50%; border-bottom: 2px solid black;">Group Manager - Customer Experience</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1664,9 +1664,11 @@
 
         function renderDashboardCharts() {
             const keyCounts = getStatusCounts(controlData.keyControls, 'keyControls');
+            if (keyControlsChart) keyControlsChart.destroy();
             keyControlsChart = renderChart('keyControlsChart', 'Key Controls Status Distribution', keyCounts);
 
             const secondaryCounts = getStatusCounts(controlData.secondaryControls, 'secondaryControls');
+            if (secondaryControlsChart) secondaryControlsChart.destroy();
             secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
         }
 
@@ -1863,6 +1865,7 @@
                     annualCell.textContent = control['Annual'] || '-';
                     const trackingStatusCell = row.insertCell();
                     trackingStatusCell.textContent = control['Tracking Status'] || '';
+
                     const linkCell = row.insertCell();
                     const linkName = control['Link Name'];
                     const linkURL = control['Link URL'];
@@ -1875,6 +1878,7 @@
                     } else {
                         linkCell.textContent = linkName || '';
                     }
+
                     const actionsCell = row.insertCell();
                     actionsCell.textContent = 'Review / Delete';
                     const dueInCell = row.insertCell();
