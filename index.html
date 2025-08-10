@@ -435,6 +435,7 @@
             <button class="tab-button" data-tab="reports">Reports</button>
             <button class="tab-button" data-tab="logo-upload">Upload Logo</button>
             <button class="tab-button" data-tab="database">Database</button>
+            <button class="tab-button" data-tab="admin">Admin</button>
         </nav>
 
         <main class="flex-grow p-6 overflow-hidden">
@@ -772,6 +773,8 @@
         };
         
         let currentLinkCell = null;
+        
+        // These variables are now declared only once.
         let keyControlsChart, secondaryControlsChart;
 
         // --- Utility Functions ---
@@ -959,8 +962,7 @@
                 document.getElementById(`${button.dataset.tab}-content`).classList.add('active');
             });
         });
-
-        let currentLinkCell = null;
+        
         function openLinkModal(cell) {
             currentLinkCell = cell;
             const controlId = cell.closest('tr').dataset.id;
@@ -1587,9 +1589,6 @@
                 reader.readAsDataURL(file);
             }
         });
-
-        // These variables are now declared only once.
-        let keyControlsChart, secondaryControlsChart;
 
         function getStatusCounts(controls, collectionName) {
             const counts = {};
