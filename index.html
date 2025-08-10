@@ -174,7 +174,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            box-shadow: 0 4px 6px -1-px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .message-box.show {
             opacity: 1;
@@ -712,7 +712,7 @@
             where,
             getDocs,
             writeBatch,
-            getDoc // Added getDoc here
+            getDoc
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         document.addEventListener('DOMContentLoaded', () => {
@@ -1147,38 +1147,6 @@
                             .catch(error => console.error("Error updating status to Overdue:", error));
                     }
                 }
-            }
-
-            function renderStatusCell(cell, status, control, headerId, collectionName) {
-                const statusDiv = document.createElement('div');
-                statusDiv.textContent = status || '-';
-                statusDiv.classList.add('status-text');
-                const colorClass = getStatusColorClass(status);
-                if (colorClass) {
-                    statusDiv.classList.add(colorClass);
-                }
-                cell.classList.add('status-cell');
-                cell.onclick = () => {
-                    const select = document.createElement('select');
-                    const options = (headerId === 'Annual' || months.includes(headerId)) ? ['Y', 'N', '-'] : ['On Track', 'Overdue', 'Pending'];
-                    options.forEach(optionText => {
-                        const option = document.createElement('option');
-                        option.value = optionText;
-                        option.textContent = optionText;
-                        select.appendChild(option);
-                    });
-                    select.value = status || '-';
-                    select.classList.add('w-full', 'h-full', 'p-1', 'bg-white', 'text-sm');
-                    select.onchange = async (e) => {
-                        const newStatus = e.target.value;
-                        const data = { [headerId]: newStatus };
-                        await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), data);
-                    };
-                    cell.innerHTML = '';
-                    cell.appendChild(select);
-                    select.focus();
-                };
-                cell.appendChild(statusDiv);
             }
 
             function renderControlsTable(controls, tableId, collectionName) {
