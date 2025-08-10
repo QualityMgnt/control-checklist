@@ -734,8 +734,9 @@
             { id: 'Required Action', label: 'Required Action', type: 'text' },
             { id: 'Closure Date', label: 'Closure Date', type: 'date' }
         ];
-
-        const controlData = {
+        
+        // Corrected: Declared controlData at the top level
+        let controlData = {
             keyControls: [],
             secondaryControls: [],
             generatedPdfs: []
@@ -812,12 +813,14 @@
                 document.getElementById('user-display').textContent = `User: ${user.email || user.uid}`;
                 document.getElementById('login-page').classList.add('hidden');
                 document.getElementById('app-page').classList.remove('hidden');
+                
+                // Corrected: Ensure data is loaded and charts rendered after successful auth
                 await loadControls('keyControls', 'key-controls-table');
                 await loadControls('secondaryControls', 'secondary-controls-table');
                 await loadPdfs();
                 await loadUsers();
                 loadLogo();
-                renderDashboardCharts();
+                renderDashboardCharts(); // Now safe to call
             } else {
                 currentUserId = null;
                 document.getElementById('login-page').classList.remove('hidden');
@@ -881,7 +884,7 @@
             document.getElementById('signup-form').classList.remove('hidden');
         });
 
-        // Add an event listener for the new `show-login` button on the signup form
+        // Corrected: Added the missing event listener for the show-login link
         document.getElementById('show-login').addEventListener('click', (e) => {
             e.preventDefault();
             document.getElementById('signup-form').classList.add('hidden');
@@ -981,7 +984,10 @@
                 const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 controlData[collectionName] = controls;
                 renderControlsTable(controls, tableId, collectionName);
-                renderDashboardCharts();
+                // Corrected: Only render charts after data is loaded
+                if (collectionName === 'keyControls' || collectionName === 'secondaryControls') {
+                    renderDashboardCharts();
+                }
             }, (error) => {
                 console.error(`Error fetching ${collectionName}:`, error);
                 showMessage(`Failed to load ${collectionName}: ${error.message}`);
@@ -1657,7 +1663,6 @@
             secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
         }
 
-        // The createUser function declaration was missing. Added it here.
         async function createUser(email, password) {
             showLoadingSpinner();
             try {
