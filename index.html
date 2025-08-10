@@ -932,7 +932,8 @@
             });
         });
         
-        let currentLinkCell = null;
+        // Corrected: This was the duplicate declaration, which has been removed.
+        // let currentLinkCell = null;
 
         function openLinkModal(cell) {
             currentLinkCell = cell;
@@ -1010,7 +1011,7 @@
             if (!tableBody) return;
             tableBody.innerHTML = '';
             pdfs.forEach(pdf => {
-                const row = tableBody.insertRow();
+                const row = tableBody.insert-row();
                 const checkboxCell = row.insertCell();
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
