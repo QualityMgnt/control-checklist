@@ -267,634 +267,377 @@
         }
         /* Status colors */
         .status-green { background-color: #d1fae5; color: #065f46; font-weight: 600; }
-        .status-red { background-            body {
-                font-family: 'Garamond', serif;
-                background-color: #f3f4f6;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                width: 100vw;
-                margin: 0;
-                overflow: hidden;
-            }
-            .container {
-                background-color: #ffffff;
-                border-radius: 0;
-                box-shadow: none;
-                width: 100vw;
-                height: 100vh;
-                max-width: none;
-                max-height: none;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-                position: absolute;
-                top: 0;
-                left: 0;
-            }
-            .top-nav {
-                display: flex;
-                flex-wrap: wrap;
-                background-color: #f9fafb;
-                border-bottom: 1px solid #e5e7eb;
-                border-radius: 0;
-                padding: 0.5rem 1rem;
-                justify-content: flex-start;
-            }
-            .top-nav .tab-button {
-                padding: 0.75rem 1.5rem;
-                border-bottom: 3px solid transparent;
-                border-left: none;
-                text-align: center;
-                flex-grow: 1;
-                background-color: #7c3aed; /* Purple */
-                color: white;
-                margin: 0.25rem;
-                border-radius: 0.5rem;
-                transition: all 0.3s ease-in-out;
-            }
-            .top-nav .tab-button:hover {
-                background-color: #6d28d9; /* Darker Purple */
-            }
-            .top-nav .tab-button.active {
-                border-color: #ffffff;
-                background-color: #5b21b6; /* Even Darker Purple */
-                color: white;
-                border-bottom: 3px solid white;
-                border-left: none;
-            }
-            .tab-content {
-                display: none;
-                padding: 1.5rem;
-                flex-grow: 1;
-                overflow-y: auto;
-            }
-            .tab-content.active {
-                display: block;
-            }
-            .input-field {
-                padding: 0.75rem;
-                border: 1px solid #d1d5db;
-                border-radius: 0.5rem;
-                width: 100%;
-                box-sizing: border-box;
-                font-size: 0.9rem;
-            }
-            .btn-primary {
-                background-color: #7c3aed; /* Purple */
-                color: white;
-                padding: 0.75rem 1.5rem;
-                border-radius: 0.5rem;
-                font-weight: 600;
-                cursor: pointer;
-                transition: background-color 0.2s ease-in-out;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            }
-            .btn-primary:hover {
-                background-color: #6d28d9; /* Darker Purple */
-            }
-            .btn-secondary {
-                background-color: #6b7280;
-                color: white;
-                padding: 0.75rem 1.5rem;
-                border-radius: 0.5rem;
-                font-weight: 600;
-                cursor: pointer;
-                transition: background-color 0.2s ease-in-out;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            }
-            .btn-secondary:hover {
-                background-color: #4b5563;
-            }
-            .modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            }
-            .modal.show {
-                opacity: 1;
-                visibility: visible;
-            }
-            .modal-content {
-                background-color: white;
-                padding: 2rem;
-                border-radius: 1rem;
-                box-shadow: 0 20px 25px -5-px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                max-width: 600px;
-                width: 90%;
-                max-height: 90vh;
-                overflow-y: auto;
-                transform: translateY(-20px);
-                transition: transform 0.3s ease-in-out;
-            }
-            .modal.show .modal-content {
-                transform: translateY(0);
-            }
-            .loading-spinner {
-                border: 4px solid rgba(0, 0, 0, 0.1);
-                border-left-color: #7c3aed;
-                border-radius: 50%;
-                width: 40px;
-                height: 40px;
-                animation: spin 1s linear infinite;
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                z-index: 1001;
-                display: none;
-            }
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-            .message-box {
-                position: fixed;
-                bottom: 1rem;
-                right: 1rem;
-                background-color: #333;
-                color: white;
-                padding: 1rem 1.5rem;
-                border-radius: 0.5rem;
-                z-index: 1000;
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            }
-            .message-box.show {
-                opacity: 1;
-                visibility: visible;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 1rem;
-                table-layout: auto;
-            }
-            th, td {
-                border: 1px solid #0a113d; /* Navy blue border */
-                padding: 0.75rem;
-                text-align: left;
-                font-size: 10px; /* Reduced font size */
-                word-wrap: break-word;
-                font-family: 'Garamond', serif;
-            }
-            th {
-                background-color: #f9fafb;
-                font-weight: 600;
-                color: #374151;
-                white-space: normal;
-                text-align: center;
-            }
-            tbody tr:nth-child(even) {
-                background-color: #f3f4f6;
-            }
-            tbody tr:hover {
-                background-color: #e5e7eb;
-            }
-            .action-buttons {
-                display: flex;
-                flex-direction: column;
-                gap: 0.25rem;
-                padding: 0.25rem;
-            }
-            .action-buttons button {
-                padding: 0.3rem 0.6rem;
-                border-radius: 0.3rem;
-                font-size: 0.75rem;
-                font-weight: 500;
-                cursor: pointer;
-                transition: background-color 0.2s ease-in-out;
-            }
-            .action-buttons .review-btn {
-                background-color: #22c55e;
-                color: white;
-            }
-            .action-buttons .review-btn:hover {
-                background-color: #16a34a;
-            }
-            .action-buttons .delete-btn {
-                background-color: #ef4444;
-                color: white;
-            }
-            .action-buttons .delete-btn:hover {
-                background-color: #dc2626;
-            }
-            .pdf-export-content {
-                display: none;
-                padding: 1rem;
-                background-color: white;
-            }
-            @media (max-width: 768px) {
-                .container {
-                    width: 100%;
-                    border-radius: 0;
-                    box-shadow: none;
-                    min-height: 100vh;
-                }
-                .top-nav {
-                    flex-direction: row;
-                    justify-content: center;
-                    padding: 0.5rem;
-                }
-                .top-nav .tab-button {
-                    margin: 0.125rem;
-                    padding: 0.5rem 0.75rem;
-                }
-                .modal-content {
-                    width: 95%;
-                    padding: 1rem;
-                }
-                /* Adjust table for smaller screens */
-                .overflow-x-auto {
-                    overflow-x: scroll;
-                }
-            }
-            /* Status colors */
-            .status-green { background-color: #d1fae5; color: #065f46; font-weight: 600; }
-            .status-red { background-color: #fee2e2; color: #991b1b; font-weight: 600; }
-            .status-amber { background-color: #fef3c7; color: #92400e; font-weight: 600; }
-            .status-gray { background-color: #e5e7eb; color: #374151; font-weight: 600; }
-            .overdue-text { color: #dc2626; }
+        .status-red { background-color: #fee2e2; color: #991b1b; font-weight: 600; }
+        .status-amber { background-color: #fef3c7; color: #92400e; font-weight: 600; }
+        .status-gray { background-color: #e5e7eb; color: #374151; font-weight: 600; }
+        .overdue-text { color: #dc2626; }
+        
+        /* Table cell styling */
+        td.status-cell {
+            padding: 0;
+            text-align: center;
+        }
+        .status-text {
+            display: block;
+            padding: 0.75rem;
+            width: 100%;
+            height: 100%;
+        }
+        .table-header-months, .table-header-quarters {
+            text-align: center;
+        }
+        .pdf-signature-area {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            max-width: 400px;
+        }
+        .pdf-signature-area img {
+            height: 60px;
+            width: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .pdf-signature-area span {
+            margin-left: 1rem;
+            font-style: italic;
+            color: #6b7280;
+        }
+        .signoff-table {
+            border: 1px solid #e5e7eb;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .signoff-table td, .signoff-table th {
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            text-align: left;
+            vertical-align: top;
+        }
+        .signoff-table img {
+            max-width: 150px;
+            height: auto;
+        }
+        .logo-display {
+            width: 3cm;
+            height: 1.5cm;
+            margin-right: 1rem;
+            border-radius: 0.5rem;
+        }
+        .header-logo {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            max-height: 40px;
+        }
+        .pdf-logo {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            max-height: 60px;
+        }
+        #excel-export-content {
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: auto;
+            height: auto;
+        }
+
+        /* New CSS for PDF signoff table */
+        .pdf-signoff-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+        .pdf-signoff-table th, .pdf-signoff-table td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 14px;
+        }
+        .pdf-signoff-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .pdf-signoff-table .signature-box {
+            height: 60px;
+            border: 1px solid #ccc;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-spinner" class="loading-spinner"></div>
+
+    <div id="message-box" class="message-box"></div>
+
+    <div id="login-page" class="w-full h-screen flex items-center justify-center bg-gray-100">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+            <div class="flex justify-center mb-4">
+                <img id="login-logo-preview" class="h-20 w-auto hidden" src="" alt="Company Logo">
+            </div>
+            <h2 class="text-3xl font-bold text-center text-purple-600 mb-8">Login to Customer Experience Controls</h2>
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email" required class="input-field">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" required class="input-field">
+                    <a href="#" id="forgot-password" class="block text-sm text-purple-600 hover:underline mt-2 text-right">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn-primary w-full">Login</button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Don't have an account? <a href="#" id="show-signup" class="text-purple-600 hover:underline">Sign Up</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-page" class="container hidden">
+        <header class="flex justify-between items-center p-4 bg-purple-600 text-white shadow-md">
+            <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
+            <div class="flex items-center space-x-4">
+                <img id="header-logo-preview" class="logo-display hidden" src="" alt="Company Logo">
+                <span id="user-display" class="text-sm font-medium"></span>
+                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm font-medium transition-colors">Logout</button>
+            </div>
+        </header>
+
+        <nav class="top-nav tab-buttons">
+            <button class="tab-button active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-button" data-tab="key-controls">Key Controls</button>
+            <button class="tab-button" data-tab="secondary-controls">Secondary Controls</button>
+            <button class="tab-button" data-tab="reports">Reports</button>
+            <button class="tab-button" data-tab="logo-upload">Upload Logo</button>
+            <button class="tab-button" data-tab="database">Database</button>
+            <button class="tab-button" data-tab="admin">Admin</button>
+        </nav>
+
+        <main class="flex-grow p-6 overflow-hidden">
+            <div id="dashboard-content" class="tab-content active">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md" style="width: 4in; height: 4in;">
+                        <h3 class="text-xl font-medium text-gray-700 mb-4">Key Controls Status</h3>
+                        <canvas id="keyControlsChart"></canvas>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md" style="width: 4in; height: 4in;">
+                        <h3 class="text-xl font-medium text-gray-700 mb-4">Secondary Controls Status</h3>
+                        <canvas id="secondaryControlsChart"></canvas>
+                    </div>
+                </div>
+                <div class="mt-8">
+                    <button id="generate-all-pdf-button" class="btn-primary">Generate All Controls PDF</button>
+                </div>
+            </div>
+
+            <div id="key-controls-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Key Controls</h2>
+                <div class="overflow-x-auto">
+                    <table id="key-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <thead>
+                            <tr>
+                                <th rowspan="3" style="width: 15%;">KEY CONTROL DESCRIPTION</th>
+                                <th rowspan="3" style="width: 5%;">HOW</th>
+                                <th rowspan="3" style="width: 5%;">FREQ</th>
+                                <th rowspan="3" style="width: 8%;">BY WHEN</th>
+                                <th rowspan="3" style="width: 10%;">EVIDENCE OF CONTROL</th>
+                                <th colspan="12">Months</th>
+                                <th rowspan="3" style="width: 5%;">Annual</th>
+                                <th rowspan="3" style="width: 8%;">Tracking Status</th>
+                                <th rowspan="3" style="width: 10%;">Link</th>
+                                <th colspan="2" rowspan="3" style="width: 10%;">Actions</th>
+                                <th rowspan="3" style="width: 8%;">Due In</th>
+                            </tr>
+                            <tr>
+                                <th colspan="3" class="table-header-quarters">Q1</th>
+                                <th colspan="3" class="table-header-quarters">Q2</th>
+                                <th colspan="3" class="table-header-quarters">Q3</th>
+                                <th colspan="3" class="table-header-quarters">Q4</th>
+                            </tr>
+                            <tr>
+                                <th class="table-header-months" style="width: 3%;">1</th>
+                                <th class="table-header-months" style="width: 3%;">2</th>
+                                <th class="table-header-months" style="width: 3%;">3</th>
+                                <th class="table-header-months" style="width: 3%;">4</th>
+                                <th class="table-header-months" style="width: 3%;">5</th>
+                                <th class="table-header-months" style="width: 3%;">6</th>
+                                <th class="table-header-months" style="width: 3%;">7</th>
+                                <th class="table-header-months" style="width: 3%;">8</th>
+                                <th class="table-header-months" style="width: 3%;">9</th>
+                                <th class="table-header-months" style="width: 3%;">10</th>
+                                <th class="table-header-months" style="width: 3%;">11</th>
+                                <th class="table-header-months" style="width: 3%;">12</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+                <div class="flex flex-wrap gap-4 mt-6 justify-end">
+                    <button id="add-key-control-btn" class="btn-primary">Add New Control</button>
+                    <input type="file" id="upload-key-control-file" accept=".csv" class="hidden">
+                    <button id="upload-key-control-btn" class="btn-secondary">Upload Controls (CSV)</button>
+                    <button id="generate-key-pdf-button" class="btn-primary">Generate PDF</button>
+                    <button id="download-key-excel-button" class="btn-primary">Download as Excel</button>
+                    <button id="share-key-button" class="btn-primary">Share</button>
+                </div>
+            </div>
+
+            <div id="secondary-controls-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Secondary Controls</h2>
+                <div class="overflow-x-auto">
+                    <table id="secondary-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>How</th>
+                                <th>Who</th>
+                                <th>Frequency</th>
+                                <th>By When</th>
+                                <th>Evidence</th>
+                                <th>Archived</th>
+                                <th>Date of Review</th>
+                                <th>Total Transactions</th>
+                                <th>Samples Checked</th>
+                                <th>Exceptions</th>
+                                <th>Assessment</th>
+                                <th>Required Action</th>
+                                <th>Closure Date</th>
+                                <th>Review</th>
+                                <th>Delete</th>
+                                <th>Due In</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+                <div class="flex flex-wrap gap-4 mt-6 justify-end">
+                    <button id="add-secondary-control-btn" class="btn-primary">Add New Control</button>
+                    <input type="file" id="upload-secondary-control-file" accept=".csv" class="hidden">
+                    <button id="upload-secondary-control-btn" class="btn-secondary">Upload Controls (CSV)</button>
+                    <button id="generate-secondary-pdf-button" class="btn-primary">Generate PDF</button>
+                    <button id="download-secondary-excel-button" class="btn-primary">Download as Excel</button>
+                    <button id="share-secondary-button" class="btn-primary">Share</button>
+                </div>
+            </div>
             
-            /* Table cell styling */
-            td.status-cell {
-                padding: 0;
-                text-align: center;
-            }
-            .status-text {
-                display: block;
-                padding: 0.75rem;
-                width: 100%;
-                height: 100%;
-            }
-            .table-header-months, .table-header-quarters {
-                text-align: center;
-            }
-            .pdf-signature-area {
-                display: flex;
-                align-items: center;
-                justify-content: flex-start;
-                margin-top: 1rem;
-                padding: 1rem;
-                border: 1px solid #e5e7eb;
-                border-radius: 0.5rem;
-                max-width: 400px;
-            }
-            .pdf-signature-area img {
-                height: 60px;
-                width: auto;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-            }
-            .pdf-signature-area span {
-                margin-left: 1rem;
-                font-style: italic;
-                color: #6b7280;
-            }
-            .signoff-table {
-                border: 1px solid #e5e7eb;
-                border-collapse: collapse;
-                margin-top: 1rem;
-            }
-            .signoff-table td, .signoff-table th {
-                padding: 0.5rem;
-                border: 1px solid #e5e7eb;
-                text-align: left;
-                vertical-align: top;
-            }
-            .signoff-table img {
-                max-width: 150px;
-                height: auto;
-            }
-            .logo-display {
-                max-height: 40px;
-                width: auto;
-                margin-right: 1rem;
-                border-radius: 0.5rem;
-            }
-            .header-logo {
-                position: absolute;
-                top: 1rem;
-                right: 1rem;
-                max-height: 40px;
-            }
-            .pdf-logo {
-                position: absolute;
-                top: 2rem;
-                right: 2rem;
-                max-height: 60px;
-            }
-            #excel-export-content {
-                position: fixed;
-                top: -9999px;
-                left: -9999px;
-                width: auto;
-                height: auto;
-            }
-
-            /* New CSS for PDF signoff table */
-            .pdf-signoff-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 2rem;
-            }
-            .pdf-signoff-table th, .pdf-signoff-table td {
-                border: 1px solid black;
-                padding: 8px;
-                text-align: left;
-                vertical-align: top;
-                font-size: 14px;
-            }
-            .pdf-signoff-table th {
-                background-color: #f2f2f2;
-                font-weight: bold;
-            }
-            .pdf-signoff-table .signature-box {
-                height: 60px;
-                border: 1px solid #ccc;
-                margin-top: 5px;
-            }
-        </style>
-    </head>
-    <body>
-
-        <div id="loading-spinner" class="loading-spinner"></div>
-
-        <div id="message-box" class="message-box"></div>
-
-        <div id="login-page" class="w-full h-screen flex items-center justify-center bg-gray-100">
-            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-                <div class="flex justify-center mb-4">
-                    <img id="login-logo-preview" class="h-20 w-auto hidden" src="" alt="Company Logo">
-                </div>
-                <h2 class="text-3xl font-bold text-center text-purple-600 mb-8">Login to Customer Experience Controls</h2>
-                <form id="login-form" class="space-y-6">
-                    <div>
-                        <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="login-email" placeholder="Enter your email" required class="input-field">
-                    </div>
-                    <div>
-                        <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input type="password" id="login-password" placeholder="Enter your password" required class="input-field">
-                        <a href="#" id="forgot-password" class="block text-sm text-purple-600 hover:underline mt-2 text-right">Forgot password?</a>
-                    </div>
-                    <button type="submit" class="btn-primary w-full">Login</button>
-                    <p class="text-center text-sm text-gray-600 mt-4">
-                        Don't have an account? <a href="#" id="show-signup" class="text-purple-600 hover:underline">Sign Up</a>
-                    </p>
-                </form>
+            <div id="reports-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Reports</h2>
+                <iframe src="reports.html" class="w-full h-full border-0"></iframe>
             </div>
-        </div>
 
-        <div id="app-page" class="container hidden">
-            <header class="flex justify-between items-center p-4 bg-purple-600 text-white shadow-md">
-                <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
-                <div class="flex items-center space-x-4">
-                    <img id="header-logo-preview" class="logo-display hidden" src="" alt="Company Logo">
-                    <span id="user-display" class="text-sm font-medium"></span>
-                    <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm font-medium transition-colors">Logout</button>
+            <div id="logo-upload-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Upload Company Logo</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-xl font-medium text-gray-700 mb-4">Select and Upload Logo</h3>
+                    <input type="file" id="logo-file-input" accept="image/*" class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-purple-50 file:text-purple-700
+                        hover:file:bg-purple-100
+                    "/>
+                    <p class="mt-2 text-sm text-gray-500">The logo will be displayed on the login page, system header, and PDF reports.</p>
                 </div>
-            </header>
-
-            <nav class="top-nav tab-buttons">
-                <button class="tab-button active" data-tab="dashboard">Dashboard</button>
-                <button class="tab-button" data-tab="key-controls">Key Controls</button>
-                <button class="tab-button" data-tab="secondary-controls">Secondary Controls</button>
-                <button class="tab-button" data-tab="reports">Reports</button>
-                <button class="tab-button" data-tab="logo-upload">Upload Logo</button>
-                <button class="tab-button" data-tab="database">Database</button>
-                <button class="tab-button" data-tab="admin">Admin</button>
-            </nav>
-
-            <main class="flex-grow p-6 overflow-hidden">
-                <div id="dashboard-content" class="tab-content active">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="bg-white p-6 rounded-lg shadow-md" style="width: 4in; height: 4in;">
-                            <h3 class="text-xl font-medium text-gray-700 mb-4">Key Controls Status</h3>
-                            <canvas id="keyControlsChart"></canvas>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg shadow-md" style="width: 4in; height: 4in;">
-                            <h3 class="text-xl font-medium text-gray-700 mb-4">Secondary Controls Status</h3>
-                            <canvas id="secondaryControlsChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="mt-8">
-                        <button id="generate-all-pdf-button" class="btn-primary">Generate All Controls PDF</button>
-                    </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-medium text-gray-700 mb-4">Logo Preview</h3>
+                    <img id="logo-preview" class="max-h-40 w-auto rounded-lg shadow-md hidden" src="" alt="Logo Preview">
                 </div>
-
-                <div id="key-controls-content" class="tab-content">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Key Controls</h2>
-                    <div class="overflow-x-auto">
-                        <table id="key-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <thead>
-                                <tr>
-                                    <th rowspan="3" style="width: 15%;">KEY CONTROL DESCRIPTION</th>
-                                    <th rowspan="3" style="width: 5%;">HOW</th>
-                                    <th rowspan="3" style="width: 5%;">FREQ</th>
-                                    <th rowspan="3" style="width: 8%;">BY WHEN</th>
-                                    <th rowspan="3" style="width: 10%;">EVIDENCE OF CONTROL</th>
-                                    <th colspan="12">Months</th>
-                                    <th rowspan="3" style="width: 5%;">Annual</th>
-                                    <th rowspan="3" style="width: 8%;">Tracking Status</th>
-                                    <th rowspan="3" style="width: 10%;">Link</th>
-                                    <th colspan="2" rowspan="3" style="width: 10%;">Actions</th>
-                                    <th rowspan="3" style="width: 8%;">Due In</th>
-                                </tr>
-                                <tr>
-                                    <th colspan="3" class="table-header-quarters">Q1</th>
-                                    <th colspan="3" class="table-header-quarters">Q2</th>
-                                    <th colspan="3" class="table-header-quarters">Q3</th>
-                                    <th colspan="3" class="table-header-quarters">Q4</th>
-                                </tr>
-                                <tr>
-                                    <th class="table-header-months" style="width: 3%;">1</th>
-                                    <th class="table-header-months" style="width: 3%;">2</th>
-                                    <th class="table-header-months" style="width: 3%;">3</th>
-                                    <th class="table-header-months" style="width: 3%;">4</th>
-                                    <th class="table-header-months" style="width: 3%;">5</th>
-                                    <th class="table-header-months" style="width: 3%;">6</th>
-                                    <th class="table-header-months" style="width: 3%;">7</th>
-                                    <th class="table-header-months" style="width: 3%;">8</th>
-                                    <th class="table-header-months" style="width: 3%;">9</th>
-                                    <th class="table-header-months" style="width: 3%;">10</th>
-                                    <th class="table-header-months" style="width: 3%;">11</th>
-                                    <th class="table-header-months" style="width: 3%;">12</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                </tbody>
-                        </table>
-                    </div>
-                    <div class="flex flex-wrap gap-4 mt-6 justify-end">
-                        <button id="add-key-control-btn" class="btn-primary">Add New Control</button>
-                        <input type="file" id="upload-key-control-file" accept=".csv" class="hidden">
-                        <button id="upload-key-control-btn" class="btn-secondary">Upload Controls (CSV)</button>
-                        <button id="generate-key-pdf-button" class="btn-primary">Generate PDF</button>
-                        <button id="download-key-excel-button" class="btn-primary">Download as Excel</button>
-                        <button id="share-key-button" class="btn-primary">Share</button>
-                    </div>
-                </div>
-
-                <div id="secondary-controls-content" class="tab-content">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Secondary Controls</h2>
-                    <div class="overflow-x-auto">
-                        <table id="secondary-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <thead>
-                                <tr>
-                                    <th>Description</th>
-                                    <th>How</th>
-                                    <th>Who</th>
-                                    <th>Frequency</th>
-                                    <th>By When</th>
-                                    <th>Evidence</th>
-                                    <th>Archived</th>
-                                    <th>Date of Review</th>
-                                    <th>Total Transactions</th>
-                                    <th>Samples Checked</th>
-                                    <th>Exceptions</th>
-                                    <th>Assessment</th>
-                                    <th>Required Action</th>
-                                    <th>Closure Date</th>
-                                    <th>Review</th>
-                                    <th>Delete</th>
-                                    <th>Due In</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                </tbody>
-                        </table>
-                    </div>
-                    <div class="flex flex-wrap gap-4 mt-6 justify-end">
-                        <button id="add-secondary-control-btn" class="btn-primary">Add New Control</button>
-                        <input type="file" id="upload-secondary-control-file" accept=".csv" class="hidden">
-                        <button id="upload-secondary-control-btn" class="btn-secondary">Upload Controls (CSV)</button>
-                        <button id="generate-secondary-pdf-button" class="btn-primary">Generate PDF</button>
-                        <button id="download-secondary-excel-button" class="btn-primary">Download as Excel</button>
-                        <button id="share-secondary-button" class="btn-primary">Share</button>
-                    </div>
-                </div>
-                
-                <div id="reports-content" class="tab-content">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Reports</h2>
-                    <iframe src="reports.html" class="w-full h-full border-0"></iframe>
-                </div>
-
-                <div id="logo-upload-content" class="tab-content">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Upload Company Logo</h2>
-                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                        <h3 class="text-xl font-medium text-gray-700 mb-4">Select and Upload Logo</h3>
-                        <input type="file" id="logo-file-input" accept="image/*" class="block w-full text-sm text-gray-500
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-full file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-purple-50 file:text-purple-700
-                            hover:file:bg-purple-100
-                        "/>
-                        <p class="mt-2 text-sm text-gray-500">The logo will be displayed on the login page, system header, and PDF reports.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-xl font-medium text-gray-700 mb-4">Logo Preview</h3>
-                        <img id="logo-preview" class="max-h-40 w-auto rounded-lg shadow-md hidden" src="" alt="Logo Preview">
-                    </div>
-                </div>
-
-                <div id="admin-content" class="tab-content">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Admin Panel</h2>
-                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                        <h3 class="text-xl font-medium text-gray-700 mb-4">Create New User</h3>
-                        <form id="create-user-form" class="space-y-4">
-                            <div>
-                                <label for="new-user-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                <input type="email" id="new-user-email" placeholder="New user email" required class="input-field">
-                            </div>
-                             <div>
-                                <label for="new-user-fullname" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                                <input type="text" id="new-user-fullname" placeholder="New user full name" required class="input-field">
-                            </div>
-                            <div>
-                                <label for="new-user-department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                                <select id="new-user-department" required class="input-field">
-                                    <option value="" disabled selected>Select Department</option>
-                                    <option value="Contact Centre">Contact Centre</option>
-                                    <option value="Customer Service">Customer Service</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="new-user-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                                <input type="password" id="new-user-password" placeholder="New user password" required class="input-field">
-                            </div>
-                            <button type="submit" class="btn-primary">Create User</button>
-                        </form>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-xl font-medium text-gray-700 mb-4">Current Users</h3>
-                        <ul id="user-list" class="list-disc pl-5 text-gray-700">
-                            </ul>
-                    </div>
-                </div>
-
-                <div id="database-content" class="tab-content">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Generated PDF Database</h2>
-                    <div class="overflow-x-auto">
-                        <table id="pdf-database-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <thead>
-                                <tr>
-                                    <th class="w-10"><input type="checkbox" class="form-checkbox"></th>
-                                    <th>Date Generated</th>
-                                    <th>Month</th>
-                                    <th>Control Type</th>
-                                    <th>Attachment</th>
-                                    <th class="w-24">Download</th>
-                                    <th class="w-24">Delete</th>
-                                    <th class="w-24">Share</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </main>
-        </div>
-
-        <div id="control-modal" class="modal">
-            <div class="modal-content">
-                <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4">Add New Control</h3>
-                <form id="control-form" class="space-y-4">
-                    <div class="flex justify-end mt-6">
-                        <button type="submit" class="btn-primary">Save Control</button>
-                        <button type="button" id="cancel-control-modal" class="btn-secondary ml-2">Cancel</button>
-                    </div>
-                </form>
             </div>
-        </div>
 
-        <div id="link-modal" class="modal">
-            <div class="modal-content">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Add Link</h3>
-                <form id="link-form" class="space-y-4">
-                    <div>
-                        <label for="link-name-input" class="block text-sm font-medium text-gray-700 mb-1">Link Name</label>
-                        <input type="text" id="link-name-input" class="input-field" placeholder="e.g., Google Drive">
-                    </div>
-                    <div>
-                        <label for="link-url-input" class="block text-sm font-medium text-gray-700 mb-1">Link URL</label>
-                        <input type="url" id="link-url-input" class="input-field" placeholder="e.g., https://drive.google.com/folder">
+            <div id="admin-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Admin Panel</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-xl font-medium text-gray-700 mb-4">Create New User</h3>
+                    <form id="create-user-form" class="space-y-4">
+                        <div>
+                            <label for="new-user-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="new-user-email" placeholder="New user email" required class="input-field">
+                        </div>
+                         <div>
+                            <label for="new-user-fullname" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="new-user-fullname" placeholder="New user full name" required class="input-field">
+                        </div>
+                        <div>
+                            <label for="new-user-department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                            <select id="new-user-department" required class="input-field">
+                                <option value="" disabled selected>Select Department</option>
+                                <option value="Contact Centre">Contact Centre</option>
+                                <option value="Customer Service">Customer Service</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="new-user-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" id="new-user-password" placeholder="New user password" required class="input-field">
+                        </div>
+                        <button type="submit" class="btn-primary">Create User</button>
+                    </form>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-medium text-gray-700 mb-4">Current Users</h3>
+                    <ul id="user-list" class="list-disc pl-5 text-gray-700">
+                        </ul>
+                </div>
+            </div>
+
+            <div id="database-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Generated PDF Database</h2>
+                <div class="overflow-x-auto">
+                    <table id="pdf-database-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <thead>
+                            <tr>
+                                <th class="w-10"><input type="checkbox" class="form-checkbox"></th>
+                                <th>Date Generated</th>
+                                <th>Month</th>
+                                <th>Control Type</th>
+                                <th>Attachment</th>
+                                <th class="w-24">Download</th>
+                                <th class="w-24">Delete</th>
+                                <th class="w-24">Share</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="control-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4">Add New Control</h3>
+            <form id="control-form" class="space-y-4">
+                <div class="flex justify-end mt-6">
+                    <button type="submit" class="btn-primary">Save Control</button>
+                    <button type="button" id="cancel-control-modal" class="btn-secondary ml-2">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="link-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Add Link</h3>
+            <form id="link-form" class="space-y-4">
+                <div>
+                    <label for="link-name-input" class="block text-sm font-medium text-gray-700 mb-1">Link Name</label>
+                    <input type="text" id="link-name-input" class="input-field" placeholder="e.g., Google Drive">
+                </div>
+                <div>
+                    <label for="link-url-input" class="block text-sm font-medium text-gray-700 mb-1">Link URL</label>
+                    <input type="url" id="link-url-input" class="input-field" placeholder="e.g., https://drive.google.com/folder">
                     </div>
                     <div class="flex justify-end mt-6">
                         <button type="submit" class="btn-primary">Save Link</button>
@@ -1168,7 +911,15 @@
                     const password = document.getElementById('signup-password').value;
                     showLoadingSpinner();
                     try {
-                        await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                        const userCredential = await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                        const user = userCredential.user;
+                        const fullName = document.getElementById('new-user-fullname').value;
+                        const department = document.getElementById('new-user-department').value;
+                        await retryOperation(() => setDoc(doc(db, `artifacts/${appId}/users`, user.uid), {
+                            email: email,
+                            fullName: fullName,
+                            department: department
+                        }));
                         showMessage('Account created and logged in successfully!');
                     } catch (error) {
                         console.error("Signup error:", error);
@@ -1232,6 +983,7 @@
                     });
                 });
                 
+                let currentLinkCell = null;
                 function openLinkModal(cell) {
                     currentLinkCell = cell;
                     const controlId = cell.closest('tr').dataset.id;
