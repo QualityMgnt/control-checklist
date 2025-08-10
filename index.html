@@ -1146,38 +1146,6 @@
             }
         }
 
-        function renderStatusCell(cell, status, control, headerId, collectionName) {
-            const statusDiv = document.createElement('div');
-            statusDiv.textContent = status || '-';
-            statusDiv.classList.add('status-text');
-            const colorClass = getStatusColorClass(status);
-            if (colorClass) {
-                statusDiv.classList.add(colorClass);
-            }
-            cell.classList.add('status-cell');
-            cell.onclick = () => {
-                const select = document.createElement('select');
-                const options = (headerId === 'Annual' || months.includes(headerId)) ? ['Y', 'N', '-'] : ['On Track', 'Overdue', 'Pending'];
-                options.forEach(optionText => {
-                    const option = document.createElement('option');
-                    option.value = optionText;
-                    option.textContent = optionText;
-                    select.appendChild(option);
-                });
-                select.value = status || '-';
-                select.classList.add('w-full', 'h-full', 'p-1', 'bg-white', 'text-sm');
-                select.onchange = async (e) => {
-                    const newStatus = e.target.value;
-                    const data = { [headerId]: newStatus };
-                    await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), data);
-                };
-                cell.innerHTML = '';
-                cell.appendChild(select);
-                select.focus();
-            };
-            cell.appendChild(statusDiv);
-        }
-
         function renderControlsTable(controls, tableId, collectionName) {
             const tableBody = document.querySelector(`#${tableId} tbody`);
             if (!tableBody) return;
