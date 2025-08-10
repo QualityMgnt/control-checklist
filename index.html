@@ -735,14 +735,13 @@
             { id: 'Closure Date', label: 'Closure Date', type: 'date' }
         ];
         
-        // Corrected: Declared controlData at the top level
         let controlData = {
             keyControls: [],
             secondaryControls: [],
             generatedPdfs: []
         };
         
-        // Corrected: Removed the duplicate declaration of currentLinkCell
+        // Corrected: Single declaration of currentLinkCell
         let currentLinkCell = null;
         let keyControlsChart, secondaryControlsChart;
 
@@ -931,10 +930,8 @@
                 document.getElementById(`${button.dataset.tab}-content`).classList.add('active');
             });
         });
-        
-        // Corrected: This was the duplicate declaration, which has been removed.
-        // let currentLinkCell = null;
 
+        // Corrected: The duplicate declaration was removed.
         function openLinkModal(cell) {
             currentLinkCell = cell;
             const controlId = cell.closest('tr').dataset.id;
@@ -1011,7 +1008,7 @@
             if (!tableBody) return;
             tableBody.innerHTML = '';
             pdfs.forEach(pdf => {
-                const row = tableBody.insert-row();
+                const row = tableBody.insertRow();
                 const checkboxCell = row.insertCell();
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
@@ -1138,7 +1135,7 @@
             today.setHours(0, 0, 0, 0);
 
             controls.forEach(control => {
-                const row = tableBody.insert-row();
+                const row = tableBody.insertRow();
                 row.dataset.id = control.id;
                 
                 const byWhenDateStr = control['BY WHEN'];
@@ -1371,7 +1368,7 @@
                     inputElement.classList.add('input-field');
                     inputElement.value = data[header.id] || '';
                 } else {
-                    inputElement = document.createElement('input');
+                    const inputElement = document.createElement('input');
                     inputElement.type = header.type || 'text';
                     inputElement.id = `form-${header.id}`;
                     inputElement.classList.add('input-field');
@@ -1771,9 +1768,9 @@
             tableBody.innerHTML = '';
 
             if (controlType === 'keyControls') {
-                const topRow = tableHeader.insert-row();
-                const middleRow = tableHeader.insert-row();
-                const bottomRow = tableHeader.insert-row();
+                const topRow = tableHeader.insertRow();
+                const middleRow = tableHeader.insertRow();
+                const bottomRow = tableHeader.insertRow();
 
                 const mainHeaders = [
                     'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
@@ -1815,7 +1812,7 @@
                 });
                 
                 controls.forEach(control => {
-                    const row = tableBody.insert-row();
+                    const row = tableBody.insertRow();
                     const today = new Date();
                     const byWhenDateStr = control['BY WHEN'];
                     const byWhenDate = new Date(byWhenDateStr);
@@ -1864,7 +1861,7 @@
                 });
             } else {
                 let headersToUse = secondaryControlHeaders.map(h => h.label);
-                 const headerRow = tableHeader.insert-row();
+                 const headerRow = tableHeader.insertRow();
                  headersToUse.forEach(header => {
                      const th = document.createElement('th');
                      th.textContent = header;
@@ -1878,7 +1875,7 @@
                 headerRow.appendChild(thDueIn);
 
                 controls.forEach(control => {
-                    const row = tableBody.insert-row();
+                    const row = tableBody.insertRow();
                     secondaryControlHeaders.forEach(header => {
                         const cell = row.insertCell();
                         cell.textContent = control[header.id] || '';
