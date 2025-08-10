@@ -4,15 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Experience Controls</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Garamond Font -->
     <link href="https://fonts.googleapis.com/css2?family=Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js CDN for graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- html2pdf.js CDN for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- SheetJS for Excel generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
@@ -357,13 +352,10 @@
 </head>
 <body>
 
-    <!-- Loading Spinner -->
     <div id="loading-spinner" class="loading-spinner"></div>
 
-    <!-- Message Box -->
     <div id="message-box" class="message-box"></div>
 
-    <!-- Login Page -->
     <div id="login-page" class="w-full h-screen flex items-center justify-center bg-gray-100">
         <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
             <div class="flex justify-center mb-4">
@@ -385,10 +377,25 @@
                     Don't have an account? <a href="#" id="show-signup" class="text-purple-600 hover:underline">Sign Up</a>
                 </p>
             </form>
+
+            <form id="signup-form" class="space-y-6 hidden">
+                <h2 class="text-3xl font-bold text-center text-purple-600 mb-8">Sign Up</h2>
+                <div>
+                    <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required class="input-field">
+                </div>
+                <div>
+                    <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signup-password" placeholder="Enter a password" required class="input-field">
+                </div>
+                <button type="submit" class="btn-primary w-full">Sign Up</button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Already have an account? <a href="#" id="show-login" class="text-purple-600 hover:underline">Log In</a>
+                </p>
+            </form>
         </div>
     </div>
 
-    <!-- Main Application Page -->
     <div id="app-page" class="container hidden">
         <header class="flex justify-between items-center p-4 bg-purple-600 text-white shadow-md">
             <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
@@ -399,7 +406,6 @@
             </div>
         </header>
 
-        <!-- Navigation Bar (moved to top and horizontal) -->
         <nav class="top-nav tab-buttons">
             <button class="tab-button active" data-tab="dashboard">Dashboard</button>
             <button class="tab-button" data-tab="key-controls">Key Controls</button>
@@ -410,7 +416,6 @@
         </nav>
 
         <main class="flex-grow p-6 overflow-hidden">
-            <!-- Dashboard Tab Content -->
             <div id="dashboard-content" class="tab-content active">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -428,7 +433,6 @@
                 </div>
             </div>
 
-            <!-- Key Controls Tab Content -->
             <div id="key-controls-content" class="tab-content">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Key Controls</h2>
                 <div class="overflow-x-auto">
@@ -469,8 +473,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Key controls will be loaded here dynamically -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
                 <div class="flex flex-wrap gap-4 mt-6 justify-end">
@@ -483,7 +486,6 @@
                 </div>
             </div>
 
-            <!-- Secondary Controls Tab Content -->
             <div id="secondary-controls-content" class="tab-content">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Secondary Controls</h2>
                 <div class="overflow-x-auto">
@@ -510,8 +512,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Secondary controls will be loaded here -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
                 <div class="flex flex-wrap gap-4 mt-6 justify-end">
@@ -524,12 +525,11 @@
                 </div>
             </div>
             
-            <!-- Reports Tab Content -->
             <div id="reports-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Reports</h2>
                 <iframe src="reports.html" class="w-full h-full border-0"></iframe>
             </div>
 
-            <!-- Logo Upload Tab Content -->
             <div id="logo-upload-content" class="tab-content">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Upload Company Logo</h2>
                 <div class="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -549,7 +549,6 @@
                 </div>
             </div>
 
-            <!-- Admin Tab Content -->
             <div id="admin-content" class="tab-content">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Admin Panel</h2>
                 <div class="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -569,12 +568,10 @@
                 <div class="bg-white p-6 rounded-lg shadow-md">
                     <h3 class="text-xl font-medium text-gray-700 mb-4">Current Users</h3>
                     <ul id="user-list" class="list-disc pl-5 text-gray-700">
-                        <!-- Users will be listed here -->
-                    </ul>
+                        </ul>
                 </div>
             </div>
 
-            <!-- Database Tab Content -->
             <div id="database-content" class="tab-content">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Generated PDF Database</h2>
                 <div class="overflow-x-auto">
@@ -591,20 +588,17 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- PDF records will be loaded here dynamically -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Add/Edit Control Modal -->
     <div id="control-modal" class="modal">
         <div class="modal-content">
             <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4">Add New Control</h3>
             <form id="control-form" class="space-y-4">
-                <!-- Fields will be dynamically generated here based on control type -->
                 <div class="flex justify-end mt-6">
                     <button type="submit" class="btn-primary">Save Control</button>
                     <button type="button" id="cancel-control-modal" class="btn-secondary ml-2">Cancel</button>
@@ -613,7 +607,6 @@
         </div>
     </div>
 
-    <!-- Link Modal -->
     <div id="link-modal" class="modal">
         <div class="modal-content">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Add Link</h3>
@@ -634,7 +627,6 @@
         </div>
     </div>
 
-    <!-- Hidden div for PDF generation -->
     <div id="pdf-export-content" class="pdf-export-content">
         <div id="pdf-content-wrapper">
             <div class="flex justify-between items-start mb-6">
@@ -644,10 +636,8 @@
             <h2 id="pdf-report-title" class="text-xl font-semibold mt-8 mb-4"></h2>
             <div class="overflow-x-auto">
                 <table id="pdf-table-to-generate" class="min-w-full bg-white border border-gray-200">
-                    <!-- Table header and body will be dynamically populated -->
-                </table>
+                    </table>
             </div>
-            <!-- Sign Off Section for PDF -->
             <div class="pdf-signature-area">
                 <p class="font-semibold text-lg mb-2">Sign-off by:</p>
                 <div id="pdf-signed-by-section" class="flex flex-col">
@@ -666,12 +656,10 @@
         </div>
     </div>
 
-    <!-- Hidden div for Excel generation -->
     <div id="excel-export-content" style="display: none;">
         <table id="excel-table-to-generate"></table>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import {
@@ -697,13 +685,65 @@
             writeBatch
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // --- GLOBAL VARIABLE DECLARATIONS (moved to top for better scope management) ---
         let app;
         let db;
         let auth;
         let currentUserId = null;
         let logoDataUrl = '';
-        let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const monthsInNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+        const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
         
+        const keyControlHeaders = [
+            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
+            { id: 'HOW', label: 'How', type: 'text' },
+            { id: 'FREQ', label: 'Frequency', type: 'select', options: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'] },
+            { id: 'BY WHEN', label: 'By When', type: 'date' },
+            { id: 'EVIDENCE OF CONTROL', label: 'Evidence of Control', type: 'text' },
+            { id: 'JAN', label: '1', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'FEB', label: '2', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'MAR', label: '3', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'APR', label: '4', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'MAY', label: '5', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'JUN', label: '6', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'JUL', label: '7', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'AUG', label: '8', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'SEP', label: '9', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'OCT', label: '10', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'NOV', label: '11', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'DEC', label: '12', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'Annual', label: 'Annual', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On Track', 'Overdue', 'Pending'] },
+            { id: 'Link', label: 'Link', type: 'link' },
+        ];
+        
+        const secondaryControlHeaders = [
+            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
+            { id: 'HOW (i.e. Manual/ Automated)', label: 'How', type: 'text' },
+            { id: 'WHO (i.e. Title of reviewer)', label: 'Who', type: 'text' },
+            { id: 'FREQUENCY e.g. Daily, Weekly, Monthly', label: 'Frequency', type: 'text' },
+            { id: 'BY WHEN (TATs e.g. by 10th of ever month)', label: 'By When', type: 'date' },
+            { id: 'EVIDENCE OF CONTROL e.g What is signed-off?', label: 'Evidence of Control', type: 'text' },
+            { id: 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', label: 'How Archived', type: 'text' },
+            { id: 'Date of Review', label: 'Date of Review', type: 'date' },
+            { id: 'Total number of transactions (where applicable)', label: 'Total Transactions', type: 'number' },
+            { id: 'Samples checked (Where Applicable)', label: 'Samples Checked', type: 'text' },
+            { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
+            { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
+            { id: 'Required Action', label: 'Required Action', type: 'text' },
+            { id: 'Closure Date', label: 'Closure Date', type: 'date' }
+        ];
+
+        const controlData = {
+            keyControls: [],
+            secondaryControls: [],
+            generatedPdfs: []
+        };
+        
+        let currentLinkCell = null;
+        let keyControlsChart, secondaryControlsChart;
+
         // --- Utility Functions ---
         function showLoadingSpinner() {
             const spinner = document.getElementById('loading-spinner');
@@ -841,6 +881,7 @@
             document.getElementById('signup-form').classList.remove('hidden');
         });
 
+        // Add an event listener for the new `show-login` button on the signup form
         document.getElementById('show-login').addEventListener('click', (e) => {
             e.preventDefault();
             document.getElementById('signup-form').classList.add('hidden');
@@ -888,55 +929,6 @@
                 document.getElementById(`${button.dataset.tab}-content`).classList.add('active');
             });
         });
-
-        const controlData = {
-            keyControls: [],
-            secondaryControls: [],
-            generatedPdfs: []
-        };
-        
-        const monthsInNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-        const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-        
-        const keyControlHeaders = [
-            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
-            { id: 'HOW', label: 'How', type: 'text' },
-            { id: 'FREQ', label: 'Frequency', type: 'select', options: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'] },
-            { id: 'BY WHEN', label: 'By When', type: 'date' },
-            { id: 'EVIDENCE OF CONTROL', label: 'Evidence of Control', type: 'text' },
-            { id: 'JAN', label: '1', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'FEB', label: '2', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'MAR', label: '3', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'APR', label: '4', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'MAY', label: '5', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'JUN', label: '6', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'JUL', label: '7', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'AUG', label: '8', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'SEP', label: '9', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'OCT', label: '10', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'NOV', label: '11', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'DEC', label: '12', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'Annual', label: 'Annual', type: 'select', options: ['Y', 'N', '-'] },
-            { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On Track', 'Overdue', 'Pending'] },
-            { id: 'Link', label: 'Link', type: 'link' },
-        ];
-        
-        const secondaryControlHeaders = [
-            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
-            { id: 'HOW (i.e. Manual/ Automated)', label: 'How', type: 'text' },
-            { id: 'WHO (i.e. Title of reviewer)', label: 'Who', type: 'text' },
-            { id: 'FREQUENCY e.g. Daily, Weekly, Monthly', label: 'Frequency', type: 'text' },
-            { id: 'BY WHEN (TATs e.g. by 10th of ever month)', label: 'By When', type: 'date' },
-            { id: 'EVIDENCE OF CONTROL e.g What is signed-off?', label: 'Evidence of Control', type: 'text' },
-            { id: 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', label: 'How Archived', type: 'text' },
-            { id: 'Date of Review', label: 'Date of Review', type: 'date' },
-            { id: 'Total number of transactions (where applicable)', label: 'Total Transactions', type: 'number' },
-            { id: 'Samples checked (Where Applicable)', label: 'Samples Checked', type: 'text' },
-            { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
-            { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
-            { id: 'Required Action', label: 'Required Action', type: 'text' },
-            { id: 'Closure Date', label: 'Closure Date', type: 'date' }
-        ];
         
         let currentLinkCell = null;
 
@@ -1280,7 +1272,7 @@
                             }
                         });
                         if (!dataToSave['Tracking Status']) {
-                             dataToSave['Tracking Status'] = 'Pending';
+                               dataToSave['Tracking Status'] = 'Pending';
                         }
                     }
                 }
@@ -1343,7 +1335,7 @@
             
             headersToUse.forEach(header => {
                 if (header.id === 'Link') {
-                     return;
+                    return;
                 }
                 
                 const div = document.createElement('div');
@@ -1529,8 +1521,8 @@
         document.getElementById('share-key-button').addEventListener('click', () => {
              // Logic to find a recent PDF record and share it
              const latestPdf = controlData.generatedPdfs
-                .filter(p => p.controlType === 'Key Controls')
-                .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+                 .filter(p => p.controlType === 'Key Controls')
+                 .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
              if(latestPdf) {
                  sharePdf(latestPdf.id);
              } else {
@@ -1541,8 +1533,8 @@
         document.getElementById('share-secondary-button').addEventListener('click', () => {
              // Logic to find a recent PDF record and share it
              const latestPdf = controlData.generatedPdfs
-                .filter(p => p.controlType === 'Secondary Controls')
-                .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+                 .filter(p => p.controlType === 'Secondary Controls')
+                 .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
              if(latestPdf) {
                  sharePdf(latestPdf.id);
              } else {
@@ -1558,6 +1550,7 @@
             
             const logoUrl = localStorage.getItem('companyLogo');
             if(logoUrl) {
+                logoDataUrl = logoUrl; // Store in global variable
                 logoPreview.src = logoUrl;
                 logoPreview.classList.remove('hidden');
                 loginLogo.src = logoUrl;
@@ -1664,6 +1657,7 @@
             secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
         }
 
+        // The createUser function declaration was missing. Added it here.
         async function createUser(email, password) {
             showLoadingSpinner();
             try {
@@ -1677,7 +1671,7 @@
             } finally {
                 hideLoadingSpinner();
             }
-        };
+        }
 
         document.getElementById('create-user-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1812,6 +1806,7 @@
                 monthHeaders.forEach(month => {
                     const thMonth = document.createElement('th');
                     thMonth.textContent = month;
+                    thMonth.style.width = '3%';
                     bottomRow.appendChild(thMonth);
                 });
                 
@@ -1867,9 +1862,9 @@
                 let headersToUse = secondaryControlHeaders.map(h => h.label);
                  const headerRow = tableHeader.insertRow();
                  headersToUse.forEach(header => {
-                    const th = document.createElement('th');
-                    th.textContent = header;
-                    headerRow.appendChild(th);
+                     const th = document.createElement('th');
+                     th.textContent = header;
+                     headerRow.appendChild(th);
                  });
                 const thActions = document.createElement('th');
                 thActions.textContent = "Actions";
