@@ -741,6 +741,7 @@
             generatedPdfs: []
         };
         
+        // Corrected: Single declaration of currentLinkCell
         let currentLinkCell = null;
         let keyControlsChart, secondaryControlsChart;
 
@@ -1576,7 +1577,7 @@
             }
         });
 
-        // Corrected: Single declaration of chart variables
+        // Corrected: Single declaration of keyControlsChart and secondaryControlsChart
         let keyControlsChart, secondaryControlsChart;
 
         function getStatusCounts(controls, collectionName) {
@@ -1653,9 +1654,11 @@
 
         function renderDashboardCharts() {
             const keyCounts = getStatusCounts(controlData.keyControls, 'keyControls');
+            // Corrected: Assigning to the existing variable, not re-declaring it.
             keyControlsChart = renderChart('keyControlsChart', 'Key Controls Status Distribution', keyCounts);
 
             const secondaryCounts = getStatusCounts(controlData.secondaryControls, 'secondaryControls');
+            // Corrected: Assigning to the existing variable, not re-declaring it.
             secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
         }
 
