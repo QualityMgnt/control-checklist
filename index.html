@@ -627,7 +627,7 @@
                 <div class="bg-white p-6 rounded-lg shadow-md">
                     <h3 class="text-xl font-medium text-gray-700 mb-4">Current Users</h3>
                     <ul id="user-list" class="list-disc pl-5 text-gray-700">
-                         </ul>
+                        </ul>
                 </div>
             </div>
 
@@ -1324,7 +1324,7 @@
                                 overdueClass = 'overdue-text';
                                 if(collectionName === 'keyControls' && control['Tracking Status'] !== 'Overdue') {
                                      updateStatusOnDateChange(control, collectionName);
-                                }
+                                 }
                             }
                         }
                         
@@ -1414,7 +1414,7 @@
                                     }
                                 });
                                 if (!dataToSave['Tracking Status']) {
-                                         dataToSave['Tracking Status'] = 'Pending';
+                                        dataToSave['Tracking Status'] = 'Pending';
                                 }
                             }
                         }
@@ -1431,7 +1431,7 @@
                             showMessage('Control updated successfully!');
                         } else {
                             if(currentUserData.department) {
-                               dataToSave.Department = currentUserData.department;
+                                dataToSave.Department = currentUserData.department;
                             }
                             await retryOperation(() => addDoc(controlsColRef, dataToSave));
                             showMessage('Control added successfully!');
@@ -1636,7 +1636,7 @@
                         parsedData.forEach(item => {
                             const newDocRef = doc(controlsColRef);
                             if(currentUserData.department) {
-                               item.Department = currentUserData.department;
+                                item.Department = currentUserData.department;
                             }
                             batch.set(newDocRef, item);
                             uploadCount++;
@@ -1958,7 +1958,7 @@
                     }
                     
                     if (pdfUserName) {
-                         pdfUserName.textContent = currentUserData.fullName || 'N/A';
+                             pdfUserName.textContent = currentUserData.fullName || 'N/A';
                     }
                     
                     if(pdfReportTitle) pdfReportTitle.textContent = title;
@@ -2055,9 +2055,9 @@
                         const headerRow = tableHeader.insertRow();
                         const headersToUse = secondaryControlHeaders.map(h => h.label);
                         headersToUse.forEach(header => {
-                             const th = document.createElement('th');
-                             th.textContent = header;
-                             headerRow.appendChild(th);
+                               const th = document.createElement('th');
+                               th.textContent = header;
+                               headerRow.appendChild(th);
                         });
                         const thActions = document.createElement('th');
                         thActions.textContent = "Actions";
