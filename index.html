@@ -1387,7 +1387,12 @@
                         deleteCell.appendChild(deleteBtn);
 
                         const dueInCell = row.insertCell();
-                        dueInCell.textContent = dueInDays;
+                        // Corrected line to handle NaN error
+                        if (!isNaN(dueInDays)) {
+                            dueInDays.textContent = dueInDays;
+                        } else {
+                            dueInDays.textContent = '-';
+                        }
                         dueInCell.classList.add(overdueClass);
                     });
                 }
@@ -2101,7 +2106,13 @@
                             const actionsCell = row.insertCell();
                             actionsCell.textContent = 'Review / Delete';
                             const dueInCell = row.insertCell();
-                            dueInDays.textContent = dueInDays;
+                            // Corrected line to handle NaN error
+                            if (!isNaN(dueInDays)) {
+                                dueInCell.textContent = dueInDays;
+                            } else {
+                                dueInCell.textContent = '-';
+                            }
+                            dueInCell.classList.add(overdueClass);
 
                         } else if (controlType === 'secondaryControls') {
                             secondaryControlHeaders.forEach(header => {
@@ -2125,7 +2136,12 @@
                             const actionsCell = row.insertCell();
                             actionsCell.textContent = 'Review / Delete';
                             const dueInCell = row.insertCell();
-                            dueInDays.textContent = dueInDays;
+                            if (!isNaN(dueInDays)) {
+                                dueInCell.textContent = dueInDays;
+                            } else {
+                                dueInCell.textContent = '-';
+                            }
+                            dueInCell.classList.add(overdueClass);
                         }
                     });
                 }
