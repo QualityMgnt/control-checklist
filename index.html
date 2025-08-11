@@ -2003,14 +2003,12 @@
                 function populatePdfTable(tableElement, controls, controlType) {
                     if (!tableElement) return;
                     
-                    // Clear existing content
-                    tableElement.innerHTML = '';
+                    tableElement.innerHTML = ''; // Clear existing content
                     
-                    let tableHeader;
+                    let tableHeader = tableElement.createTHead();
                     let tableBody = tableElement.createTBody();
 
                     if (controlType === 'keyControls' || controlType === 'all') {
-                        tableHeader = tableElement.createTHead();
                         const topRow = tableHeader.insertRow();
                         const middleRow = tableHeader.insertRow();
                         const bottomRow = tableHeader.insertRow();
@@ -2054,7 +2052,6 @@
                             bottomRow.appendChild(thMonth);
                         });
                     } else if (controlType === 'secondaryControls') {
-                        tableHeader = tableElement.createTHead();
                         const headerRow = tableHeader.insertRow();
                         const headersToUse = secondaryControlHeaders.map(h => h.label);
                         headersToUse.forEach(header => {
@@ -2079,7 +2076,7 @@
 
                         if (byWhenDateStr) {
                             const byWhenDate = new Date(byWhenDateStr);
-                            if (!isNaN(byWhenDate.getTime())) {
+                            if (!isNaN(byWhenDate.getTime())) { 
                                 byWhenDate.setHours(0, 0, 0, 0);
                                 const diffTime = byWhenDate.getTime() - today.getTime();
                                 dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
