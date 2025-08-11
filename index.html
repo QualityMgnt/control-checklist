@@ -402,6 +402,40 @@
         </div>
     </div>
 
+    <div id="signup-page" class="w-full h-screen flex items-center justify-center bg-gray-100 hidden">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+            <div class="flex justify-center mb-4">
+                <img id="signup-logo-preview" class="h-20 w-auto hidden" src="" alt="Company Logo">
+            </div>
+            <h2 class="text-3xl font-bold text-center text-purple-600 mb-8">Create an Account</h2>
+            <form id="signup-form" class="space-y-6">
+                <div>
+                    <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required class="input-field">
+                </div>
+                <div>
+                    <label for="signup-fullname" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="signup-fullname" placeholder="Enter your full name" required class="input-field">
+                </div>
+                <div>
+                    <label for="signup-department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                    <select id="signup-department" required class="input-field">
+                        <option value="" disabled selected>Select Department</option>
+                        <option value="Contact Centre">Contact Centre</option>
+                        <option value="Customer Service">Customer Service</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signup-password" placeholder="Choose a password" required class="input-field">
+                </div>
+                <button type="submit" class="btn-primary w-full">Sign Up</button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Already have an account? <a href="#" id="show-login" class="text-purple-600 hover:underline">Login</a>
+                </p>
+            </form>
+        </div>
+    </div>
     <div id="app-page" class="container hidden">
         <header class="flex justify-between items-center p-4 bg-purple-600 text-white shadow-md">
             <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
@@ -587,7 +621,7 @@
                 <div class="bg-white p-6 rounded-lg shadow-md">
                     <h3 class="text-xl font-medium text-gray-700 mb-4">Current Users</h3>
                     <ul id="user-list" class="list-disc pl-5 text-gray-700">
-                        </ul>
+                         </ul>
                 </div>
             </div>
 
@@ -867,6 +901,7 @@
                         currentUserId = null;
                         currentUserData = {};
                         document.getElementById('login-page').classList.remove('hidden');
+                        document.getElementById('signup-page').classList.add('hidden');
                         document.getElementById('app-page').classList.add('hidden');
                     }
                     hideLoadingSpinner();
@@ -909,12 +944,12 @@
                     e.preventDefault();
                     const email = document.getElementById('signup-email').value;
                     const password = document.getElementById('signup-password').value;
+                    const fullName = document.getElementById('signup-fullname').value;
+                    const department = document.getElementById('signup-department').value;
                     showLoadingSpinner();
                     try {
                         const userCredential = await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
                         const user = userCredential.user;
-                        const fullName = document.getElementById('new-user-fullname').value;
-                        const department = document.getElementById('new-user-department').value;
                         await retryOperation(() => setDoc(doc(db, `artifacts/${appId}/users`, user.uid), {
                             email: email,
                             fullName: fullName,
@@ -931,14 +966,14 @@
 
                 document.getElementById('show-signup').addEventListener('click', (e) => {
                     e.preventDefault();
-                    document.getElementById('login-form').classList.add('hidden');
-                    document.getElementById('signup-form').classList.remove('hidden');
+                    document.getElementById('login-page').classList.add('hidden');
+                    document.getElementById('signup-page').classList.remove('hidden');
                 });
 
                 document.getElementById('show-login').addEventListener('click', (e) => {
                     e.preventDefault();
-                    document.getElementById('signup-form').classList.add('hidden');
-                    document.getElementById('login-form').classList.remove('hidden');
+                    document.getElementById('signup-page').classList.add('hidden');
+                    document.getElementById('login-page').classList.remove('hidden');
                 });
 
                 document.getElementById('logout-button').addEventListener('click', async () => {
@@ -983,7 +1018,7 @@
                     });
                 });
                 
-             
+            
                 function openLinkModal(cell) {
                     currentLinkCell = cell;
                     const controlId = cell.closest('tr').dataset.id;
@@ -1214,13 +1249,13 @@
 
                                 if (header.type === 'select') {
                                      header.options.forEach(optionText => {
-                                        const option = document.createElement('option');
-                                        option.value = optionText;
-                                        option.textContent = optionText;
-                                        inputElement.appendChild(option);
-                                    });
+                                         const option = document.createElement('option');
+                                         option.value = optionText;
+                                         option.textContent = optionText;
+                                         inputElement.appendChild(option);
+                                     });
                                 } else {
-                                    inputElement.type = header.type;
+                                     inputElement.type = header.type;
                                 }
                                 
                                 inputElement.value = value;
@@ -1228,11 +1263,11 @@
 
                                 const originalValue = inputElement.value;
                                 inputElement.addEventListener('blur', async () => {
-                                    if (inputElement.value !== originalValue) {
-                                        const newValue = inputElement.value;
-                                        const data = { [header.id]: newValue };
-                                        await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), data);
-                                    }
+                                     if (inputElement.value !== originalValue) {
+                                         const newValue = inputElement.value;
+                                         const data = { [header.id]: newValue };
+                                         await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), data);
+                                     }
                                 });
                             }
                         });
@@ -1275,7 +1310,7 @@
                                     }
                                 });
                                 if (!dataToSave['Tracking Status']) {
-                                       dataToSave['Tracking Status'] = 'Pending';
+                                         dataToSave['Tracking Status'] = 'Pending';
                                 }
                             }
                         }
@@ -1535,27 +1570,27 @@
                 });
                 
                 document.getElementById('share-key-button').addEventListener('click', () => {
-                     // Logic to find a recent PDF record and share it
-                     const latestPdf = controlData.generatedPdfs
-                         .filter(p => p.controlType === 'Key Controls')
-                         .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-                     if(latestPdf) {
-                         sharePdf(latestPdf.id);
-                     } else {
-                         showMessage('No recent Key Controls PDF found to share.');
-                     }
+                    // Logic to find a recent PDF record and share it
+                    const latestPdf = controlData.generatedPdfs
+                        .filter(p => p.controlType === 'Key Controls')
+                        .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+                    if(latestPdf) {
+                        sharePdf(latestPdf.id);
+                    } else {
+                        showMessage('No recent Key Controls PDF found to share.');
+                    }
                 });
                 
                 document.getElementById('share-secondary-button').addEventListener('click', () => {
-                     // Logic to find a recent PDF record and share it
-                     const latestPdf = controlData.generatedPdfs
-                         .filter(p => p.controlType === 'Secondary Controls')
-                         .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-                     if(latestPdf) {
-                         sharePdf(latestPdf.id);
-                     } else {
-                         showMessage('No recent Secondary Controls PDF found to share.');
-                     }
+                    // Logic to find a recent PDF record and share it
+                    const latestPdf = controlData.generatedPdfs
+                        .filter(p => p.controlType === 'Secondary Controls')
+                        .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+                    if(latestPdf) {
+                        sharePdf(latestPdf.id);
+                    } else {
+                        showMessage('No recent Secondary Controls PDF found to share.');
+                    }
                 });
                 
                 function loadLogo() {
