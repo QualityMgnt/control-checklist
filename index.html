@@ -1146,7 +1146,6 @@
                 async function loadPdfs() {
                     if (!currentUserId) return;
                     const pdfsColRef = collection(db, `artifacts/${appId}/public/data/generatedPdfs`);
-                    // Assuming permissive rules, no 'where' clause is needed here.
                     const q = query(pdfsColRef);
                     onSnapshot(q, (snapshot) => {
                         const pdfs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1161,7 +1160,6 @@
                 async function loadVerifiedControls() {
                     if (!currentUserId) return;
                     const verifiedControlsColRef = collection(db, `artifacts/${appId}/public/data/verifiedControls`);
-                    // Assuming permissive rules, no 'where' clause is needed here.
                     const q = query(verifiedControlsColRef);
                     onSnapshot(q, (snapshot) => {
                         const verifiedControls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -2004,15 +2002,18 @@
 
                 function populatePdfTable(tableElement, controls, controlType) {
                     if (!tableElement) return;
-                    const tableHeader = tableElement.querySelector('thead') || tableElement.createTHead();
-                    const tableBody = tableElement.querySelector('tbody') || tableElement.createTBody();
-                    tableHeader.innerHTML = '';
-                    tableBody.innerHTML = '';
+                    
+                    // Clear existing content
+                    tableElement.innerHTML = '';
+                    
+                    let tableHeader;
+                    let tableBody = tableElement.createTBody();
 
                     if (controlType === 'keyControls' || controlType === 'all') {
+                        tableHeader = tableElement.createTHead();
                         const topRow = tableHeader.insertRow();
                         const middleRow = tableHeader.insertRow();
-                        const bottomRow = tableHeader.createTHead().insertRow();
+                        const bottomRow = tableHeader.insertRow();
 
                         const mainHeaders = [
                             'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
@@ -2053,6 +2054,7 @@
                             bottomRow.appendChild(thMonth);
                         });
                     } else if (controlType === 'secondaryControls') {
+                        tableHeader = tableElement.createTHead();
                         const headerRow = tableHeader.insertRow();
                         const headersToUse = secondaryControlHeaders.map(h => h.label);
                         headersToUse.forEach(header => {
@@ -2077,7 +2079,7 @@
 
                         if (byWhenDateStr) {
                             const byWhenDate = new Date(byWhenDateStr);
-                            if (!isNaN(byWhenDate.getTime())) { // Check if date is valid
+                            if (!isNaN(byWhenDate.getTime())) {
                                 byWhenDate.setHours(0, 0, 0, 0);
                                 const diffTime = byWhenDate.getTime() - today.getTime();
                                 dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -2128,10 +2130,8 @@
                             dueInCell.classList.add(overdueClass);
 
                         } else if (controlType === 'secondaryControls') {
-                            const cellsToRender = [
-                                'KEY CONTROL DESCRIPTION', 'HOW (i.e. Manual/ Automated)', 'WHO (i.e. Title of reviewer)', 'FREQUENCY e.g. Daily, Weekly, Monthly', 'BY WHEN (TATs e.g. by 10th of ever month)', 'EVIDENCE OF CONTROL e.g What is signed-off?', 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', 'Date of Review', 'Total number of transactions (where applicable)', 'Samples checked (Where Applicable)', 'Exceptions from sampled items (Where none, indicate NONE)', 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', 'Required Action', 'Closure Date', 'Link'
-                            ];
-                            cellsToRender.forEach(headerId => {
+                            const headersToRender = secondaryControlHeaders.map(h => h.id);
+                            headersToRender.forEach(headerId => {
                                 const cell = row.insertCell();
                                 if (headerId === 'Link') {
                                     const linkName = control['Link Name'];
