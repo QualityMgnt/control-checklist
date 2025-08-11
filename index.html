@@ -1080,7 +1080,6 @@
                     });
                 });
                 
-            
                 function openLinkModal(cell) {
                     currentLinkCell = cell;
                     const controlId = cell.closest('tr').dataset.id;
@@ -1253,6 +1252,31 @@
                     }
                     return '';
                 }
+
+                // Add this missing function to fix the "renderStatusCell is not defined" error
+                function renderStatusCell(cell, status, control, headerId, collectionName) {
+                    const statusText = document.createElement('span');
+                    statusText.textContent = status || '-';
+                    statusText.classList.add('status-text', getStatusColorClass(status));
+                    cell.appendChild(statusText);
+                    cell.classList.add('status-cell');
+
+                    // Add event listener for status updates
+                    cell.addEventListener('click', async (e) => {
+                        const newStatus = prompt(`Enter new status for ${headerId} (Y, N, -):`, status || '-');
+                        if (newStatus !== null && ['Y', 'N', '-'].includes(newStatus)) {
+                            const data = { [headerId]: newStatus };
+                            try {
+                                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                                await updateDoc(doc(controlsColRef, control.id), data);
+                                showMessage('Status updated successfully!');
+                            } catch (error) {
+                                console.error("Error updating status:", error);
+                                showMessage(`Failed to update status: ${error.message}`);
+                            }
+                        }
+                    });
+                }
                 
                 function updateStatusOnDateChange(control, collectionName) {
                     const byWhenDateStr = control['BY WHEN'];
@@ -1367,6 +1391,7 @@
                         dueInCell.classList.add(overdueClass);
                     });
                 }
+
 
                 async function addOrUpdateControl(collectionName, controlId, data) {
                     showLoadingSpinner();
