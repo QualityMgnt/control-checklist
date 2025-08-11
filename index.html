@@ -1338,7 +1338,11 @@
                                 
                                 const linkButton = document.createElement('button');
                                 linkButton.textContent = linkText;
-                                linkButton.classList.add('p-1', 'rounded', ...linkClass.split(' '));
+                                const linkClassesToAdd = ['p-1', 'rounded'];
+                                if (linkClass) {
+                                    linkClassesToAdd.push(...linkClass.split(' '));
+                                }
+                                linkButton.classList.add(...linkClassesToAdd);
                                 linkButton.onclick = () => openLinkModal(cell);
                                 cell.classList.add('link-cell');
                                 cell.appendChild(linkButton);
@@ -1394,7 +1398,9 @@
                         } else {
                             dueInCell.textContent = '-';
                         }
-                        dueInCell.classList.add(overdueClass);
+                        if (overdueClass) {
+                            dueInCell.classList.add(overdueClass);
+                        }
                     });
                 }
 
@@ -2124,7 +2130,9 @@
                             } else {
                                 dueInCell.textContent = '-';
                             }
-                            dueInCell.classList.add(overdueClass);
+                            if (overdueClass) {
+                                dueInCell.classList.add(overdueClass);
+                            }
 
                         } else if (controlType === 'secondaryControls') {
                             const headersToRender = secondaryControlHeaders.map(h => h.id);
@@ -2154,7 +2162,9 @@
                             } else {
                                 dueInCell.textContent = '-';
                             }
-                            dueInCell.classList.add(overdueClass);
+                            if (overdueClass) {
+                                dueInCell.classList.add(overdueClass);
+                            }
                         }
                     });
                 }
