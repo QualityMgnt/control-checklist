@@ -813,7 +813,6 @@
             
             document.addEventListener('DOMContentLoaded', () => {
 
-                // --- GLOBAL VARIABLE DECLARATIONS (Declared once to prevent SyntaxError) ---
                 let app;
                 let db;
                 let auth;
@@ -866,6 +865,7 @@
                     { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
                     { id: 'Required Action', label: 'Required Action', type: 'text' },
                     { id: 'Closure Date', label: 'Closure Date', type: 'date' },
+                    { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On Track', 'Overdue', 'Pending'] },
                     { id: 'Link', label: 'URL Link', type: 'link' }
                 ];
                 
@@ -1256,8 +1256,13 @@
 
                 function renderStatusCell(cell, status, control, headerId, collectionName) {
                     const statusText = document.createElement('span');
-                    statusText.textContent = status || '-';
-                    statusText.classList.add('status-text', getStatusColorClass(status));
+                    const statusValue = status || '-'; 
+                    statusText.textContent = statusValue;
+                    
+                    const colorClass = getStatusColorClass(statusValue) || '';
+                    
+                    statusText.classList.add('status-text', colorClass);
+                    
                     cell.appendChild(statusText);
                     cell.classList.add('status-cell');
 
@@ -1551,11 +1556,12 @@
                     let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
                     
                     headersToUse.forEach(header => {
-                        if (header.id !== 'Link') {
-                            const inputElement = document.getElementById(`form-${header.id}`);
-                            if (inputElement) {
-                                formData[header.id] = inputElement.value;
-                            }
+                        if (header.id === 'Link') {
+                            return;
+                        }
+                        const inputElement = document.getElementById(`form-${header.id}`);
+                        if (inputElement) {
+                            formData[header.id] = inputElement.value;
                         }
                     });
                     
