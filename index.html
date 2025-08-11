@@ -451,7 +451,7 @@
             <button class="tab-button" data-tab="key-controls">Key Controls</button>
             <button class="tab-button" data-tab="secondary-controls">Secondary Controls</button>
             <button class="tab-button" data-tab="reports">Reports</button>
-            <button class="tab-button" data-tab="logo-upload">Upload Logo</button>
+            <button class="tab-button" data-tab="upload-images">Upload Images</button>
             <button class="tab-button" data-tab="database">Database</button>
             <button class="tab-button" data-tab="admin">Admin</button>
         </nav>
@@ -460,11 +460,11 @@
             <div id="dashboard-content" class="tab-content active">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-lg shadow-md" style="width: 4in; height: 4in;">
+                    <div class="bg-white p-6 rounded-lg shadow-md" style="width: 6in; height: 5in;">
                         <h3 class="text-xl font-medium text-gray-700 mb-4">Key Controls Status</h3>
                         <canvas id="keyControlsChart"></canvas>
                     </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md" style="width: 4in; height: 4in;">
+                    <div class="bg-white p-6 rounded-lg shadow-md" style="width: 6in; height: 5in;">
                         <h3 class="text-xl font-medium text-gray-700 mb-4">Secondary Controls Status</h3>
                         <canvas id="secondaryControlsChart"></canvas>
                     </div>
@@ -547,6 +547,7 @@
                                 <th>Assessment</th>
                                 <th>Required Action</th>
                                 <th>Closure Date</th>
+                                <th>URL Link</th>
                                 <th>Review</th>
                                 <th>Delete</th>
                                 <th>Due In</th>
@@ -571,8 +572,8 @@
                 <iframe src="reports.html" class="w-full h-full border-0"></iframe>
             </div>
 
-            <div id="logo-upload-content" class="tab-content">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Upload Company Logo</h2>
+            <div id="upload-images-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Upload Company Images</h2>
                 <div class="bg-white p-6 rounded-lg shadow-md mb-6">
                     <h3 class="text-xl font-medium text-gray-700 mb-4">Select and Upload Logo</h3>
                     <input type="file" id="logo-file-input" accept="image/*" class="block w-full text-sm text-gray-500
@@ -645,6 +646,58 @@
                             </tbody>
                     </table>
                 </div>
+
+                <h2 class="text-2xl font-semibold text-gray-800 mt-12 mb-6">Verified Controls</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-xl font-medium text-gray-700 mb-4">Upload Signed Document</h3>
+                    <form id="verified-control-form" class="space-y-4">
+                        <div>
+                            <label for="verified-control-type" class="block text-sm font-medium text-gray-700 mb-1">Control Type</label>
+                            <select id="verified-control-type" required class="input-field">
+                                <option value="" disabled selected>Select Control Type</option>
+                                <option value="Key Controls">Key Controls</option>
+                                <option value="Secondary Controls">Secondary Controls</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="verified-control-month" class="block text-sm font-medium text-gray-700 mb-1">Month</label>
+                            <select id="verified-control-month" required class="input-field">
+                                <option value="" disabled selected>Select Month</option>
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="verified-control-file" class="block text-sm font-medium text-gray-700 mb-1">Signed Document</label>
+                            <input type="file" id="verified-control-file" required class="block w-full text-sm text-gray-500"/>
+                        </div>
+                        <button type="submit" class="btn-primary">Upload Document</button>
+                    </form>
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="verified-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <thead>
+                            <tr>
+                                <th>Control Type</th>
+                                <th>Month</th>
+                                <th>Date Uploaded</th>
+                                <th>Document</th>
+                                <th>Download</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
@@ -684,7 +737,10 @@
         <div id="pdf-export-content" class="pdf-export-content">
             <div id="pdf-content-wrapper">
                 <div class="flex justify-between items-start mb-6">
-                    <h1 class="text-2xl font-bold">Customer Experience Controls Report</h1>
+                    <div>
+                         <h1 class="text-2xl font-bold">Customer Experience Controls Report</h1>
+                         <p>Prepared by: <span id="pdf-user-name" class="font-medium"></span></p>
+                    </div>
                     <img id="pdf-logo-preview" class="max-h-20 w-auto" src="" alt="Company Logo">
                 </div>
                 <h2 id="pdf-report-title" class="text-xl font-semibold mt-8 mb-4"></h2>
@@ -748,6 +804,7 @@
                 writeBatch,
                 getDoc
             } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+            import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
             
             document.addEventListener('DOMContentLoaded', () => {
 
@@ -755,6 +812,7 @@
                 let app;
                 let db;
                 let auth;
+                let storage;
                 let currentUserId = null;
                 let logoDataUrl = '';
                 const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -762,7 +820,6 @@
                 const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
                 let currentUserData = {};
                 
-                // These variables are now declared once to prevent SyntaxErrors
                 let keyControlsChart, secondaryControlsChart;
                 let currentLinkCell = null;
 
@@ -803,13 +860,15 @@
                     { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
                     { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
                     { id: 'Required Action', label: 'Required Action', type: 'text' },
-                    { id: 'Closure Date', label: 'Closure Date', type: 'date' }
+                    { id: 'Closure Date', label: 'Closure Date', type: 'date' },
+                    { id: 'Link', label: 'URL Link', type: 'link' }
                 ];
                 
                 let controlData = {
                     keyControls: [],
                     secondaryControls: [],
-                    generatedPdfs: []
+                    generatedPdfs: [],
+                    verifiedControls: []
                 };
                 
                 // --- Utility Functions ---
@@ -873,6 +932,7 @@
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
+                storage = getStorage(app);
 
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
@@ -889,11 +949,13 @@
                         }
                         
                         document.getElementById('login-page').classList.add('hidden');
+                        document.getElementById('signup-page').classList.add('hidden');
                         document.getElementById('app-page').classList.remove('hidden');
                         
                         await loadControls('keyControls', 'key-controls-table');
                         await loadControls('secondaryControls', 'secondary-controls-table');
                         await loadPdfs();
+                        await loadVerifiedControls();
                         await loadUsers();
                         loadLogo();
                         renderDashboardCharts();
@@ -1091,6 +1153,19 @@
                     }, (error) => {
                         console.error(`Error fetching PDFs:`, error);
                         showMessage(`Failed to load PDF records: ${error.message}`);
+                    });
+                }
+
+                async function loadVerifiedControls() {
+                    if (!currentUserId) return;
+                    const verifiedControlsColRef = collection(db, `artifacts/${appId}/public/data/verifiedControls`);
+                    onSnapshot(verifiedControlsColRef, (snapshot) => {
+                        const verifiedControls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        controlData.verifiedControls = verifiedControls;
+                        renderVerifiedControlsTable(verifiedControls);
+                    }, (error) => {
+                        console.error(`Error fetching verified controls:`, error);
+                        showMessage(`Failed to load verified controls: ${error.message}`);
                     });
                 }
                 
@@ -1292,7 +1367,6 @@
                         dueInCell.classList.add(overdueClass);
                     });
                 }
-
 
                 async function addOrUpdateControl(collectionName, controlId, data) {
                     showLoadingSpinner();
@@ -1760,6 +1834,75 @@
                         userList.appendChild(listItem);
                     });
                 }
+                
+                function renderVerifiedControlsTable(verifiedControls) {
+                    const tableBody = document.querySelector('#verified-controls-table tbody');
+                    if (!tableBody) return;
+                    tableBody.innerHTML = '';
+                    verifiedControls.forEach(doc => {
+                        const row = tableBody.insertRow();
+                        row.insertCell().textContent = doc.controlType;
+                        row.insertCell().textContent = doc.month;
+                        row.insertCell().textContent = doc.date;
+                        
+                        const docCell = row.insertCell();
+                        const docLink = document.createElement('a');
+                        docLink.href = doc.downloadUrl;
+                        docLink.textContent = doc.fileName;
+                        docLink.target = '_blank';
+                        docCell.appendChild(docLink);
+
+                        const downloadCell = row.insertCell();
+                        const downloadBtn = document.createElement('button');
+                        downloadBtn.textContent = 'Download';
+                        downloadBtn.classList.add('btn-primary', 'py-1', 'px-2', 'text-xs');
+                        downloadBtn.onclick = () => window.open(doc.downloadUrl, '_blank');
+                        downloadCell.appendChild(downloadBtn);
+                    });
+                }
+
+                document.getElementById('verified-control-form').addEventListener('submit', handleVerifiedDocumentUpload);
+                
+                async function handleVerifiedDocumentUpload(e) {
+                    e.preventDefault();
+                    showLoadingSpinner();
+                    
+                    const controlType = document.getElementById('verified-control-type').value;
+                    const month = document.getElementById('verified-control-month').value;
+                    const fileInput = document.getElementById('verified-control-file');
+                    const file = fileInput.files[0];
+                    
+                    if (!file || !controlType || !month) {
+                        showMessage('Please fill all fields and select a file.');
+                        hideLoadingSpinner();
+                        return;
+                    }
+                    
+                    try {
+                        const storageRef = ref(storage, `verified-controls/${controlType}/${month}/${file.name}`);
+                        const snapshot = await uploadBytes(storageRef, file);
+                        const downloadUrl = await getDownloadURL(snapshot.ref);
+                        
+                        const docData = {
+                            controlType: controlType,
+                            month: month,
+                            fileName: file.name,
+                            downloadUrl: downloadUrl,
+                            date: new Date().toISOString().slice(0, 10)
+                        };
+                        
+                        await addDoc(collection(db, `artifacts/${appId}/public/data/verifiedControls`), docData);
+                        
+                        showMessage('Document uploaded successfully!');
+                        document.getElementById('verified-control-form').reset();
+                    } catch (error) {
+                        console.error('Error uploading document:', error);
+                        showMessage(`Failed to upload document: ${error.message}`);
+                    } finally {
+                        hideLoadingSpinner();
+                    }
+                }
+
 
                 document.getElementById('generate-key-pdf-button').addEventListener('click', () => generatePdfForControls('keyControls'));
                 document.getElementById('generate-secondary-pdf-button').addEventListener('click', () => generatePdfForControls('secondaryControls'));
@@ -1770,6 +1913,7 @@
                     const pdfTable = document.getElementById('pdf-table-to-generate');
                     const pdfReportTitle = document.getElementById('pdf-report-title');
                     const pdfLogoPreview = document.getElementById('pdf-logo-preview');
+                    const pdfUserName = document.getElementById('pdf-user-name');
                     
                     showLoadingSpinner();
 
@@ -1786,8 +1930,13 @@
                         controlsToPrint = controlData.keyControls.concat(controlData.secondaryControls);
                         title = 'All Controls Report';
                     }
+                    
+                    if (pdfUserName) {
+                         pdfUserName.textContent = currentUserData.fullName || 'N/A';
+                    }
+                    
                     if(pdfReportTitle) pdfReportTitle.textContent = title;
-                    populatePdfTable(pdfTable, controlsToPrint, type); // Pass type to populatePdfTable
+                    populatePdfTable(pdfTable, controlsToPrint, type);
                     if (logoDataUrl) {
                         pdfLogoPreview.src = logoDataUrl;
                         pdfLogoPreview.classList.remove('hidden');
@@ -1832,7 +1981,6 @@
                     tableHeader.innerHTML = '';
                     tableBody.innerHTML = '';
 
-                    // Generate header for the PDF report
                     if (controlType === 'keyControls' || controlType === 'all') {
                         const topRow = tableHeader.insertRow();
                         const middleRow = tableHeader.insertRow();
@@ -1892,7 +2040,6 @@
                         headerRow.appendChild(thDueIn);
                     }
                     
-                    // Generate table body content
                     controls.forEach(control => {
                         const row = tableBody.insertRow();
                         const today = new Date();
@@ -1939,7 +2086,21 @@
                         } else if (controlType === 'secondaryControls') {
                             secondaryControlHeaders.forEach(header => {
                                 const cell = row.insertCell();
-                                cell.textContent = control[header.id] || '';
+                                if (header.id === 'Link') {
+                                    const linkName = control['Link Name'];
+                                    const linkURL = control['Link URL'];
+                                    if (linkName && linkURL) {
+                                        const anchor = document.createElement('a');
+                                        anchor.href = linkURL;
+                                        anchor.textContent = linkName;
+                                        anchor.target = '_blank';
+                                        cell.appendChild(anchor);
+                                    } else {
+                                        cell.textContent = linkName || '';
+                                    }
+                                } else {
+                                    cell.textContent = control[header.id] || '';
+                                }
                             });
                             const actionsCell = row.insertCell();
                             actionsCell.textContent = 'Review / Delete';
@@ -1970,4 +2131,4 @@
             });
         </script>
     </body>
-    </html>
+</html>
