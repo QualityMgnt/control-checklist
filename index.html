@@ -1125,14 +1125,10 @@
                 });
 
                 async function loadControls(collectionName, tableId) {
-                    // With permissive rules, we don't need the department check on the query, but we'll keep the department check for the current user for other features
-                    if (!currentUserId) return;
+                    if (!currentUserId || !currentUserData.department) return;
                     const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
                     
-                    // The 'where' clause is what would cause the permissions error if documents are missing the department field.
-                    // To resolve this, ensure all documents have the field or use more permissive rules.
-                    // The following code assumes permissive rules, or that all docs have the field.
-                    const q = query(controlsColRef); 
+                    const q = query(controlsColRef, where('Department', '==', currentUserData.department));
                     
                     onSnapshot(q, (snapshot) => {
                         const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -2016,7 +2012,7 @@
                     if (controlType === 'keyControls' || controlType === 'all') {
                         const topRow = tableHeader.insertRow();
                         const middleRow = tableHeader.insertRow();
-                        const bottomRow = tableHeader.insertRow();
+                        const bottomRow = tableHeader.createTHead().insertRow();
 
                         const mainHeaders = [
                             'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
@@ -2076,9 +2072,20 @@
                         const row = tableBody.insertRow();
                         const today = new Date();
                         const byWhenDateStr = control['BY WHEN'];
-                        const byWhenDate = new Date(byWhenDateStr);
-                        const diffTime = byWhenDate - today;
-                        const dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        let dueInDays = '-';
+                        let overdueClass = '';
+
+                        if (byWhenDateStr) {
+                            const byWhenDate = new Date(byWhenDateStr);
+                            if (!isNaN(byWhenDate.getTime())) { // Check if date is valid
+                                byWhenDate.setHours(0, 0, 0, 0);
+                                const diffTime = byWhenDate.getTime() - today.getTime();
+                                dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                if (byWhenDate < today) {
+                                    overdueClass = 'overdue-text';
+                                }
+                            }
+                        }
                         
                         if (controlType === 'keyControls' || controlType === 'all') {
                             const cellsToRender = [
@@ -2113,7 +2120,6 @@
                             const actionsCell = row.insertCell();
                             actionsCell.textContent = 'Review / Delete';
                             const dueInCell = row.insertCell();
-                            // Corrected line to fix TypeError
                             if (!isNaN(dueInDays)) {
                                 dueInCell.textContent = dueInDays;
                             } else {
@@ -2122,9 +2128,12 @@
                             dueInCell.classList.add(overdueClass);
 
                         } else if (controlType === 'secondaryControls') {
-                            secondaryControlHeaders.forEach(header => {
+                            const cellsToRender = [
+                                'KEY CONTROL DESCRIPTION', 'HOW (i.e. Manual/ Automated)', 'WHO (i.e. Title of reviewer)', 'FREQUENCY e.g. Daily, Weekly, Monthly', 'BY WHEN (TATs e.g. by 10th of ever month)', 'EVIDENCE OF CONTROL e.g What is signed-off?', 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', 'Date of Review', 'Total number of transactions (where applicable)', 'Samples checked (Where Applicable)', 'Exceptions from sampled items (Where none, indicate NONE)', 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', 'Required Action', 'Closure Date', 'Link'
+                            ];
+                            cellsToRender.forEach(headerId => {
                                 const cell = row.insertCell();
-                                if (header.id === 'Link') {
+                                if (headerId === 'Link') {
                                     const linkName = control['Link Name'];
                                     const linkURL = control['Link URL'];
                                     if (linkName && linkURL) {
@@ -2137,7 +2146,7 @@
                                         cell.textContent = linkName || '';
                                     }
                                 } else {
-                                    cell.textContent = control[header.id] || '';
+                                    cell.textContent = control[headerId] || '';
                                 }
                             });
                             const actionsCell = row.insertCell();
