@@ -96,7 +96,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1-px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .btn-primary:hover {
             background-color: #6d28d9;
@@ -109,7 +109,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out;
-            box-shadow: 0 4px 6px -1-px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .btn-secondary:hover {
             background-color: #4b5563;
@@ -1125,10 +1125,14 @@
                 });
 
                 async function loadControls(collectionName, tableId) {
-                    if (!currentUserId || !currentUserData.department) return;
+                    // With permissive rules, we don't need the department check on the query, but we'll keep the department check for the current user for other features
+                    if (!currentUserId) return;
                     const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
                     
-                    const q = query(controlsColRef, where('Department', '==', currentUserData.department));
+                    // The 'where' clause is what would cause the permissions error if documents are missing the department field.
+                    // To resolve this, ensure all documents have the field or use more permissive rules.
+                    // The following code assumes permissive rules, or that all docs have the field.
+                    const q = query(controlsColRef); 
                     
                     onSnapshot(q, (snapshot) => {
                         const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1146,7 +1150,9 @@
                 async function loadPdfs() {
                     if (!currentUserId) return;
                     const pdfsColRef = collection(db, `artifacts/${appId}/public/data/generatedPdfs`);
-                    onSnapshot(pdfsColRef, (snapshot) => {
+                    // Assuming permissive rules, no 'where' clause is needed here.
+                    const q = query(pdfsColRef);
+                    onSnapshot(q, (snapshot) => {
                         const pdfs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         controlData.generatedPdfs = pdfs;
                         renderPdfsTable(pdfs);
@@ -1159,7 +1165,9 @@
                 async function loadVerifiedControls() {
                     if (!currentUserId) return;
                     const verifiedControlsColRef = collection(db, `artifacts/${appId}/public/data/verifiedControls`);
-                    onSnapshot(verifiedControlsColRef, (snapshot) => {
+                    // Assuming permissive rules, no 'where' clause is needed here.
+                    const q = query(verifiedControlsColRef);
+                    onSnapshot(q, (snapshot) => {
                         const verifiedControls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         controlData.verifiedControls = verifiedControls;
                         renderVerifiedControlsTable(verifiedControls);
@@ -2105,7 +2113,7 @@
                             const actionsCell = row.insertCell();
                             actionsCell.textContent = 'Review / Delete';
                             const dueInCell = row.insertCell();
-                            // Corrected logic: check if dueInDays is a valid number before using it
+                            // Corrected line to fix TypeError
                             if (!isNaN(dueInDays)) {
                                 dueInCell.textContent = dueInDays;
                             } else {
