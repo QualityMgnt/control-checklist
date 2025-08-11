@@ -19,7 +19,7 @@
             min-height: 100vh;
             width: 100vw;
             margin: 0;
-            overflow: hidden;
+            overflow-x: hidden; 
         }
         .container {
             background-color: #ffffff;
@@ -35,6 +35,7 @@
             position: absolute;
             top: 0;
             left: 0;
+            box-sizing: border-box;
         }
         .top-nav {
             display: flex;
@@ -44,6 +45,8 @@
             border-radius: 0;
             padding: 0.5rem 1rem;
             justify-content: flex-start;
+            width: 100%;
+            box-sizing: border-box;
         }
         .top-nav .tab-button {
             padding: 0.75rem 1.5rem;
@@ -51,18 +54,18 @@
             border-left: none;
             text-align: center;
             flex-grow: 1;
-            background-color: #7c3aed; /* Purple */
+            background-color: #7c3aed;
             color: white;
             margin: 0.25rem;
             border-radius: 0.5rem;
             transition: all 0.3s ease-in-out;
         }
         .top-nav .tab-button:hover {
-            background-color: #6d28d9; /* Darker Purple */
+            background-color: #6d28d9;
         }
         .top-nav .tab-button.active {
             border-color: #ffffff;
-            background-color: #5b21b6; /* Even Darker Purple */
+            background-color: #5b21b6;
             color: white;
             border-bottom: 3px solid white;
             border-left: none;
@@ -72,6 +75,7 @@
             padding: 1.5rem;
             flex-grow: 1;
             overflow-y: auto;
+            overflow-x: hidden;
         }
         .tab-content.active {
             display: block;
@@ -85,7 +89,7 @@
             font-size: 0.9rem;
         }
         .btn-primary {
-            background-color: #7c3aed; /* Purple */
+            background-color: #7c3aed;
             color: white;
             padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
@@ -95,7 +99,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .btn-primary:hover {
-            background-color: #6d28d9; /* Darker Purple */
+            background-color: #6d28d9;
         }
         .btn-secondary {
             background-color: #6b7280;
@@ -187,10 +191,10 @@
             table-layout: auto;
         }
         th, td {
-            border: 1px solid #0a113d; /* Navy blue border */
+            border: 1px solid #0a113d;
             padding: 0.75rem;
             text-align: left;
-            font-size: 10px; /* Reduced font size */
+            font-size: 10px;
             word-wrap: break-word;
             font-family: 'Garamond', serif;
         }
@@ -260,19 +264,16 @@
                 width: 95%;
                 padding: 1rem;
             }
-            /* Adjust table for smaller screens */
             .overflow-x-auto {
                 overflow-x: scroll;
             }
         }
-        /* Status colors */
         .status-green { background-color: #d1fae5; color: #065f46; font-weight: 600; }
         .status-red { background-color: #fee2e2; color: #991b1b; font-weight: 600; }
         .status-amber { background-color: #fef3c7; color: #92400e; font-weight: 600; }
         .status-gray { background-color: #e5e7eb; color: #374151; font-weight: 600; }
         .overdue-text { color: #dc2626; }
         
-        /* Table cell styling */
         td.status-cell {
             padding: 0;
             text-align: center;
@@ -347,8 +348,6 @@
             width: auto;
             height: auto;
         }
-
-        /* New CSS for PDF signoff table */
         .pdf-signoff-table {
             width: 100%;
             border-collapse: collapse;
@@ -369,6 +368,11 @@
             height: 60px;
             border: 1px solid #ccc;
             margin-top: 5px;
+        }
+        .dashboard-charts-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
         }
     </style>
 </head>
@@ -436,6 +440,7 @@
             </form>
         </div>
     </div>
+
     <div id="app-page" class="container hidden">
         <header class="flex justify-between items-center p-4 bg-purple-600 text-white shadow-md">
             <h1 class="text-2xl font-bold">Customer Experience Controls</h1>
@@ -459,7 +464,7 @@
         <main class="flex-grow p-6 overflow-hidden">
             <div id="dashboard-content" class="tab-content active">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="dashboard-charts-container">
                     <div class="bg-white p-6 rounded-lg shadow-md" style="width: 6in; height: 5in;">
                         <h3 class="text-xl font-medium text-gray-700 mb-4">Key Controls Status</h3>
                         <canvas id="keyControlsChart"></canvas>
@@ -871,7 +876,6 @@
                     verifiedControls: []
                 };
                 
-                // --- Utility Functions ---
                 function showLoadingSpinner() {
                     const spinner = document.getElementById('loading-spinner');
                     if (spinner) spinner.style.display = 'block';
@@ -903,7 +907,6 @@
                     if (modal) modal.classList.remove('show');
                 }
                 
-                // Exponential backoff for API calls
                 async function retryOperation(operation, maxRetries = 5, delay = 1000) {
                     for (let i = 0; i < maxRetries; i++) {
                         try {
@@ -937,7 +940,6 @@
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         currentUserId = user.uid;
-                        // Fetch user data from Firestore
                         const userDocRef = doc(db, `artifacts/${appId}/users`, user.uid);
                         const userDoc = await retryOperation(() => getDoc(userDocRef));
                         if (userDoc.exists()) {
@@ -1126,7 +1128,6 @@
                     if (!currentUserId || !currentUserData.department) return;
                     const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
                     
-                    // Filter by department
                     const q = query(controlsColRef, where('Department', '==', currentUserData.department));
                     
                     onSnapshot(q, (snapshot) => {
@@ -1253,7 +1254,6 @@
                     return '';
                 }
 
-                // Add this missing function to fix the "renderStatusCell is not defined" error
                 function renderStatusCell(cell, status, control, headerId, collectionName) {
                     const statusText = document.createElement('span');
                     statusText.textContent = status || '-';
@@ -1261,7 +1261,6 @@
                     cell.appendChild(statusText);
                     cell.classList.add('status-cell');
 
-                    // Add event listener for status updates
                     cell.addEventListener('click', async (e) => {
                         const newStatus = prompt(`Enter new status for ${headerId} (Y, N, -):`, status || '-');
                         if (newStatus !== null && ['Y', 'N', '-'].includes(newStatus)) {
@@ -1316,7 +1315,6 @@
                             dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                             if (byWhenDate < today) {
                                 overdueClass = 'overdue-text';
-                                // Auto-update to Overdue if due date passed
                                 if(collectionName === 'keyControls' && control['Tracking Status'] !== 'Overdue') {
                                      updateStatusOnDateChange(control, collectionName);
                                 }
@@ -1338,10 +1336,8 @@
                                 cell.classList.add('link-cell');
                                 cell.appendChild(linkButton);
                             } else if (months.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status' || header.id === 'Assessment') {
-                                // Special rendering for status/selection cells
                                 renderStatusCell(cell, control[header.id], control, header.id, collectionName);
                             } else {
-                                // General editable cells
                                 const value = control[header.id] || '';
                                 const inputElement = document.createElement(header.type === 'select' ? 'select' : 'input');
                                 inputElement.classList.add('input-field', 'w-full', 'text-sm');
@@ -1371,7 +1367,6 @@
                             }
                         });
 
-                        // Add Review, Delete, and Due In columns for all tables
                         const reviewCell = row.insertCell();
                         const reviewBtn = document.createElement('button');
                         reviewBtn.textContent = 'Review';
@@ -1400,7 +1395,6 @@
                         
                         const dataToSave = {...data};
                         
-                        // For new records, explicitly set months/annual to '-' if not provided
                         if (!controlId) {
                             if (collectionName === 'keyControls') {
                                 ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC', 'Annual'].forEach(monthId => {
@@ -1414,7 +1408,6 @@
                             }
                         }
                         
-                        // Ensure Link Name and URL are only saved if they have values
                         const linkName = dataToSave['Link Name'];
                         const linkURL = dataToSave['Link URL'];
                         if (!linkName || linkName.trim() === '') {
@@ -1426,7 +1419,6 @@
                             await retryOperation(() => updateDoc(doc(controlsColRef, controlId), dataToSave));
                             showMessage('Control updated successfully!');
                         } else {
-                            // Set department for the new control based on the current user's department
                             if(currentUserData.department) {
                                dataToSave.Department = currentUserData.department;
                             }
@@ -1631,7 +1623,6 @@
 
                         parsedData.forEach(item => {
                             const newDocRef = doc(controlsColRef);
-                            // Add department to the imported data
                             if(currentUserData.department) {
                                item.Department = currentUserData.department;
                             }
@@ -1669,7 +1660,6 @@
                 });
                 
                 document.getElementById('share-key-button').addEventListener('click', () => {
-                    // Logic to find a recent PDF record and share it
                     const latestPdf = controlData.generatedPdfs
                         .filter(p => p.controlType === 'Key Controls')
                         .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
@@ -1681,7 +1671,6 @@
                 });
                 
                 document.getElementById('share-secondary-button').addEventListener('click', () => {
-                    // Logic to find a recent PDF record and share it
                     const latestPdf = controlData.generatedPdfs
                         .filter(p => p.controlType === 'Secondary Controls')
                         .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
@@ -1700,7 +1689,7 @@
                     
                     const logoUrl = localStorage.getItem('companyLogo');
                     if(logoUrl) {
-                        logoDataUrl = logoUrl; // Store in global variable
+                        logoDataUrl = logoUrl;
                         logoPreview.src = logoUrl;
                         logoPreview.classList.remove('hidden');
                         loginLogo.src = logoUrl;
@@ -1740,12 +1729,12 @@
                     const data = Object.values(dataCounts);
 
                     const colors = [
-                        '#34d399', /* Green for On Track */
-                        '#f87171', /* Red for Overdue */
-                        '#fbbf24', /* Amber for Pending */
-                        '#6b7280', /* Gray for Closed */
-                        '#8b5cf6', /* Purple */
-                        '#3b82f6'  /* Blue */
+                        '#34d399',
+                        '#f87171',
+                        '#fbbf24',
+                        '#6b7280',
+                        '#8b5cf6',
+                        '#3b82f6'
                     ];
                     
                     const backgroundColors = labels.map(label => {
