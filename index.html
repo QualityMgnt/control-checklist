@@ -109,7 +109,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1-px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .btn-secondary:hover {
             background-color: #4b5563;
@@ -1387,11 +1387,10 @@
                         deleteCell.appendChild(deleteBtn);
 
                         const dueInCell = row.insertCell();
-                        // Corrected line to handle NaN error
                         if (!isNaN(dueInDays)) {
-                            dueInDays.textContent = dueInDays;
+                            dueInCell.textContent = dueInDays;
                         } else {
-                            dueInDays.textContent = '-';
+                            dueInCell.textContent = '-';
                         }
                         dueInCell.classList.add(overdueClass);
                     });
@@ -2106,7 +2105,7 @@
                             const actionsCell = row.insertCell();
                             actionsCell.textContent = 'Review / Delete';
                             const dueInCell = row.insertCell();
-                            // Corrected line to handle NaN error
+                            // Corrected logic: check if dueInDays is a valid number before using it
                             if (!isNaN(dueInDays)) {
                                 dueInCell.textContent = dueInDays;
                             } else {
