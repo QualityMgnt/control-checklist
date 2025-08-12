@@ -1349,35 +1349,127 @@
                                 linkButton.onclick = () => openLinkModal(cell);
                                 cell.classList.add('link-cell');
                                 cell.appendChild(linkButton);
-                            } else if (months.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status' || header.id === 'Assessment') {
-                                renderStatusCell(cell, value, control, header.id, collectionName);
+                            } else if (months.includes(header.id) || header.id === 'Annual') {
+                                // Logic for making monthly status fields editable with a dropdown
+                                const initialValue = value || '-';
+                                cell.textContent = initialValue;
+                                const colorClass = getStatusColorClass(initialValue) || '';
+                                if (colorClass) {
+                                    cell.classList.add(colorClass);
+                                }
+                                cell.setAttribute('tabindex', '0');
+                                cell.style.cursor = 'pointer';
+
+                                const options = ['-', 'Y', 'N'];
+                                
+                                cell.addEventListener('click', (e) => {
+                                    if (cell.querySelector('select')) return;
+
+                                    const originalValue = cell.textContent;
+                                    cell.textContent = '';
+
+                                    const selectElement = document.createElement('select');
+                                    selectElement.classList.add('input-field', 'w-full', 'h-full', 'text-sm', 'p-0', 'm-0');
+                                    
+                                    options.forEach(optionText => {
+                                        const option = document.createElement('option');
+                                        option.value = optionText;
+                                        option.textContent = optionText;
+                                        selectElement.appendChild(option);
+                                    });
+                                    selectElement.value = originalValue;
+                                    
+                                    cell.appendChild(selectElement);
+                                    selectElement.focus();
+                                    
+                                    const saveChanges = async () => {
+                                        const newValue = selectElement.value;
+                                        if (newValue !== originalValue) {
+                                            const data = { [header.id]: newValue };
+                                            try {
+                                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
+                                                showMessage('Status updated successfully!');
+                                            } catch (error) {
+                                                console.error("Error updating status:", error);
+                                                showMessage(`Failed to update status: ${error.message}`);
+                                            }
+                                        }
+                                        cell.textContent = newValue;
+                                        cell.classList.remove(...(cell.classList.value.split(' ').filter(c => c.startsWith('status-'))));
+                                        cell.classList.add(getStatusColorClass(newValue));
+                                    };
+
+                                    selectElement.addEventListener('blur', saveChanges);
+                                    selectElement.addEventListener('change', saveChanges);
+                                });
+                            }
+                            else if (header.id === 'Tracking Status' || header.id === 'Assessment' || header.type === 'select') {
+                                // Logic for other dropdowns like Tracking Status and Assessment
+                                const initialValue = value || '-';
+                                cell.textContent = initialValue;
+                                const colorClass = getStatusColorClass(initialValue) || '';
+                                if (colorClass) {
+                                    cell.classList.add(colorClass);
+                                }
+                                cell.setAttribute('tabindex', '0');
+                                cell.style.cursor = 'pointer';
+
+                                const options = header.options;
+                                
+                                cell.addEventListener('click', (e) => {
+                                    if (cell.querySelector('select')) return;
+
+                                    const originalValue = cell.textContent;
+                                    cell.textContent = '';
+
+                                    const selectElement = document.createElement('select');
+                                    selectElement.classList.add('input-field', 'w-full', 'h-full', 'text-sm', 'p-0', 'm-0');
+                                    
+                                    options.forEach(optionText => {
+                                        const option = document.createElement('option');
+                                        option.value = optionText;
+                                        option.textContent = optionText;
+                                        selectElement.appendChild(option);
+                                    });
+                                    selectElement.value = originalValue;
+                                    
+                                    cell.appendChild(selectElement);
+                                    selectElement.focus();
+                                    
+                                    const saveChanges = async () => {
+                                        const newValue = selectElement.value;
+                                        if (newValue !== originalValue) {
+                                            const data = { [header.id]: newValue };
+                                            try {
+                                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
+                                                showMessage('Status updated successfully!');
+                                            } catch (error) {
+                                                console.error("Error updating status:", error);
+                                                showMessage(`Failed to update status: ${error.message}`);
+                                            }
+                                        }
+                                        cell.textContent = newValue;
+                                        cell.classList.remove(...(cell.classList.value.split(' ').filter(c => c.startsWith('status-'))));
+                                        cell.classList.add(getStatusColorClass(newValue));
+                                    };
+
+                                    selectElement.addEventListener('blur', saveChanges);
+                                    selectElement.addEventListener('change', saveChanges);
+                                });
                             } else {
-                                // Make cell content editable on click
+                                // Logic for editable text and date inputs
                                 cell.textContent = value;
-                                cell.setAttribute('tabindex', '0'); // Make cell focusable
+                                cell.setAttribute('tabindex', '0');
                                 cell.style.cursor = 'pointer';
 
                                 cell.addEventListener('click', (e) => {
-                                    if (cell.querySelector('input, select')) return; // Avoid creating multiple inputs
+                                    if (cell.querySelector('input, select')) return;
                                     
+                                    const originalValue = cell.textContent;
                                     cell.textContent = '';
-                                    let inputElement;
-
-                                    if (header.type === 'select' && header.options) {
-                                        inputElement = document.createElement('select');
-                                        header.options.forEach(optionText => {
-                                            const option = document.createElement('option');
-                                            option.value = optionText;
-                                            option.textContent = optionText;
-                                            inputElement.appendChild(option);
-                                        });
-                                        inputElement.value = value;
-                                    } else {
-                                        inputElement = document.createElement('input');
-                                        inputElement.type = header.type || 'text';
-                                        inputElement.value = value;
-                                    }
-
+                                    let inputElement = document.createElement('input');
+                                    inputElement.type = header.type || 'text';
+                                    inputElement.value = originalValue;
                                     inputElement.classList.add('input-field', 'w-full', 'h-full', 'text-sm');
                                     inputElement.style.boxSizing = 'border-box';
                                     cell.appendChild(inputElement);
@@ -1385,9 +1477,15 @@
                                     
                                     const saveChanges = async () => {
                                         const newValue = inputElement.value;
-                                        if (newValue !== value) {
+                                        if (newValue !== originalValue) {
                                             const data = { [header.id]: newValue };
-                                            await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
+                                            try {
+                                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
+                                                showMessage('Updated successfully!');
+                                            } catch (error) {
+                                                console.error("Error updating cell:", error);
+                                                showMessage(`Failed to update cell: ${error.message}`);
+                                            }
                                         }
                                         cell.textContent = newValue;
                                     };
