@@ -945,6 +945,22 @@
                         if (userDoc.exists()) {
                             currentUserData = userDoc.data();
                             document.getElementById('user-display').textContent = `User: ${currentUserData.fullName || user.email}`;
+                            
+                            // Segment the interface based on department
+                            document.querySelectorAll('.tab-button').forEach(button => button.style.display = 'none');
+                            document.querySelector('.tab-button[data-tab="dashboard"]').style.display = 'flex';
+                            document.querySelector('.tab-button[data-tab="reports"]').style.display = 'flex';
+                            document.querySelector('.tab-button[data-tab="upload-images"]').style.display = 'flex';
+                            document.querySelector('.tab-button[data-tab="database"]').style.display = 'flex';
+                            
+                            if (currentUserData.department === 'Contact Centre') {
+                                document.querySelector('.tab-button[data-tab="key-controls"]').style.display = 'flex';
+                            } else if (currentUserData.department === 'Customer Service') {
+                                document.querySelector('.tab-button[data-tab="secondary-controls"]').style.display = 'flex';
+                            } else if (currentUserData.department === 'Admin') { // Assuming an Admin department for all access
+                                document.querySelectorAll('.tab-button').forEach(button => button.style.display = 'flex');
+                            }
+
                         } else {
                             currentUserData = { department: 'unknown', fullName: 'Unknown User' };
                             document.getElementById('user-display').textContent = `User: ${user.email}`;
@@ -1349,7 +1365,7 @@
                                 linkButton.onclick = () => openLinkModal(cell);
                                 cell.classList.add('link-cell');
                                 cell.appendChild(linkButton);
-                            } else if (months.includes(header.id) || header.id === 'Annual') {
+                            } else if (months.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status' || header.id === 'Assessment') {
                                 // Logic for making monthly status fields editable with a dropdown
                                 const initialValue = value || '-';
                                 cell.textContent = initialValue;
@@ -1360,61 +1376,7 @@
                                 cell.setAttribute('tabindex', '0');
                                 cell.style.cursor = 'pointer';
 
-                                const options = ['-', 'Y', 'N'];
-                                
-                                cell.addEventListener('click', (e) => {
-                                    if (cell.querySelector('select')) return;
-
-                                    const originalValue = cell.textContent;
-                                    cell.textContent = '';
-
-                                    const selectElement = document.createElement('select');
-                                    selectElement.classList.add('input-field', 'w-full', 'h-full', 'text-sm', 'p-0', 'm-0');
-                                    
-                                    options.forEach(optionText => {
-                                        const option = document.createElement('option');
-                                        option.value = optionText;
-                                        option.textContent = optionText;
-                                        selectElement.appendChild(option);
-                                    });
-                                    selectElement.value = originalValue;
-                                    
-                                    cell.appendChild(selectElement);
-                                    selectElement.focus();
-                                    
-                                    const saveChanges = async () => {
-                                        const newValue = selectElement.value;
-                                        if (newValue !== originalValue) {
-                                            const data = { [header.id]: newValue };
-                                            try {
-                                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
-                                                showMessage('Status updated successfully!');
-                                            } catch (error) {
-                                                console.error("Error updating status:", error);
-                                                showMessage(`Failed to update status: ${error.message}`);
-                                            }
-                                        }
-                                        cell.textContent = newValue;
-                                        cell.classList.remove(...(cell.classList.value.split(' ').filter(c => c.startsWith('status-'))));
-                                        cell.classList.add(getStatusColorClass(newValue));
-                                    };
-
-                                    selectElement.addEventListener('blur', saveChanges);
-                                    selectElement.addEventListener('change', saveChanges);
-                                });
-                            }
-                            else if (header.id === 'Tracking Status' || header.id === 'Assessment' || header.type === 'select') {
-                                // Logic for other dropdowns like Tracking Status and Assessment
-                                const initialValue = value || '-';
-                                cell.textContent = initialValue;
-                                const colorClass = getStatusColorClass(initialValue) || '';
-                                if (colorClass) {
-                                    cell.classList.add(colorClass);
-                                }
-                                cell.setAttribute('tabindex', '0');
-                                cell.style.cursor = 'pointer';
-
-                                const options = header.options;
+                                const options = (header.options || ['-', 'Y', 'N']); // Fallback options
                                 
                                 cell.addEventListener('click', (e) => {
                                     if (cell.querySelector('select')) return;
@@ -2099,10 +2061,17 @@
                         title = 'All Controls Report';
                     }
                     
-                    if (pdfUserName) {
-                             pdfUserName.textContent = currentUserData.fullName || 'N/A';
+                    // PDF Header and Sign-off Section Updates
+                    if (currentUserData.department) {
+                        document.getElementById('pdf-user-name').textContent = `${currentUserData.department} - Prepared By ${currentUserData.fullName || 'N/A'}`;
+                        document.getElementById('signoff-assistant-name').textContent = currentUserData.fullName || 'N/A';
+                    } else {
+                        document.getElementById('pdf-user-name').textContent = `Prepared By Unknown User`;
+                        document.getElementById('signoff-assistant-name').textContent = 'N/A';
                     }
-                    
+                    document.querySelector('.pdf-signoff-table th:first-child').textContent = 'Prepared By';
+                    document.querySelector('.pdf-signoff-table th:last-child').textContent = 'Approved By';
+
                     if(pdfReportTitle) pdfReportTitle.textContent = title;
                     populatePdfTable(pdfTable, controlsToPrint, type);
                     if (logoDataUrl) {
