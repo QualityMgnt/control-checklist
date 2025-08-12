@@ -744,7 +744,7 @@
                 <div class="flex justify-between items-start mb-6">
                     <div>
                          <h1 class="text-2xl font-bold">Customer Experience Controls Report</h1>
-                         <p>Prepared by: <span id="pdf-user-name" class="font-medium"></span></p>
+                         <p id="pdf-user-name" class="font-medium"></p>
                     </div>
                     <img id="pdf-logo-preview" class="max-h-20 w-auto" src="" alt="Company Logo">
                 </div>
@@ -756,19 +756,19 @@
                 <table class="pdf-signoff-table">
                     <thead>
                         <tr>
-                            <th style="width: 50%; border-bottom: 2px solid black;">Assistant Manager -</th>
-                            <th style="width: 50%; border-bottom: 2px solid black;">Group Manager - Customer Experience</th>
+                            <th style="width: 50%; border-bottom: 2px solid black; background-color: #3B82F6; color: white;">Prepared By</th>
+                            <th style="width: 50%; border-bottom: 2px solid black; background-color: #3B82F6; color: white;">Approved By</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>
-                                <p>Name: <span id="signoff-assistant-name">Darius Kedera</span></p>
+                                <p>Name: <span id="signoff-assistant-name"></span></p>
                                 <p>Signature & Date:</p>
                                 <div class="signature-box"></div>
                             </td>
                             <td>
-                                <p>Name: <span id="signoff-group-manager-name">Eric Muthengi</span></p>
+                                <p>Name: <span id="signoff-group-manager-name"></span></p>
                                 <p>Signature & Date:</p>
                                 <div class="signature-box"></div>
                             </td>
@@ -786,8 +786,6 @@
             import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
             import {
                 getAuth,
-                signInAnonymously,
-                signInWithCustomToken,
                 onAuthStateChanged,
                 createUserWithEmailAndPassword,
                 signInWithEmailAndPassword,
@@ -937,33 +935,39 @@
                 auth = getAuth(app);
                 storage = getStorage(app);
 
+                // --- NEW AUTHENTICATION LOGIC (FIXES ADMIN-RESTRICTED-OPERATION) ---
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         currentUserId = user.uid;
                         const userDocRef = doc(db, `artifacts/${appId}/users`, user.uid);
-                        const userDoc = await retryOperation(() => getDoc(userDocRef));
-                        if (userDoc.exists()) {
-                            currentUserData = userDoc.data();
-                            document.getElementById('user-display').textContent = `User: ${currentUserData.fullName || user.email}`;
-                            
-                            // Segment the interface based on department
-                            document.querySelectorAll('.tab-button').forEach(button => button.style.display = 'none');
-                            document.querySelector('.tab-button[data-tab="dashboard"]').style.display = 'flex';
-                            document.querySelector('.tab-button[data-tab="reports"]').style.display = 'flex';
-                            document.querySelector('.tab-button[data-tab="upload-images"]').style.display = 'flex';
-                            document.querySelector('.tab-button[data-tab="database"]').style.display = 'flex';
-                            
-                            if (currentUserData.department === 'Contact Centre') {
-                                document.querySelector('.tab-button[data-tab="key-controls"]').style.display = 'flex';
-                            } else if (currentUserData.department === 'Customer Service') {
-                                document.querySelector('.tab-button[data-tab="secondary-controls"]').style.display = 'flex';
-                            } else if (currentUserData.department === 'Admin') { // Assuming an Admin department for all access
-                                document.querySelectorAll('.tab-button').forEach(button => button.style.display = 'flex');
+                        try {
+                            const userDoc = await retryOperation(() => getDoc(userDocRef));
+                            if (userDoc.exists()) {
+                                currentUserData = userDoc.data();
+                                document.getElementById('user-display').textContent = `User: ${currentUserData.fullName || user.email}`;
+                                
+                                // Segment the interface based on department
+                                document.querySelectorAll('.tab-button').forEach(button => button.style.display = 'none');
+                                document.querySelector('.tab-button[data-tab="dashboard"]').style.display = 'flex';
+                                document.querySelector('.tab-button[data-tab="reports"]').style.display = 'flex';
+                                document.querySelector('.tab-button[data-tab="upload-images"]').style.display = 'flex';
+                                document.querySelector('.tab-button[data-tab="database"]').style.display = 'flex';
+                                
+                                if (currentUserData.department === 'Contact Centre') {
+                                    document.querySelector('.tab-button[data-tab="key-controls"]').style.display = 'flex';
+                                } else if (currentUserData.department === 'Customer Service') {
+                                    document.querySelector('.tab-button[data-tab="secondary-controls"]').style.display = 'flex';
+                                } else if (currentUserData.department === 'Admin') { // Assuming an Admin department for all access
+                                    document.querySelectorAll('.tab-button').forEach(button => button.style.display = 'flex');
+                                }
+                            } else {
+                                currentUserData = { department: 'unknown', fullName: 'Unknown User' };
+                                document.getElementById('user-display').textContent = `User: ${user.email}`;
                             }
-
-                        } else {
-                            currentUserData = { department: 'unknown', fullName: 'Unknown User' };
-                            document.getElementById('user-display').textContent = `User: ${user.email}`;
+                        } catch(error) {
+                            console.error("Error fetching user data:", error);
+                            showMessage("Failed to load user data. Please try again.");
+                            await signOut(auth);
                         }
                         
                         document.getElementById('login-page').classList.add('hidden');
@@ -986,23 +990,7 @@
                     }
                     hideLoadingSpinner();
                 });
-
-                async function initialSignIn() {
-                    showLoadingSpinner();
-                    try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await retryOperation(() => signInWithCustomToken(auth, __initial_auth_token));
-                        } else {
-                            await retryOperation(() => signInAnonymously(auth));
-                        }
-                    } catch (error) {
-                        console.error("Error during initial sign-in:", error);
-                        showMessage(`Authentication failed: ${error.message}`);
-                    } finally {
-                        hideLoadingSpinner();
-                    }
-                }
-                initialSignIn();
+                // --- END NEW AUTHENTICATION LOGIC ---
 
                 document.getElementById('login-form').addEventListener('submit', async (e) => {
                     e.preventDefault();
@@ -1927,7 +1915,7 @@
                         await loadUsers();
                     } catch (error) {
                         console.error("Error creating user:", error);
-                        showMessage(`Failed to create user: ${error.message}`);
+                        showMessage(`Signup failed: ${error.message}`);
                     } finally {
                         hideLoadingSpinner();
                     }
@@ -2043,7 +2031,6 @@
                     const pdfTable = document.getElementById('pdf-table-to-generate');
                     const pdfReportTitle = document.getElementById('pdf-report-title');
                     const pdfLogoPreview = document.getElementById('pdf-logo-preview');
-                    const pdfUserName = document.getElementById('pdf-user-name');
                     
                     showLoadingSpinner();
 
@@ -2061,16 +2048,28 @@
                         title = 'All Controls Report';
                     }
                     
-                    // PDF Header and Sign-off Section Updates
-                    if (currentUserData.department) {
-                        document.getElementById('pdf-user-name').textContent = `${currentUserData.department} - Prepared By ${currentUserData.fullName || 'N/A'}`;
-                        document.getElementById('signoff-assistant-name').textContent = currentUserData.fullName || 'N/A';
-                    } else {
-                        document.getElementById('pdf-user-name').textContent = `Prepared By Unknown User`;
-                        document.getElementById('signoff-assistant-name').textContent = 'N/A';
+                    // NEW: Update PDF header with department and user name
+                    document.getElementById('pdf-user-name').textContent = `${currentUserData.department || 'N/A'} - Prepared By: ${currentUserData.fullName || 'N/A'}`;
+                    
+                    // NEW: Update sign-off section with new labels and user name
+                    const signoffTable = document.querySelector('.pdf-signoff-table');
+                    const preparedByHeader = signoffTable.querySelector('th:first-child');
+                    const approvedByHeader = signoffTable.querySelector('th:last-child');
+                    const preparedByName = signoffTable.querySelector('#signoff-assistant-name');
+                    const approvedByName = signoffTable.querySelector('#signoff-group-manager-name');
+
+                    if (preparedByHeader) {
+                        preparedByHeader.textContent = 'Prepared By';
                     }
-                    document.querySelector('.pdf-signoff-table th:first-child').textContent = 'Prepared By';
-                    document.querySelector('.pdf-signoff-table th:last-child').textContent = 'Approved By';
+                    if (approvedByHeader) {
+                        approvedByHeader.textContent = 'Approved By';
+                    }
+                    if (preparedByName) {
+                        preparedByName.textContent = currentUserData.fullName || 'N/A';
+                    }
+                    if (approvedByName) {
+                        approvedByName.textContent = ''; // Make this name field blank
+                    }
 
                     if(pdfReportTitle) pdfReportTitle.textContent = title;
                     populatePdfTable(pdfTable, controlsToPrint, type);
