@@ -1702,6 +1702,7 @@
                 function loadLogo() {
                     const logoPreview = document.getElementById('logo-preview');
                     const loginLogo = document.getElementById('login-logo-preview');
+                    const signupLogo = document.getElementById('signup-logo-preview');
                     const headerLogo = document.getElementById('header-logo-preview');
                     const pdfLogo = document.getElementById('pdf-logo-preview');
                     
@@ -1712,6 +1713,8 @@
                         logoPreview.classList.remove('hidden');
                         loginLogo.src = logoUrl;
                         loginLogo.classList.remove('hidden');
+                        signupLogo.src = logoUrl;
+                        signupLogo.classList.remove('hidden');
                         headerLogo.src = logoUrl;
                         headerLogo.classList.remove('hidden');
                         pdfLogo.src = logoUrl;
@@ -1986,24 +1989,40 @@
                         jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' }
                     };
 
-                    await html2pdf().set(options).from(pdfExportContent).save().then(async (pdf) => {
+                    try {
+                        // Generate the PDF and get it as a blob
+                        const pdfBlob = await html2pdf().set(options).from(pdfExportContent).output('blob');
+
+                        // Save the file locally for the user
+                        const fileName = `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
+                        const downloadUrl = URL.createObjectURL(pdfBlob);
+                        const a = document.createElement('a');
+                        a.href = downloadUrl;
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(downloadUrl);
+
                         if(pdfExportContent) pdfExportContent.style.display = 'none';
                         showMessage('PDF generated successfully!');
                         
+                        // Create a record in Firestore
                         const pdfRecord = {
                             date: new Date().toISOString().slice(0, 10),
                             month: new Date().toLocaleString('default', { month: 'long' }),
                             controlType: title.replace(' Report', ''),
-                            fileName: `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
-                            downloadUrl: URL.createObjectURL(pdf.output('blob'))
+                            fileName: fileName,
+                            downloadUrl: downloadUrl // Note: this URL is temporary. For permanent storage, you need to upload the blob to Firebase Storage.
                         };
                         await addDoc(collection(db, `artifacts/${appId}/public/data/generatedPdfs`), pdfRecord);
-                    }).catch(error => {
+                    } catch (error) {
                         console.error("Error generating PDF:", error);
                         showMessage(`Failed to generate PDF: ${error.message}`);
                         if(pdfExportContent) pdfExportContent.style.display = 'none';
-                    });
-                    hideLoadingSpinner();
+                    } finally {
+                        hideLoadingSpinner();
+                    }
                 }
 
                 function populatePdfTable(tableElement, controls, controlType) {
