@@ -1330,6 +1330,9 @@
                         
                         headersToUse.forEach(header => {
                             const cell = row.insertCell();
+                            const value = control[header.id] || '';
+                            const controlId = control.id;
+
                             if (header.id === 'Link') {
                                 const linkName = control['Link Name'];
                                 const linkURL = control['Link URL'];
@@ -1347,33 +1350,54 @@
                                 cell.classList.add('link-cell');
                                 cell.appendChild(linkButton);
                             } else if (months.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status' || header.id === 'Assessment') {
-                                renderStatusCell(cell, control[header.id], control, header.id, collectionName);
+                                renderStatusCell(cell, value, control, header.id, collectionName);
                             } else {
-                                const value = control[header.id] || '';
-                                const inputElement = document.createElement(header.type === 'select' ? 'select' : 'input');
-                                inputElement.classList.add('input-field', 'w-full', 'text-sm');
+                                // Make cell content editable on click
+                                cell.textContent = value;
+                                cell.setAttribute('tabindex', '0'); // Make cell focusable
+                                cell.style.cursor = 'pointer';
 
-                                if (header.type === 'select') {
-                                     header.options.forEach(optionText => {
-                                         const option = document.createElement('option');
-                                         option.value = optionText;
-                                         option.textContent = optionText;
-                                         inputElement.appendChild(option);
-                                     });
-                                } else {
-                                     inputElement.type = header.type;
-                                }
-                                
-                                inputElement.value = value;
-                                cell.appendChild(inputElement);
+                                cell.addEventListener('click', (e) => {
+                                    if (cell.querySelector('input, select')) return; // Avoid creating multiple inputs
+                                    
+                                    cell.textContent = '';
+                                    let inputElement;
 
-                                const originalValue = inputElement.value;
-                                inputElement.addEventListener('blur', async () => {
-                                     if (inputElement.value !== originalValue) {
-                                         const newValue = inputElement.value;
-                                         const data = { [header.id]: newValue };
-                                         await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, control.id), data);
-                                     }
+                                    if (header.type === 'select' && header.options) {
+                                        inputElement = document.createElement('select');
+                                        header.options.forEach(optionText => {
+                                            const option = document.createElement('option');
+                                            option.value = optionText;
+                                            option.textContent = optionText;
+                                            inputElement.appendChild(option);
+                                        });
+                                        inputElement.value = value;
+                                    } else {
+                                        inputElement = document.createElement('input');
+                                        inputElement.type = header.type || 'text';
+                                        inputElement.value = value;
+                                    }
+
+                                    inputElement.classList.add('input-field', 'w-full', 'h-full', 'text-sm');
+                                    inputElement.style.boxSizing = 'border-box';
+                                    cell.appendChild(inputElement);
+                                    inputElement.focus();
+                                    
+                                    const saveChanges = async () => {
+                                        const newValue = inputElement.value;
+                                        if (newValue !== value) {
+                                            const data = { [header.id]: newValue };
+                                            await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
+                                        }
+                                        cell.textContent = newValue;
+                                    };
+                                    
+                                    inputElement.addEventListener('blur', saveChanges);
+                                    inputElement.addEventListener('keypress', (event) => {
+                                        if (event.key === 'Enter') {
+                                            inputElement.blur();
+                                        }
+                                    });
                                 });
                             }
                         });
@@ -1480,6 +1504,11 @@
                     if (!controlForm || !modalTitle) return;
                     controlForm.innerHTML = '';
                     modalTitle.textContent = id ? 'Edit Control' : 'Add New Control';
+                    
+                    const oldModalContent = document.getElementById('control-modal').querySelector('.modal-content');
+                    oldModalContent.style.maxWidth = '90vw';
+                    oldModalContent.style.width = 'fit-content';
+                    oldModalContent.style.maxHeight = '90vh';
 
                     let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
                     
