@@ -782,1460 +782,1520 @@
             <table id="excel-table-to-generate"></table>
         </div>
 
-        <script type="module">
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-            import {
-                getAuth,
-                onAuthStateChanged,
-                createUserWithEmailAndPassword,
-                signInWithEmailAndPassword,
-                signOut,
-                sendPasswordResetEmail
-            } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-            import {
-                getFirestore,
-                collection,
-                doc,
-                setDoc,
-                addDoc,
-                updateDoc,
-                deleteDoc,
-                onSnapshot,
-                query,
-                where,
-                getDocs,
-                writeBatch,
-                getDoc
-            } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-            import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-            
-            document.addEventListener('DOMContentLoaded', () => {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {
+            getAuth,
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            sendPasswordResetEmail
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            doc,
+            setDoc,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            onSnapshot,
+            query,
+            where,
+            getDocs,
+            writeBatch,
+            getDoc
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        
+        // Hypothetical secure configuration fetch
+        const fetchFirebaseConfig = async () => {
+            // In a real application, this would be a secure API call to your backend
+            // For this example, we'll hardcode it, but this should be changed.
+            return {
+                apiKey: "AIzaSyDEK6AOeXiZVWKXw715FGkX9_yeNaKHx_8",
+                authDomain: "controls-f11f8.firebaseapp.com",
+                projectId: "controls-f11f8",
+                storageBucket: "controls-f11f8.firebasestorage.app",
+                messagingSenderId: "316152578637",
+                appId: "1:316152578637:web:b0b3c11c9821ee8bb05204",
+                measurementId: "G-793K2F5VZC"
+            };
+        };
 
-                let app;
-                let db;
-                let auth;
-                let storage;
-                let currentUserId = null;
-                let logoDataUrl = '';
-                const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-                const monthsInNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-                const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-                let currentUserData = {};
-                
-                let keyControlsChart, secondaryControlsChart;
-                let currentLinkCell = null;
+        let app;
+        let db;
+        let auth;
+        let storage;
+        let currentUserId = null;
+        let logoDataUrl = '';
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const monthsInNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+        const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+        let currentUserData = {};
+        
+        let keyControlsChart, secondaryControlsChart;
+        let currentLinkCell = null;
 
-                const keyControlHeaders = [
-                    { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
-                    { id: 'HOW', label: 'How', type: 'text' },
-                    { id: 'FREQ', label: 'Frequency', type: 'select', options: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'] },
-                    { id: 'BY WHEN', label: 'By When', type: 'date' },
-                    { id: 'EVIDENCE OF CONTROL', label: 'Evidence of Control', type: 'text' },
-                    { id: 'JAN', label: '1', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'FEB', label: '2', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'MAR', label: '3', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'APR', label: '4', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'MAY', label: '5', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'JUN', label: '6', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'JUL', label: '7', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'AUG', label: '8', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'SEP', label: '9', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'OCT', label: '10', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'NOV', label: '11', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'DEC', label: '12', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'Annual', label: 'Annual', type: 'select', options: ['Y', 'N', '-'] },
-                    { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On Track', 'Overdue', 'Pending'] },
-                    { id: 'Link', label: 'Link', type: 'link' },
-                ];
-                
-                const secondaryControlHeaders = [
-                    { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
-                    { id: 'HOW (i.e. Manual/ Automated)', label: 'How', type: 'text' },
-                    { id: 'WHO (i.e. Title of reviewer)', label: 'Who', type: 'text' },
-                    { id: 'FREQUENCY e.g. Daily, Weekly, Monthly', label: 'Frequency', type: 'select', options: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'] },
-                    { id: 'BY WHEN (TATs e.g. by 10th of ever month)', label: 'By When', type: 'date' },
-                    { id: 'EVIDENCE OF CONTROL e.g What is signed-off?', label: 'Evidence', type: 'text' },
-                    { id: 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', label: 'Archived', type: 'text' },
-                    { id: 'Date of Review', label: 'Date of Review', type: 'date' },
-                    { id: 'Total number of transactions (where applicable)', label: 'Total Transactions', type: 'number' },
-                    { id: 'Samples checked (Where Applicable)', label: 'Samples Checked', type: 'text' },
-                    { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
-                    { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
-                    { id: 'Required Action', label: 'Required Action', type: 'text' },
-                    { id: 'Closure Date', label: 'Closure Date', type: 'date' },
-                    { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On Track', 'Overdue', 'Pending'] },
-                    { id: 'Link', label: 'URL Link', type: 'link' }
-                ];
-                
-                let controlData = {
-                    keyControls: [],
-                    secondaryControls: [],
-                    generatedPdfs: [],
-                    verifiedControls: []
-                };
-                
-                function showLoadingSpinner() {
-                    const spinner = document.getElementById('loading-spinner');
-                    if (spinner) spinner.style.display = 'block';
-                }
+        const keyControlHeaders = [
+            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
+            { id: 'HOW', label: 'How', type: 'text' },
+            { id: 'FREQ', label: 'Frequency', type: 'select', options: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'] },
+            { id: 'BY WHEN', label: 'By When', type: 'date' },
+            { id: 'EVIDENCE OF CONTROL', label: 'Evidence of Control', type: 'text' },
+            { id: 'JAN', label: '1', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'FEB', label: '2', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'MAR', label: '3', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'APR', label: '4', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'MAY', label: '5', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'JUN', label: '6', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'JUL', label: '7', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'AUG', label: '8', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'SEP', label: '9', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'OCT', label: '10', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'NOV', label: '11', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'DEC', label: '12', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'Annual', label: 'Annual', type: 'select', options: ['Y', 'N', '-'] },
+            { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On Track', 'Overdue', 'Pending'] },
+            { id: 'Link', label: 'Link', type: 'link' },
+        ];
+        
+        const secondaryControlHeaders = [
+            { id: 'KEY CONTROL DESCRIPTION', label: 'Description', type: 'text' },
+            { id: 'HOW (i.e. Manual/ Automated)', label: 'How', type: 'text' },
+            { id: 'WHO (i.e. Title of reviewer)', label: 'Who', type: 'text' },
+            { id: 'FREQUENCY e.g. Daily, Weekly, Monthly', label: 'Frequency', type: 'select', options: ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'] },
+            { id: 'BY WHEN (TATs e.g. by 10th of ever month)', label: 'By When', type: 'date' },
+            { id: 'EVIDENCE OF CONTROL e.g What is signed-off?', label: 'Evidence', type: 'text' },
+            { id: 'HOW CONTROL EVIDENCE IS ARCHIVED e.g Shared folder/EDMS', label: 'Archived', type: 'text' },
+            { id: 'Date of Review', label: 'Date of Review', type: 'date' },
+            { id: 'Total number of transactions (where applicable)', label: 'Total Transactions', type: 'number' },
+            { id: 'Samples checked (Where Applicable)', label: 'Samples Checked', type: 'text' },
+            { id: 'Exceptions from sampled items (Where none, indicate NONE)', label: 'Exceptions', type: 'text' },
+            { id: 'Assessment of Effectiveness of Control from Review (INDICATE: Effective, Partially Effective or Not Effective)', label: 'Assessment', type: 'select', options: ['Effective', 'Partially Effective', 'Not Effective'] },
+            { id: 'Required Action', label: 'Required Action', type: 'text' },
+            { id: 'Closure Date', label: 'Closure Date', type: 'date' },
+            { id: 'Tracking Status', label: 'Tracking Status', type: 'select', options: ['On Track', 'Overdue', 'Pending'] },
+            { id: 'Link', label: 'URL Link', type: 'link' }
+        ];
+        
+        let controlData = {
+            keyControls: [],
+            secondaryControls: [],
+            generatedPdfs: [],
+            verifiedControls: []
+        };
+        
+        function showLoadingSpinner() {
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.style.display = 'block';
+        }
 
-                function hideLoadingSpinner() {
-                    const spinner = document.getElementById('loading-spinner');
-                    if (spinner) spinner.style.display = 'none';
-                }
+        function hideLoadingSpinner() {
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.style.display = 'none';
+        }
 
-                function showMessage(message, duration = 3000) {
-                    const msgBox = document.getElementById('message-box');
-                    if (msgBox) {
-                        msgBox.textContent = message;
-                        msgBox.classList.add('show');
-                        setTimeout(() => {
-                            msgBox.classList.remove('show');
-                        }, duration);
-                    }
-                }
-
-                function showModal(modalId) {
-                    const modal = document.getElementById(modalId);
-                    if (modal) modal.classList.add('show');
-                }
-
-                function hideModal(modalId) {
-                    const modal = document.getElementById(modalId);
-                    if (modal) modal.classList.remove('show');
-                }
-                
-                async function retryOperation(operation, maxRetries = 5, delay = 1000) {
-                    for (let i = 0; i < maxRetries; i++) {
-                        try {
-                            return await operation();
-                        } catch (error) {
-                            if (i < maxRetries - 1) {
-                                await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
-                            } else {
-                                throw error;
-                            }
-                        }
-                    }
-                }
-                
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const firebaseConfig = {
-                    apiKey: "AIzaSyDEK6AOeXiZVWKXw715FGkX9_yeNaKHx_8",
-                    authDomain: "controls-f11f8.firebaseapp.com",
-                    projectId: "controls-f11f8",
-                    storageBucket: "controls-f11f8.firebasestorage.app",
-                    messagingSenderId: "316152578637",
-                    appId: "1:316152578637:web:b0b3c11c9821ee8bb05204",
-                    measurementId: "G-793K2F5VZC"
-                };
-
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                storage = getStorage(app);
-
-                // --- NEW AUTHENTICATION LOGIC (FIXES ADMIN-RESTRICTED-OPERATION) ---
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        currentUserId = user.uid;
-                        const userDocRef = doc(db, `artifacts/${appId}/users`, user.uid);
-                        try {
-                            const userDoc = await retryOperation(() => getDoc(userDocRef));
-                            if (userDoc.exists()) {
-                                currentUserData = userDoc.data();
-                                document.getElementById('user-display').textContent = `User: ${currentUserData.fullName || user.email}`;
-                                
-                                // Segment the interface based on department
-                                document.querySelectorAll('.tab-button').forEach(button => button.style.display = 'none');
-                                document.querySelector('.tab-button[data-tab="dashboard"]').style.display = 'flex';
-                                document.querySelector('.tab-button[data-tab="reports"]').style.display = 'flex';
-                                document.querySelector('.tab-button[data-tab="upload-images"]').style.display = 'flex';
-                                document.querySelector('.tab-button[data-tab="database"]').style.display = 'flex';
-                                
-                                if (currentUserData.department === 'Contact Centre') {
-                                    document.querySelector('.tab-button[data-tab="key-controls"]').style.display = 'flex';
-                                } else if (currentUserData.department === 'Customer Service') {
-                                    document.querySelector('.tab-button[data-tab="secondary-controls"]').style.display = 'flex';
-                                } else if (currentUserData.department === 'Admin') { // Assuming an Admin department for all access
-                                    document.querySelectorAll('.tab-button').forEach(button => button.style.display = 'flex');
-                                }
-                            } else {
-                                currentUserData = { department: 'unknown', fullName: 'Unknown User' };
-                                document.getElementById('user-display').textContent = `User: ${user.email}`;
-                            }
-                        } catch(error) {
-                            console.error("Error fetching user data:", error);
-                            showMessage("Failed to load user data. Please try again.");
-                            await signOut(auth);
-                        }
-                        
-                        document.getElementById('login-page').classList.add('hidden');
-                        document.getElementById('signup-page').classList.add('hidden');
-                        document.getElementById('app-page').classList.remove('hidden');
-                        
-                        await loadControls('keyControls', 'key-controls-table');
-                        await loadControls('secondaryControls', 'secondary-controls-table');
-                        await loadPdfs();
-                        await loadVerifiedControls();
-                        await loadUsers();
-                        loadLogo();
-                        renderDashboardCharts();
-                    } else {
-                        currentUserId = null;
-                        currentUserData = {};
-                        document.getElementById('login-page').classList.remove('hidden');
-                        document.getElementById('signup-page').classList.add('hidden');
-                        document.getElementById('app-page').classList.add('hidden');
-                    }
-                    hideLoadingSpinner();
+        function showMessage(message, duration = 3000) {
+            const msgBox = document.getElementById('message-box');
+            if (msgBox) {
+                msgBox.textContent = message;
+                msgBox.classList.add('show');
+                setTimeout(() => {
+                    msgBox.classList.remove('show');
+                }, duration);
+            }
+        }
+        
+        // Function to create a user with admin privileges (to be handled securely on the backend)
+        async function createNewUserWithAdminPermissions(email, password, fullName, department) {
+            // This operation should ideally be handled by a secure backend service
+            // that uses an admin SDK. For demonstration, we'll assume a successful
+            // creation and log the user into the database.
+            try {
+                // Here's where a secure backend call would go.
+                // For now, we'll simulate the process.
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                await setDoc(doc(db, `artifacts/default-app-id/users`, user.uid), {
+                    email: email,
+                    fullName: fullName,
+                    department: department
                 });
-                // --- END NEW AUTHENTICATION LOGIC ---
+                showMessage(`User ${email} created successfully!`);
+                document.getElementById('create-user-form').reset();
+                await loadUsers();
+            } catch (error) {
+                console.error("Error creating user:", error);
+                showMessage(`Failed to create user: ${error.message}`);
+            }
+        }
+        
+        async function setupFirebase() {
+            showLoadingSpinner();
+            const firebaseConfig = await fetchFirebaseConfig();
+            if (!firebaseConfig) {
+                showMessage("Failed to load application configuration. Please try again.");
+                hideLoadingSpinner();
+                return;
+            }
 
-                document.getElementById('login-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const email = document.getElementById('login-email').value;
-                    const password = document.getElementById('login-password').value;
-                    showLoadingSpinner();
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            storage = getStorage(app);
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    const userDocRef = doc(db, `artifacts/${firebaseConfig.appId}/users`, user.uid);
                     try {
-                        await retryOperation(() => signInWithEmailAndPassword(auth, email, password));
-                        showMessage('Logged in successfully!');
-                    } catch (error) {
-                        console.error("Login error:", error);
-                        showMessage(`Login failed: ${error.message}`);
-                    } finally {
-                        hideLoadingSpinner();
+                        const userDoc = await getDoc(userDocRef);
+                        if (userDoc.exists()) {
+                            currentUserData = userDoc.data();
+                            document.getElementById('user-display').textContent = `User: ${currentUserData.fullName || user.email}`;
+                            
+                            document.querySelectorAll('.tab-button').forEach(button => button.style.display = 'none');
+                            document.querySelector('.tab-button[data-tab="dashboard"]').style.display = 'flex';
+                            document.querySelector('.tab-button[data-tab="reports"]').style.display = 'flex';
+                            document.querySelector('.tab-button[data-tab="upload-images"]').style.display = 'flex';
+                            document.querySelector('.tab-button[data-tab="database"]').style.display = 'flex';
+                            
+                            if (currentUserData.department === 'Contact Centre') {
+                                document.querySelector('.tab-button[data-tab="key-controls"]').style.display = 'flex';
+                            } else if (currentUserData.department === 'Customer Service') {
+                                document.querySelector('.tab-button[data-tab="secondary-controls"]').style.display = 'flex';
+                            } else if (currentUserData.department === 'Admin') {
+                                document.querySelectorAll('.tab-button').forEach(button => button.style.display = 'flex');
+                            }
+                        } else {
+                            currentUserData = { department: 'unknown', fullName: 'Unknown User' };
+                            document.getElementById('user-display').textContent = `User: ${user.email}`;
+                        }
+                    } catch(error) {
+                        console.error("Error fetching user data:", error);
+                        showMessage("Failed to load user data. Please try again.");
+                        await signOut(auth);
                     }
-                });
-                
-                document.getElementById('signup-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const email = document.getElementById('signup-email').value;
-                    const password = document.getElementById('signup-password').value;
-                    const fullName = document.getElementById('signup-fullname').value;
-                    const department = document.getElementById('signup-department').value;
-                    showLoadingSpinner();
-                    try {
-                        const userCredential = await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
-                        const user = userCredential.user;
-                        await retryOperation(() => setDoc(doc(db, `artifacts/${appId}/users`, user.uid), {
-                            email: email,
-                            fullName: fullName,
-                            department: department
-                        }));
-                        showMessage('Account created and logged in successfully!');
-                    } catch (error) {
-                        console.error("Signup error:", error);
-                        showMessage(`Signup failed: ${error.message}`);
-                    } finally {
-                        hideLoadingSpinner();
-                    }
-                });
-
-                document.getElementById('show-signup').addEventListener('click', (e) => {
-                    e.preventDefault();
+                    
                     document.getElementById('login-page').classList.add('hidden');
-                    document.getElementById('signup-page').classList.remove('hidden');
-                });
-
-                document.getElementById('show-login').addEventListener('click', (e) => {
-                    e.preventDefault();
                     document.getElementById('signup-page').classList.add('hidden');
+                    document.getElementById('app-page').classList.remove('hidden');
+                    
+                    await loadControls('keyControls', 'key-controls-table');
+                    await loadControls('secondaryControls', 'secondary-controls-table');
+                    await loadPdfs();
+                    await loadVerifiedControls();
+                    await loadUsers();
+                    loadLogo();
+                    renderDashboardCharts();
+                } else {
+                    currentUserId = null;
+                    currentUserData = {};
                     document.getElementById('login-page').classList.remove('hidden');
-                });
-
-                document.getElementById('logout-button').addEventListener('click', async () => {
-                    showLoadingSpinner();
-                    try {
-                        await retryOperation(() => signOut(auth));
-                        showMessage('Logged out successfully!');
-                    } catch (error) {
-                        console.error("Logout error:", error);
-                        showMessage(`Logout failed: ${error.message}`);
-                    } finally {
-                        hideLoadingSpinner();
-                    }
-                });
-
-                document.getElementById('forgot-password').addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    const email = document.getElementById('login-email').value;
-                    if (!email) {
-                        showMessage('Please enter your email address to reset your password.');
-                        return;
-                    }
-                    showLoadingSpinner();
-                    try {
-                        await retryOperation(() => sendPasswordResetEmail(auth, email));
-                        showMessage(`Password reset email sent to ${email}. Please check your inbox.`);
-                    } catch (error) {
-                        console.error("Forgot password error:", error);
-                        showMessage(`Failed to send reset email: ${error.message}`);
-                    } finally {
-                        hideLoadingSpinner();
-                    }
-                });
-
-                document.querySelectorAll('.tab-button').forEach(button => {
-                    button.addEventListener('click', () => {
-                        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-                        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-                        button.classList.add('active');
-                        document.getElementById(`${button.dataset.tab}-content`).classList.add('active');
-                    });
-                });
-                
-                function openLinkModal(cell) {
-                    currentLinkCell = cell;
-                    const controlId = cell.closest('tr').dataset.id;
-                    const controlType = cell.closest('table').id.includes('key') ? 'keyControls' : 'secondaryControls';
-                    const control = controlData[controlType].find(c => c.id === controlId);
-                    const linkNameInput = document.getElementById('link-name-input');
-                    const linkUrlInput = document.getElementById('link-url-input');
-
-                    linkNameInput.value = control?.['Link Name'] || '';
-                    linkUrlInput.value = control?.['Link URL'] || '';
-                    
-                    showModal('link-modal');
+                    document.getElementById('signup-page').classList.add('hidden');
+                    document.getElementById('app-page').classList.add('hidden');
                 }
-                
-                document.getElementById('link-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const linkName = document.getElementById('link-name-input').value;
-                    const linkUrl = document.getElementById('link-url-input').value;
+                hideLoadingSpinner();
+            });
+        }
 
-                    if (currentLinkCell) {
-                        const controlId = currentLinkCell.closest('tr').dataset.id;
-                        const controlType = currentLinkCell.closest('table').id.includes('key') ? 'keyControls' : 'secondaryControls';
-                        const controlsColRef = collection(db, `artifacts/${appId}/public/data/${controlType}`);
-                        
-                        try {
-                            await updateDoc(doc(controlsColRef, controlId), {
-                                'Link Name': linkName,
-                                'Link URL': linkUrl
-                            });
-                            showMessage('Link updated successfully!');
-                        } catch (error) {
-                            console.error("Error updating link:", error);
-                            showMessage(`Failed to update link: ${error.message}`);
-                        }
+        document.addEventListener('DOMContentLoaded', setupFirebase);
+        
+        // All other functions remain mostly the same, but with slight modifications to handle the new Firebase initialization flow
+        
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('show');
+        }
+        
+        async function retryOperation(operation, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i < maxRetries - 1) {
+                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                    } else {
+                        throw error;
                     }
-                    hideModal('link-modal');
-                });
-                
-                document.getElementById('cancel-link-modal').addEventListener('click', () => {
-                    hideModal('link-modal');
-                });
+                }
+            }
+        }
+        
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => signInWithEmailAndPassword(auth, email, password));
+                showMessage('Logged in successfully!');
+            } catch (error) {
+                console.error("Login error:", error);
+                showMessage(`Login failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+        
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const fullName = document.getElementById('signup-fullname').value;
+            const department = document.getElementById('signup-department').value;
+            showLoadingSpinner();
+            try {
+                const userCredential = await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                const user = userCredential.user;
+                await retryOperation(() => setDoc(doc(db, `artifacts/default-app-id/users`, user.uid), {
+                    email: email,
+                    fullName: fullName,
+                    department: department
+                }));
+                showMessage('Account created and logged in successfully!');
+            } catch (error) {
+                console.error("Signup error:", error);
+                showMessage(`Signup failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
 
-                async function loadControls(collectionName, tableId) {
-                    if (!currentUserId || !currentUserData.department) return;
+        document.getElementById('show-signup').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('signup-page').classList.remove('hidden');
+        });
+
+        document.getElementById('show-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('signup-page').classList.add('hidden');
+            document.getElementById('login-page').classList.remove('hidden');
+        });
+
+        document.getElementById('logout-button').addEventListener('click', async () => {
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => signOut(auth));
+                showMessage('Logged out successfully!');
+            } catch (error) {
+                console.error("Logout error:", error);
+                showMessage(`Logout failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+
+        document.getElementById('forgot-password').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            if (!email) {
+                showMessage('Please enter your email address to reset your password.');
+                return;
+            }
+            showLoadingSpinner();
+            try {
+                await retryOperation(() => sendPasswordResetEmail(auth, email));
+                showMessage(`Password reset email sent to ${email}. Please check your inbox.`);
+            } catch (error) {
+                console.error("Forgot password error:", error);
+                showMessage(`Failed to send reset email: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                button.classList.add('active');
+                document.getElementById(`${button.dataset.tab}-content`).classList.add('active');
+            });
+        });
+        
+        function openLinkModal(cell) {
+            currentLinkCell = cell;
+            const controlId = cell.closest('tr').dataset.id;
+            const controlType = cell.closest('table').id.includes('key') ? 'keyControls' : 'secondaryControls';
+            const control = controlData[controlType].find(c => c.id === controlId);
+            const linkNameInput = document.getElementById('link-name-input');
+            const linkUrlInput = document.getElementById('link-url-input');
+
+            linkNameInput.value = control?.['Link Name'] || '';
+            linkUrlInput.value = control?.['Link URL'] || '';
+            
+            showModal('link-modal');
+        }
+        
+        document.getElementById('link-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const linkName = document.getElementById('link-name-input').value;
+            const linkUrl = document.getElementById('link-url-input').value;
+
+            if (currentLinkCell) {
+                const controlId = currentLinkCell.closest('tr').dataset.id;
+                const controlType = currentLinkCell.closest('table').id.includes('key') ? 'keyControls' : 'secondaryControls';
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${controlType}`);
+                
+                try {
+                    await updateDoc(doc(controlsColRef, controlId), {
+                        'Link Name': linkName,
+                        'Link URL': linkUrl
+                    });
+                    showMessage('Link updated successfully!');
+                } catch (error) {
+                    console.error("Error updating link:", error);
+                    showMessage(`Failed to update link: ${error.message}`);
+                }
+            }
+            hideModal('link-modal');
+        });
+        
+        document.getElementById('cancel-link-modal').addEventListener('click', () => {
+            hideModal('link-modal');
+        });
+
+        async function loadControls(collectionName, tableId) {
+            if (!currentUserId || !currentUserData.department) return;
+            const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+            
+            const q = query(controlsColRef, where('Department', '==', currentUserData.department));
+            
+            onSnapshot(q, (snapshot) => {
+                const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                controlData[collectionName] = controls;
+                renderControlsTable(controls, tableId, collectionName);
+                if (collectionName === 'keyControls' || collectionName === 'secondaryControls') {
+                    renderDashboardCharts();
+                }
+            }, (error) => {
+                console.error(`Error fetching ${collectionName}:`, error);
+                showMessage(`Failed to load ${collectionName}: ${error.message}`);
+            });
+        }
+
+        async function loadPdfs() {
+            if (!currentUserId) return;
+            const pdfsColRef = collection(db, `artifacts/${appId}/public/data/generatedPdfs`);
+            const q = query(pdfsColRef);
+            onSnapshot(q, (snapshot) => {
+                const pdfs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                controlData.generatedPdfs = pdfs;
+                renderPdfsTable(pdfs);
+            }, (error) => {
+                console.error(`Error fetching PDFs:`, error);
+                showMessage(`Failed to load PDF records: ${error.message}`);
+            });
+        }
+
+        async function loadVerifiedControls() {
+            if (!currentUserId) return;
+            const verifiedControlsColRef = collection(db, `artifacts/${appId}/public/data/verifiedControls`);
+            const q = query(verifiedControlsColRef);
+            onSnapshot(q, (snapshot) => {
+                const verifiedControls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                controlData.verifiedControls = verifiedControls;
+                renderVerifiedControlsTable(verifiedControls);
+            }, (error) => {
+                console.error(`Error fetching verified controls:`, error);
+                showMessage(`Failed to load verified controls: ${error.message}`);
+            });
+        }
+        
+        function renderPdfsTable(pdfs) {
+            const tableBody = document.querySelector('#pdf-database-table tbody');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+            pdfs.forEach(pdf => {
+                const row = tableBody.insertRow();
+                const checkboxCell = row.insertCell();
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.classList.add('form-checkbox');
+                checkboxCell.appendChild(checkbox);
+
+                row.insertCell().textContent = pdf.date;
+                row.insertCell().textContent = pdf.month;
+                row.insertCell().textContent = pdf.controlType;
+
+                const attachmentCell = row.insertCell();
+                const downloadLink = document.createElement('a');
+                downloadLink.href = pdf.downloadUrl;
+                downloadLink.textContent = pdf.fileName;
+                downloadLink.target = '_blank';
+                downloadLink.classList.add('text-blue-600', 'hover:underline');
+                attachmentCell.appendChild(downloadLink);
+
+                const downloadCell = row.insertCell();
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Download';
+                downloadBtn.classList.add('btn-primary', 'py-1', 'px-2', 'text-xs');
+                downloadBtn.onclick = () => window.open(pdf.downloadUrl, '_blank');
+                downloadCell.appendChild(downloadBtn);
+
+                const deleteCell = row.insertCell();
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.onclick = () => deletePdf(pdf.id);
+                deleteCell.appendChild(deleteBtn);
+
+                const shareCell = row.insertCell();
+                const shareBtn = document.createElement('button');
+                shareBtn.textContent = 'Share';
+                shareBtn.classList.add('btn-primary');
+                shareBtn.onclick = () => sharePdf(pdf.id);
+                shareCell.appendChild(shareBtn);
+            });
+        }
+        
+        async function deletePdf(pdfId) {
+            const confirmed = window.confirm('Are you sure you want to delete this PDF record?');
+            if (!confirmed) return;
+            try {
+                await retryOperation(() => deleteDoc(doc(db, `artifacts/${appId}/public/data/generatedPdfs`, pdfId)));
+                showMessage('PDF record deleted successfully!');
+            } catch (error) {
+                console.error(`Error deleting PDF record:`, error);
+                showMessage(`Failed to delete PDF record: ${error.message}`);
+            }
+        }
+        
+        function sharePdf(pdfId) {
+            const pdfRecord = controlData.generatedPdfs.find(p => p.id === pdfId);
+            if (!pdfRecord) {
+                showMessage('PDF record not found.');
+                return;
+            }
+            const subject = `Control Report: ${pdfRecord.controlType} - ${pdfRecord.month} ${pdfRecord.date.split('-')[0]}`;
+            const body = `Please find the attached PDF report for ${pdfRecord.controlType} from ${pdfRecord.month} ${pdfRecord.date.split('-')[0]}.`;
+            
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            showMessage('Opening email client. Please manually attach the downloaded PDF.');
+        }
+
+        function getStatusColorClass(status) {
+            if (status === 'Y' || status === 'On Track' || status === 'Effective') {
+                return 'status-green';
+            } else if (status === 'N' || status === 'Overdue' || status === 'Not Effective') {
+                return 'status-red';
+            } else if (status === '-' || status === 'Pending' || status === 'Partially Effective') {
+                return 'status-amber';
+            } else if (status === 'Closed') {
+                return 'status-gray';
+            }
+            return '';
+        }
+
+        function renderStatusCell(cell, status, control, headerId, collectionName) {
+            const statusText = document.createElement('span');
+            const statusValue = status || '-'; 
+            statusText.textContent = statusValue;
+            
+            const colorClass = getStatusColorClass(statusValue) || '';
+            
+            statusText.classList.add('status-text', colorClass);
+            
+            cell.appendChild(statusText);
+            cell.classList.add('status-cell');
+
+            cell.addEventListener('click', async (e) => {
+                const newStatus = prompt(`Enter new status for ${headerId} (Y, N, -):`, status || '-');
+                if (newStatus !== null && ['Y', 'N', '-'].includes(newStatus)) {
+                    const data = { [headerId]: newStatus };
+                    try {
+                        const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                        await updateDoc(doc(controlsColRef, control.id), data);
+                        showMessage('Status updated successfully!');
+                    } catch (error) {
+                        console.error("Error updating status:", error);
+                        showMessage(`Failed to update status: ${error.message}`);
+                    }
+                }
+            });
+        }
+        
+        function updateStatusOnDateChange(control, collectionName) {
+            const byWhenDateStr = control['BY WHEN'];
+            if (byWhenDateStr && control['Tracking Status'] !== 'Overdue' && control['Tracking Status'] !== 'Closed') {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const byWhenDate = new Date(byWhenDateStr);
+                if (byWhenDate < today) {
                     const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-                    
-                    const q = query(controlsColRef, where('Department', '==', currentUserData.department));
-                    
-                    onSnapshot(q, (snapshot) => {
-                        const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        controlData[collectionName] = controls;
-                        renderControlsTable(controls, tableId, collectionName);
-                        if (collectionName === 'keyControls' || collectionName === 'secondaryControls') {
-                            renderDashboardCharts();
-                        }
-                    }, (error) => {
-                        console.error(`Error fetching ${collectionName}:`, error);
-                        showMessage(`Failed to load ${collectionName}: ${error.message}`);
-                    });
+                    updateDoc(doc(controlsColRef, control.id), { 'Tracking Status': 'Overdue' })
+                        .catch(error => console.error("Error updating status to Overdue:", error));
                 }
+            }
+        }
 
-                async function loadPdfs() {
-                    if (!currentUserId) return;
-                    const pdfsColRef = collection(db, `artifacts/${appId}/public/data/generatedPdfs`);
-                    const q = query(pdfsColRef);
-                    onSnapshot(q, (snapshot) => {
-                        const pdfs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        controlData.generatedPdfs = pdfs;
-                        renderPdfsTable(pdfs);
-                    }, (error) => {
-                        console.error(`Error fetching PDFs:`, error);
-                        showMessage(`Failed to load PDF records: ${error.message}`);
-                    });
-                }
+        function renderControlsTable(controls, tableId, collectionName) {
+            const tableBody = document.querySelector(`#${tableId} tbody`);
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-                async function loadVerifiedControls() {
-                    if (!currentUserId) return;
-                    const verifiedControlsColRef = collection(db, `artifacts/${appId}/public/data/verifiedControls`);
-                    const q = query(verifiedControlsColRef);
-                    onSnapshot(q, (snapshot) => {
-                        const verifiedControls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        controlData.verifiedControls = verifiedControls;
-                        renderVerifiedControlsTable(verifiedControls);
-                    }, (error) => {
-                        console.error(`Error fetching verified controls:`, error);
-                        showMessage(`Failed to load verified controls: ${error.message}`);
-                    });
-                }
+            const headersToUse = collectionName === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
+
+            controls.forEach(control => {
+                const row = tableBody.insertRow();
+                row.dataset.id = control.id;
                 
-                function renderPdfsTable(pdfs) {
-                    const tableBody = document.querySelector('#pdf-database-table tbody');
-                    if (!tableBody) return;
-                    tableBody.innerHTML = '';
-                    pdfs.forEach(pdf => {
-                        const row = tableBody.insertRow();
-                        const checkboxCell = row.insertCell();
-                        const checkbox = document.createElement('input');
-                        checkbox.type = 'checkbox';
-                        checkbox.classList.add('form-checkbox');
-                        checkboxCell.appendChild(checkbox);
+                let byWhenDateStr = control['BY WHEN'];
+                let dueInDays = '-';
+                let overdueClass = '';
 
-                        row.insertCell().textContent = pdf.date;
-                        row.insertCell().textContent = pdf.month;
-                        row.insertCell().textContent = pdf.controlType;
-
-                        const attachmentCell = row.insertCell();
-                        const downloadLink = document.createElement('a');
-                        downloadLink.href = pdf.downloadUrl;
-                        downloadLink.textContent = pdf.fileName;
-                        downloadLink.target = '_blank';
-                        downloadLink.classList.add('text-blue-600', 'hover:underline');
-                        attachmentCell.appendChild(downloadLink);
-
-                        const downloadCell = row.insertCell();
-                        const downloadBtn = document.createElement('button');
-                        downloadBtn.textContent = 'Download';
-                        downloadBtn.classList.add('btn-primary', 'py-1', 'px-2', 'text-xs');
-                        downloadBtn.onclick = () => window.open(pdf.downloadUrl, '_blank');
-                        downloadCell.appendChild(downloadBtn);
-
-                        const deleteCell = row.insertCell();
-                        const deleteBtn = document.createElement('button');
-                        deleteBtn.textContent = 'Delete';
-                        deleteBtn.classList.add('delete-btn');
-                        deleteBtn.onclick = () => deletePdf(pdf.id);
-                        deleteCell.appendChild(deleteBtn);
-
-                        const shareCell = row.insertCell();
-                        const shareBtn = document.createElement('button');
-                        shareBtn.textContent = 'Share';
-                        shareBtn.classList.add('btn-primary');
-                        shareBtn.onclick = () => sharePdf(pdf.id);
-                        shareCell.appendChild(shareBtn);
-                    });
-                }
-                
-                async function deletePdf(pdfId) {
-                    const confirmed = window.confirm('Are you sure you want to delete this PDF record?');
-                    if (!confirmed) return;
-                    try {
-                        await retryOperation(() => deleteDoc(doc(db, `artifacts/${appId}/public/data/generatedPdfs`, pdfId)));
-                        showMessage('PDF record deleted successfully!');
-                    } catch (error) {
-                        console.error(`Error deleting PDF record:`, error);
-                        showMessage(`Failed to delete PDF record: ${error.message}`);
+                if (byWhenDateStr) {
+                    const byWhenDate = new Date(byWhenDateStr);
+                    byWhenDate.setHours(0, 0, 0, 0);
+                    const diffTime = byWhenDate.getTime() - today.getTime();
+                    dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (byWhenDate < today) {
+                        overdueClass = 'overdue-text';
+                        if(collectionName === 'keyControls' && control['Tracking Status'] !== 'Overdue') {
+                                updateStatusOnDateChange(control, collectionName);
+                             }
                     }
                 }
                 
-                function sharePdf(pdfId) {
-                    const pdfRecord = controlData.generatedPdfs.find(p => p.id === pdfId);
-                    if (!pdfRecord) {
-                        showMessage('PDF record not found.');
-                        return;
-                    }
-                    const subject = `Control Report: ${pdfRecord.controlType} - ${pdfRecord.month} ${pdfRecord.date.split('-')[0]}`;
-                    const body = `Please find the attached PDF report for ${pdfRecord.controlType} from ${pdfRecord.month} ${pdfRecord.date.split('-')[0]}.`;
-                    
-                    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                    showMessage('Opening email client. Please manually attach the downloaded PDF.');
-                }
+                headersToUse.forEach(header => {
+                    const cell = row.insertCell();
+                    const value = control[header.id] || '';
+                    const controlId = control.id;
 
-                function getStatusColorClass(status) {
-                    if (status === 'Y' || status === 'On Track' || status === 'Effective') {
-                        return 'status-green';
-                    } else if (status === 'N' || status === 'Overdue' || status === 'Not Effective') {
-                        return 'status-red';
-                    } else if (status === '-' || status === 'Pending' || status === 'Partially Effective') {
-                        return 'status-amber';
-                    } else if (status === 'Closed') {
-                        return 'status-gray';
-                    }
-                    return '';
-                }
-
-                function renderStatusCell(cell, status, control, headerId, collectionName) {
-                    const statusText = document.createElement('span');
-                    const statusValue = status || '-'; 
-                    statusText.textContent = statusValue;
-                    
-                    const colorClass = getStatusColorClass(statusValue) || '';
-                    
-                    statusText.classList.add('status-text', colorClass);
-                    
-                    cell.appendChild(statusText);
-                    cell.classList.add('status-cell');
-
-                    cell.addEventListener('click', async (e) => {
-                        const newStatus = prompt(`Enter new status for ${headerId} (Y, N, -):`, status || '-');
-                        if (newStatus !== null && ['Y', 'N', '-'].includes(newStatus)) {
-                            const data = { [headerId]: newStatus };
-                            try {
-                                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-                                await updateDoc(doc(controlsColRef, control.id), data);
-                                showMessage('Status updated successfully!');
-                            } catch (error) {
-                                console.error("Error updating status:", error);
-                                showMessage(`Failed to update status: ${error.message}`);
-                            }
-                        }
-                    });
-                }
-                
-                function updateStatusOnDateChange(control, collectionName) {
-                    const byWhenDateStr = control['BY WHEN'];
-                    if (byWhenDateStr && control['Tracking Status'] !== 'Overdue' && control['Tracking Status'] !== 'Closed') {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        const byWhenDate = new Date(byWhenDateStr);
-                        if (byWhenDate < today) {
-                            const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-                            updateDoc(doc(controlsColRef, control.id), { 'Tracking Status': 'Overdue' })
-                                .catch(error => console.error("Error updating status to Overdue:", error));
-                        }
-                    }
-                }
-
-                function renderControlsTable(controls, tableId, collectionName) {
-                    const tableBody = document.querySelector(`#${tableId} tbody`);
-                    if (!tableBody) return;
-                    tableBody.innerHTML = '';
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-
-                    const headersToUse = collectionName === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
-
-                    controls.forEach(control => {
-                        const row = tableBody.insertRow();
-                        row.dataset.id = control.id;
+                    if (header.id === 'Link') {
+                        const linkName = control['Link Name'];
+                        const linkURL = control['Link URL'];
+                        const linkText = linkName || 'Add Link';
+                        const linkClass = linkName ? 'text-blue-600 hover:underline' : 'text-gray-500';
                         
-                        let byWhenDateStr = control['BY WHEN'];
-                        let dueInDays = '-';
-                        let overdueClass = '';
-
-                        if (byWhenDateStr) {
-                            const byWhenDate = new Date(byWhenDateStr);
-                            byWhenDate.setHours(0, 0, 0, 0);
-                            const diffTime = byWhenDate.getTime() - today.getTime();
-                            dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            if (byWhenDate < today) {
-                                overdueClass = 'overdue-text';
-                                if(collectionName === 'keyControls' && control['Tracking Status'] !== 'Overdue') {
-                                     updateStatusOnDateChange(control, collectionName);
-                                 }
-                            }
+                        const linkButton = document.createElement('button');
+                        linkButton.textContent = linkText;
+                        const linkClassesToAdd = ['p-1', 'rounded'];
+                        if (linkClass) {
+                            linkClassesToAdd.push(...linkClass.split(' '));
                         }
-                        
-                        headersToUse.forEach(header => {
-                            const cell = row.insertCell();
-                            const value = control[header.id] || '';
-                            const controlId = control.id;
-
-                            if (header.id === 'Link') {
-                                const linkName = control['Link Name'];
-                                const linkURL = control['Link URL'];
-                                const linkText = linkName || 'Add Link';
-                                const linkClass = linkName ? 'text-blue-600 hover:underline' : 'text-gray-500';
-                                
-                                const linkButton = document.createElement('button');
-                                linkButton.textContent = linkText;
-                                const linkClassesToAdd = ['p-1', 'rounded'];
-                                if (linkClass) {
-                                    linkClassesToAdd.push(...linkClass.split(' '));
-                                }
-                                linkButton.classList.add(...linkClassesToAdd);
-                                linkButton.onclick = () => openLinkModal(cell);
-                                cell.classList.add('link-cell');
-                                cell.appendChild(linkButton);
-                            } else if (months.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status' || header.id === 'Assessment') {
-                                // Logic for making monthly status fields editable with a dropdown
-                                const initialValue = value || '-';
-                                cell.textContent = initialValue;
-                                const colorClass = getStatusColorClass(initialValue) || '';
-                                if (colorClass) {
-                                    cell.classList.add(colorClass);
-                                }
-                                cell.setAttribute('tabindex', '0');
-                                cell.style.cursor = 'pointer';
-
-                                const options = (header.options || ['-', 'Y', 'N']); // Fallback options
-                                
-                                cell.addEventListener('click', (e) => {
-                                    if (cell.querySelector('select')) return;
-
-                                    const originalValue = cell.textContent;
-                                    cell.textContent = '';
-
-                                    const selectElement = document.createElement('select');
-                                    selectElement.classList.add('input-field', 'w-full', 'h-full', 'text-sm', 'p-0', 'm-0');
-                                    
-                                    options.forEach(optionText => {
-                                        const option = document.createElement('option');
-                                        option.value = optionText;
-                                        option.textContent = optionText;
-                                        selectElement.appendChild(option);
-                                    });
-                                    selectElement.value = originalValue;
-                                    
-                                    cell.appendChild(selectElement);
-                                    selectElement.focus();
-                                    
-                                    const saveChanges = async () => {
-                                        const newValue = selectElement.value;
-                                        if (newValue !== originalValue) {
-                                            const data = { [header.id]: newValue };
-                                            try {
-                                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
-                                                showMessage('Status updated successfully!');
-                                            } catch (error) {
-                                                console.error("Error updating status:", error);
-                                                showMessage(`Failed to update status: ${error.message}`);
-                                            }
-                                        }
-                                        cell.textContent = newValue;
-                                        cell.classList.remove(...(cell.classList.value.split(' ').filter(c => c.startsWith('status-'))));
-                                        cell.classList.add(getStatusColorClass(newValue));
-                                    };
-
-                                    selectElement.addEventListener('blur', saveChanges);
-                                    selectElement.addEventListener('change', saveChanges);
-                                });
-                            } else {
-                                // Logic for editable text and date inputs
-                                cell.textContent = value;
-                                cell.setAttribute('tabindex', '0');
-                                cell.style.cursor = 'pointer';
-
-                                cell.addEventListener('click', (e) => {
-                                    if (cell.querySelector('input, select')) return;
-                                    
-                                    const originalValue = cell.textContent;
-                                    cell.textContent = '';
-                                    let inputElement = document.createElement('input');
-                                    inputElement.type = header.type || 'text';
-                                    inputElement.value = originalValue;
-                                    inputElement.classList.add('input-field', 'w-full', 'h-full', 'text-sm');
-                                    inputElement.style.boxSizing = 'border-box';
-                                    cell.appendChild(inputElement);
-                                    inputElement.focus();
-                                    
-                                    const saveChanges = async () => {
-                                        const newValue = inputElement.value;
-                                        if (newValue !== originalValue) {
-                                            const data = { [header.id]: newValue };
-                                            try {
-                                                await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
-                                                showMessage('Updated successfully!');
-                                            } catch (error) {
-                                                console.error("Error updating cell:", error);
-                                                showMessage(`Failed to update cell: ${error.message}`);
-                                            }
-                                        }
-                                        cell.textContent = newValue;
-                                    };
-                                    
-                                    inputElement.addEventListener('blur', saveChanges);
-                                    inputElement.addEventListener('keypress', (event) => {
-                                        if (event.key === 'Enter') {
-                                            inputElement.blur();
-                                        }
-                                    });
-                                });
-                            }
-                        });
-
-                        const reviewCell = row.insertCell();
-                        const reviewBtn = document.createElement('button');
-                        reviewBtn.textContent = 'Review';
-                        reviewBtn.classList.add('review-btn');
-                        reviewBtn.onclick = () => openControlModal(collectionName, control.id, control);
-                        reviewCell.appendChild(reviewBtn);
-                        
-                        const deleteCell = row.insertCell();
-                        const deleteBtn = document.createElement('button');
-                        deleteBtn.textContent = 'Delete';
-                        deleteBtn.classList.add('delete-btn');
-                        deleteBtn.onclick = () => deleteControl(collectionName, control.id);
-                        deleteCell.appendChild(deleteBtn);
-
-                        const dueInCell = row.insertCell();
-                        if (!isNaN(dueInDays)) {
-                            dueInCell.textContent = dueInDays;
-                        } else {
-                            dueInCell.textContent = '-';
+                        linkButton.classList.add(...linkClassesToAdd);
+                        linkButton.onclick = () => openLinkModal(cell);
+                        cell.classList.add('link-cell');
+                        cell.appendChild(linkButton);
+                    } else if (months.includes(header.id) || header.id === 'Annual' || header.id === 'Tracking Status' || header.id === 'Assessment') {
+                        const initialValue = value || '-';
+                        cell.textContent = initialValue;
+                        const colorClass = getStatusColorClass(initialValue) || '';
+                        if (colorClass) {
+                            cell.classList.add(colorClass);
                         }
-                        if (overdueClass) {
-                            dueInCell.classList.add(overdueClass);
-                        }
-                    });
-                }
+                        cell.setAttribute('tabindex', '0');
+                        cell.style.cursor = 'pointer';
 
+                        const options = (header.options || ['-', 'Y', 'N']);
 
-                async function addOrUpdateControl(collectionName, controlId, data) {
-                    showLoadingSpinner();
-                    try {
-                        const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-                        
-                        const dataToSave = {...data};
-                        
-                        if (!controlId) {
-                            if (collectionName === 'keyControls') {
-                                ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC', 'Annual'].forEach(monthId => {
-                                    if (!dataToSave[monthId]) {
-                                        dataToSave[monthId] = '-';
-                                    }
-                                });
-                                if (!dataToSave['Tracking Status']) {
-                                        dataToSave['Tracking Status'] = 'Pending';
-                                }
-                            }
-                        }
-                        
-                        const linkName = dataToSave['Link Name'];
-                        const linkURL = dataToSave['Link URL'];
-                        if (!linkName || linkName.trim() === '') {
-                            delete dataToSave['Link Name'];
-                            delete dataToSave['Link URL'];
-                        }
+                        cell.addEventListener('click', (e) => {
+                            if (cell.querySelector('select')) return;
 
-                        if (controlId) {
-                            await retryOperation(() => updateDoc(doc(controlsColRef, controlId), dataToSave));
-                            showMessage('Control updated successfully!');
-                        } else {
-                            if(currentUserData.department) {
-                                dataToSave.Department = currentUserData.department;
-                            }
-                            await retryOperation(() => addDoc(controlsColRef, dataToSave));
-                            showMessage('Control added successfully!');
-                        }
-                    } catch (error) {
-                        console.error(`Error saving control to ${collectionName}:`, error);
-                        showMessage(`Failed to save control: ${error.message}`);
-                    } finally {
-                        hideLoadingSpinner();
-                        hideModal('control-modal');
-                    }
-                }
+                            const originalValue = cell.textContent;
+                            cell.textContent = '';
 
-                async function deleteControl(collectionName, controlId) {
-                    const confirmed = window.confirm('Are you sure you want to delete this control?');
-                    if (!confirmed) return;
-
-                    showLoadingSpinner();
-                    try {
-                        const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-                        await retryOperation(() => deleteDoc(doc(controlsColRef, controlId)));
-                        showMessage('Control deleted successfully!');
-                    } catch (error) {
-                        console.error(`Error deleting control from ${collectionName}:`, error);
-                        showMessage(`Failed to delete control: ${error.message}`);
-                    } finally {
-                        hideLoadingSpinner();
-                    }
-                }
-
-                let currentControlType = '';
-                let currentControlId = null;
-
-                function openControlModal(type, id = null, data = {}) {
-                    currentControlType = type;
-                    currentControlId = id;
-                    
-                    const modalTitle = document.getElementById('modal-title');
-                    const controlForm = document.getElementById('control-form');
-                    if (!controlForm || !modalTitle) return;
-                    controlForm.innerHTML = '';
-                    modalTitle.textContent = id ? 'Edit Control' : 'Add New Control';
-                    
-                    const oldModalContent = document.getElementById('control-modal').querySelector('.modal-content');
-                    oldModalContent.style.maxWidth = '90vw';
-                    oldModalContent.style.width = 'fit-content';
-                    oldModalContent.style.maxHeight = '90vh';
-
-                    let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
-                    
-                    // Create a container for the grid layout
-                    const gridContainer = document.createElement('div');
-                    gridContainer.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
-                    controlForm.appendChild(gridContainer);
-                    
-                    headersToUse.forEach(header => {
-                        if (header.id === 'Link') {
-                            return;
-                        }
-                        
-                        const div = document.createElement('div');
-                        div.classList.add('mb-4');
-
-                        const label = document.createElement('label');
-                        label.htmlFor = `form-${header.id}`;
-                        label.classList.add('block', 'text-sm', 'font-medium', 'text-gray-700', 'mb-1');
-                        label.textContent = header.label;
-                        div.appendChild(label);
-
-                        let inputElement;
-                        if (header.type === 'select' && header.options) {
-                            inputElement = document.createElement('select');
-                            inputElement.id = `form-${header.id}`;
-                            inputElement.classList.add('input-field');
-                            header.options.forEach(optionText => {
+                            const selectElement = document.createElement('select');
+                            selectElement.classList.add('input-field', 'w-full', 'h-full', 'text-sm', 'p-0', 'm-0');
+                            
+                            options.forEach(optionText => {
                                 const option = document.createElement('option');
                                 option.value = optionText;
                                 option.textContent = optionText;
-                                inputElement.appendChild(option);
+                                selectElement.appendChild(option);
                             });
-                            inputElement.value = data[header.id] || '';
-                        } else if (header.type === 'date') {
-                            inputElement = document.createElement('input');
-                            inputElement.type = 'date';
-                            inputElement.id = `form-${header.id}`;
-                            inputElement.classList.add('input-field');
-                            inputElement.value = data[header.id] || '';
-                        } else {
-                            inputElement = document.createElement('input');
+                            selectElement.value = originalValue;
+                            
+                            cell.appendChild(selectElement);
+                            selectElement.focus();
+                            
+                            const saveChanges = async () => {
+                                const newValue = selectElement.value;
+                                if (newValue !== originalValue) {
+                                    const data = { [header.id]: newValue };
+                                    try {
+                                        await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
+                                        showMessage('Status updated successfully!');
+                                    } catch (error) {
+                                        console.error("Error updating status:", error);
+                                        showMessage(`Failed to update status: ${error.message}`);
+                                    }
+                                }
+                                cell.textContent = newValue;
+                                cell.classList.remove(...(cell.classList.value.split(' ').filter(c => c.startsWith('status-'))));
+                                cell.classList.add(getStatusColorClass(newValue));
+                            };
+
+                            selectElement.addEventListener('blur', saveChanges);
+                            selectElement.addEventListener('change', saveChanges);
+                        });
+                    } else {
+                        cell.textContent = value;
+                        cell.setAttribute('tabindex', '0');
+                        cell.style.cursor = 'pointer';
+
+                        cell.addEventListener('click', (e) => {
+                            if (cell.querySelector('input, select')) return;
+                            
+                            const originalValue = cell.textContent;
+                            cell.textContent = '';
+                            let inputElement = document.createElement('input');
                             inputElement.type = header.type || 'text';
-                            inputElement.id = `form-${header.id}`;
-                            inputElement.classList.add('input-field');
-                            inputElement.value = data[header.id] || '';
-                        }
-                        
-                        div.appendChild(inputElement);
-                        gridContainer.appendChild(div); // Append to the grid container
-                    });
-                    
-                    const linkNameHeader = { id: 'Link Name', label: 'Link Name', type: 'text' };
-                    const linkUrlHeader = { id: 'Link URL', label: 'Link URL', type: 'url' };
-                    
-                    const linkNameDiv = document.createElement('div');
-                    linkNameDiv.classList.add('mb-4');
-                    linkNameDiv.innerHTML = `<label for="form-${linkNameHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkNameHeader.label}</label><input type="${linkNameHeader.type}" id="form-${linkNameHeader.id}" class="input-field" value="${data[linkNameHeader.id] || ''}">`;
-                    gridContainer.appendChild(linkNameDiv); // Append to the grid container
-
-                    const linkUrlDiv = document.createElement('div');
-                    linkUrlDiv.classList.add('mb-4');
-                    linkUrlDiv.innerHTML = `<label for="form-${linkUrlHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkUrlHeader.label}</label><input type="${linkUrlHeader.type}" id="form-${linkUrlHeader.id}" class="input-field" value="${data[linkUrlHeader.id] || ''}">`;
-                    gridContainer.appendChild(linkUrlDiv); // Append to the grid container
-
-                    // Add the button container after the grid container
-                    const buttonDiv = document.createElement('div');
-                    buttonDiv.classList.add('flex', 'justify-end', 'mt-6');
-                    
-                    const saveButton = document.createElement('button');
-                    saveButton.type = 'submit';
-                    saveButton.classList.add('btn-primary');
-                    saveButton.textContent = 'Save Control';
-                    buttonDiv.appendChild(saveButton);
-
-                    const cancelButton = document.createElement('button');
-                    cancelButton.type = 'button';
-                    cancelButton.id = 'cancel-control-modal';
-                    cancelButton.classList.add('btn-secondary', 'ml-2');
-                    cancelButton.textContent = 'Cancel';
-                    cancelButton.onclick = () => hideModal('control-modal');
-                    buttonDiv.appendChild(cancelButton);
-
-                    controlForm.appendChild(buttonDiv);
-                    
-                    showModal('control-modal');
-                }
-
-                document.getElementById('control-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const formData = {};
-                    let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
-                    
-                    headersToUse.forEach(header => {
-                        if (header.id === 'Link') {
-                            return;
-                        }
-                        const inputElement = document.getElementById(`form-${header.id}`);
-                        if (inputElement) {
-                            formData[header.id] = inputElement.value;
-                        }
-                    });
-                    
-                    const linkNameInput = document.getElementById('form-Link Name');
-                    const linkUrlInput = document.getElementById('form-Link URL');
-                    if (linkNameInput) formData['Link Name'] = linkNameInput.value;
-                    if (linkUrlInput) formData['Link URL'] = linkUrlInput.value;
-
-                    await addOrUpdateControl(currentControlType, currentControlId, formData);
+                            inputElement.value = originalValue;
+                            inputElement.classList.add('input-field', 'w-full', 'h-full', 'text-sm');
+                            inputElement.style.boxSizing = 'border-box';
+                            cell.appendChild(inputElement);
+                            inputElement.focus();
+                            
+                            const saveChanges = async () => {
+                                const newValue = inputElement.value;
+                                if (newValue !== originalValue) {
+                                    const data = { [header.id]: newValue };
+                                    try {
+                                        await updateDoc(doc(db, `artifacts/${appId}/public/data/${collectionName}`, controlId), data);
+                                        showMessage('Updated successfully!');
+                                    } catch (error) {
+                                        console.error("Error updating cell:", error);
+                                        showMessage(`Failed to update cell: ${error.message}`);
+                                    }
+                                }
+                                cell.textContent = newValue;
+                            };
+                            
+                            inputElement.addEventListener('blur', saveChanges);
+                            inputElement.addEventListener('keypress', (event) => {
+                                if (event.key === 'Enter') {
+                                    inputElement.blur();
+                                }
+                            });
+                        });
+                    }
                 });
 
-                document.getElementById('add-key-control-btn').addEventListener('click', () => openControlModal('keyControls'));
-                document.getElementById('add-secondary-control-btn').addEventListener('click', () => openControlModal('secondaryControls'));
+                const reviewCell = row.insertCell();
+                const reviewBtn = document.createElement('button');
+                reviewBtn.textContent = 'Review';
+                reviewBtn.classList.add('review-btn');
+                reviewBtn.onclick = () => openControlModal(collectionName, control.id, control);
+                reviewCell.appendChild(reviewBtn);
+                
+                const deleteCell = row.insertCell();
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.onclick = () => deleteControl(collectionName, control.id);
+                deleteCell.appendChild(deleteBtn);
 
-                async function parseCSV(file) {
-                    return new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            const text = event.target.result;
-                            const lines = text.split('\n').filter(line => line.trim() !== '');
-                            if (lines.length === 0) {
-                                reject(new Error("CSV file is empty or malformed."));
-                                return;
+                const dueInCell = row.insertCell();
+                if (!isNaN(dueInDays)) {
+                    dueInCell.textContent = dueInDays;
+                } else {
+                    dueInCell.textContent = '-';
+                }
+                if (overdueClass) {
+                    dueInCell.classList.add(overdueClass);
+                }
+            });
+        }
+
+
+        async function addOrUpdateControl(collectionName, controlId, data) {
+            showLoadingSpinner();
+            try {
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                
+                const dataToSave = {...data};
+                
+                if (!controlId) {
+                    if (collectionName === 'keyControls') {
+                        ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC', 'Annual'].forEach(monthId => {
+                            if (!dataToSave[monthId]) {
+                                dataToSave[monthId] = '-';
                             }
-                            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-                            const data = [];
-                            for (let i = 1; i < lines.length; i++) {
-                                const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-                                if (values.length === headers.length) {
-                                    const row = {};
-                                    headers.forEach((header, index) => {
-                                        row[header] = values[index];
-                                    });
-                                    data.push(row);
-                                } else if (values.length > 1) {
-                                    console.warn(`Skipping malformed row ${i + 1}: Expected ${headers.length} columns, got ${values.length}. Row: ${lines[i]}`);
-                                }
-                            }
-                            resolve(data);
-                        };
-                        reader.onerror = (error) => reject(error);
-                        reader.readAsText(file);
-                    });
+                        });
+                        if (!dataToSave['Tracking Status']) {
+                                dataToSave['Tracking Status'] = 'Pending';
+                        }
+                    }
+                }
+                
+                const linkName = dataToSave['Link Name'];
+                const linkURL = dataToSave['Link URL'];
+                if (!linkName || linkName.trim() === '') {
+                    delete dataToSave['Link Name'];
+                    delete dataToSave['Link URL'];
                 }
 
-                async function uploadControls(fileInputId, collectionName) {
-                    const fileInput = document.getElementById(fileInputId);
-                    const file = fileInput.files[0];
-                    if (!file) {
-                        showMessage('Please select a CSV file to upload.');
+                if (controlId) {
+                    await retryOperation(() => updateDoc(doc(controlsColRef, controlId), dataToSave));
+                    showMessage('Control updated successfully!');
+                } else {
+                    if(currentUserData.department) {
+                        dataToSave.Department = currentUserData.department;
+                    }
+                    await retryOperation(() => addDoc(controlsColRef, dataToSave));
+                    showMessage('Control added successfully!');
+                }
+            } catch (error) {
+                console.error(`Error saving control to ${collectionName}:`, error);
+                showMessage(`Failed to save control: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+                hideModal('control-modal');
+            }
+        }
+
+        async function deleteControl(collectionName, controlId) {
+            const confirmed = window.confirm('Are you sure you want to delete this control?');
+            if (!confirmed) return;
+
+            showLoadingSpinner();
+            try {
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                await retryOperation(() => deleteDoc(doc(controlsColRef, controlId)));
+                showMessage('Control deleted successfully!');
+            } catch (error) {
+                console.error(`Error deleting control from ${collectionName}:`, error);
+                showMessage(`Failed to delete control: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        let currentControlType = '';
+        let currentControlId = null;
+
+        function openControlModal(type, id = null, data = {}) {
+            currentControlType = type;
+            currentControlId = id;
+            
+            const modalTitle = document.getElementById('modal-title');
+            const controlForm = document.getElementById('control-form');
+            if (!controlForm || !modalTitle) return;
+            controlForm.innerHTML = '';
+            modalTitle.textContent = id ? 'Edit Control' : 'Add New Control';
+            
+            const oldModalContent = document.getElementById('control-modal').querySelector('.modal-content');
+            oldModalContent.style.maxWidth = '90vw';
+            oldModalContent.style.width = 'fit-content';
+            oldModalContent.style.maxHeight = '90vh';
+
+            let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
+            
+            const gridContainer = document.createElement('div');
+            gridContainer.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
+            controlForm.appendChild(gridContainer);
+            
+            headersToUse.forEach(header => {
+                if (header.id === 'Link') {
+                    return;
+                }
+                
+                const div = document.createElement('div');
+                div.classList.add('mb-4');
+
+                const label = document.createElement('label');
+                label.htmlFor = `form-${header.id}`;
+                label.classList.add('block', 'text-sm', 'font-medium', 'text-gray-700', 'mb-1');
+                label.textContent = header.label;
+                div.appendChild(label);
+
+                let inputElement;
+                if (header.type === 'select' && header.options) {
+                    inputElement = document.createElement('select');
+                    inputElement.id = `form-${header.id}`;
+                    inputElement.classList.add('input-field');
+                    header.options.forEach(optionText => {
+                        const option = document.createElement('option');
+                        option.value = optionText;
+                        option.textContent = optionText;
+                        inputElement.appendChild(option);
+                    });
+                    inputElement.value = data[header.id] || '';
+                } else if (header.type === 'date') {
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'date';
+                    inputElement.id = `form-${header.id}`;
+                    inputElement.classList.add('input-field');
+                    inputElement.value = data[header.id] || '';
+                } else {
+                    inputElement = document.createElement('input');
+                    inputElement.type = header.type || 'text';
+                    inputElement.id = `form-${header.id}`;
+                    inputElement.classList.add('input-field');
+                    inputElement.value = data[header.id] || '';
+                }
+                
+                div.appendChild(inputElement);
+                gridContainer.appendChild(div);
+            });
+            
+            const linkNameHeader = { id: 'Link Name', label: 'Link Name', type: 'text' };
+            const linkUrlHeader = { id: 'Link URL', label: 'Link URL', type: 'url' };
+            
+            const linkNameDiv = document.createElement('div');
+            linkNameDiv.classList.add('mb-4');
+            linkNameDiv.innerHTML = `<label for="form-${linkNameHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkNameHeader.label}</label><input type="${linkNameHeader.type}" id="form-${linkNameHeader.id}" class="input-field" value="${data[linkNameHeader.id] || ''}">`;
+            gridContainer.appendChild(linkNameDiv);
+
+            const linkUrlDiv = document.createElement('div');
+            linkUrlDiv.classList.add('mb-4');
+            linkUrlDiv.innerHTML = `<label for="form-${linkUrlHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkUrlHeader.label}</label><input type="${linkUrlHeader.type}" id="form-${linkUrlHeader.id}" class="input-field" value="${data[linkUrlHeader.id] || ''}">`;
+            gridContainer.appendChild(linkUrlDiv);
+
+            const buttonDiv = document.createElement('div');
+            buttonDiv.classList.add('flex', 'justify-end', 'mt-6');
+            
+            const saveButton = document.createElement('button');
+            saveButton.type = 'submit';
+            saveButton.classList.add('btn-primary');
+            saveButton.textContent = 'Save Control';
+            buttonDiv.appendChild(saveButton);
+
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.id = 'cancel-control-modal';
+            cancelButton.classList.add('btn-secondary', 'ml-2');
+            cancelButton.textContent = 'Cancel';
+            cancelButton.onclick = () => hideModal('control-modal');
+            buttonDiv.appendChild(cancelButton);
+
+            controlForm.appendChild(buttonDiv);
+            
+            showModal('control-modal');
+        }
+
+        document.getElementById('control-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {};
+            let headersToUse = currentControlType === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
+            
+            headersToUse.forEach(header => {
+                if (header.id === 'Link') {
+                    return;
+                }
+                const inputElement = document.getElementById(`form-${header.id}`);
+                if (inputElement) {
+                    formData[header.id] = inputElement.value;
+                }
+            });
+            
+            const linkNameInput = document.getElementById('form-Link Name');
+            const linkUrlInput = document.getElementById('form-Link URL');
+            if (linkNameInput) formData['Link Name'] = linkNameInput.value;
+            if (linkUrlInput) formData['Link URL'] = linkUrlInput.value;
+
+            await addOrUpdateControl(currentControlType, currentControlId, formData);
+        });
+
+        document.getElementById('add-key-control-btn').addEventListener('click', () => openControlModal('keyControls'));
+        document.getElementById('add-secondary-control-btn').addEventListener('click', () => openControlModal('secondaryControls'));
+
+        async function parseCSV(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const text = event.target.result;
+                    const lines = text.split('\n').filter(line => line.trim() !== '');
+                    if (lines.length === 0) {
+                        reject(new Error("CSV file is empty or malformed."));
                         return;
                     }
-
-                    showLoadingSpinner();
-                    try {
-                        const parsedData = await parseCSV(file);
-                        if (parsedData.length === 0) {
-                            showMessage('No valid data found in the CSV file.');
-                            return;
+                    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                    const data = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                        if (values.length === headers.length) {
+                            const row = {};
+                            headers.forEach((header, index) => {
+                                row[header] = values[index];
+                            });
+                            data.push(row);
+                        } else if (values.length > 1) {
+                            console.warn(`Skipping malformed row ${i + 1}: Expected ${headers.length} columns, got ${values.length}. Row: ${lines[i]}`);
                         }
-
-                        const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-                        const batch = writeBatch(db);
-                        let uploadCount = 0;
-
-                        parsedData.forEach(item => {
-                            const newDocRef = doc(controlsColRef);
-                            if(currentUserData.department) {
-                                item.Department = currentUserData.department;
-                            }
-                            batch.set(newDocRef, item);
-                            uploadCount++;
-                        });
-
-                        await retryOperation(() => batch.commit());
-                        showMessage(`Successfully uploaded ${uploadCount} controls to ${collectionName}.`);
-                    } catch (error) {
-                        console.error(`Error uploading controls to ${collectionName}:`, error);
-                        showMessage(`Failed to upload controls: ${error.message}`);
-                    } finally {
-                        hideLoadingSpinner();
-                        fileInput.value = '';
                     }
+                    resolve(data);
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsText(file);
+            });
+        }
+
+        async function uploadControls(fileInputId, collectionName) {
+            const fileInput = document.getElementById(fileInputId);
+            const file = fileInput.files[0];
+            if (!file) {
+                showMessage('Please select a CSV file to upload.');
+                return;
+            }
+
+            showLoadingSpinner();
+            try {
+                const parsedData = await parseCSV(file);
+                if (parsedData.length === 0) {
+                    showMessage('No valid data found in the CSV file.');
+                    return;
                 }
 
-                document.getElementById('upload-key-control-btn').addEventListener('click', () => {
-                    document.getElementById('upload-key-control-file').click();
-                });
-                document.getElementById('upload-key-control-file').addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) {
-                        uploadControls('upload-key-control-file', 'keyControls');
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                const batch = writeBatch(db);
+                let uploadCount = 0;
+
+                parsedData.forEach(item => {
+                    const newDocRef = doc(controlsColRef);
+                    if(currentUserData.department) {
+                        item.Department = currentUserData.department;
                     }
+                    batch.set(newDocRef, item);
+                    uploadCount++;
                 });
 
-                document.getElementById('upload-secondary-control-btn').addEventListener('click', () => {
-                    document.getElementById('upload-secondary-control-file').click();
-                });
-                document.getElementById('upload-secondary-control-file').addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) {
-                        uploadControls('upload-secondary-control-file', 'secondaryControls');
-                    }
-                });
-                
-                document.getElementById('share-key-button').addEventListener('click', () => {
-                    const latestPdf = controlData.generatedPdfs
-                        .filter(p => p.controlType === 'Key Controls')
-                        .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-                    if(latestPdf) {
-                        sharePdf(latestPdf.id);
-                    } else {
-                        showMessage('No recent Key Controls PDF found to share.');
-                    }
-                });
-                
-                document.getElementById('share-secondary-button').addEventListener('click', () => {
-                    const latestPdf = controlData.generatedPdfs
-                        .filter(p => p.controlType === 'Secondary Controls')
-                        .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-                    if(latestPdf) {
-                        sharePdf(latestPdf.id);
-                    } else {
-                        showMessage('No recent Secondary Controls PDF found to share.');
-                    }
-                });
-                
-                function loadLogo() {
-                    const logoPreview = document.getElementById('logo-preview');
-                    const loginLogo = document.getElementById('login-logo-preview');
-                    const signupLogo = document.getElementById('signup-logo-preview');
-                    const headerLogo = document.getElementById('header-logo-preview');
-                    const pdfLogo = document.getElementById('pdf-logo-preview');
-                    
-                    const logoUrl = localStorage.getItem('companyLogo');
-                    if(logoUrl) {
-                        logoDataUrl = logoUrl;
-                        logoPreview.src = logoUrl;
-                        logoPreview.classList.remove('hidden');
-                        loginLogo.src = logoUrl;
-                        loginLogo.classList.remove('hidden');
-                        signupLogo.src = logoUrl;
-                        signupLogo.classList.remove('hidden');
-                        headerLogo.src = logoUrl;
-                        headerLogo.classList.remove('hidden');
-                        pdfLogo.src = logoUrl;
-                    }
+                await retryOperation(() => batch.commit());
+                showMessage(`Successfully uploaded ${uploadCount} controls to ${collectionName}.`);
+            } catch (error) {
+                console.error(`Error uploading controls to ${collectionName}:`, error);
+                showMessage(`Failed to upload controls: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+                fileInput.value = '';
+            }
+        }
+
+        document.getElementById('upload-key-control-btn').addEventListener('click', () => {
+            document.getElementById('upload-key-control-file').click();
+        });
+        document.getElementById('upload-key-control-file').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                uploadControls('upload-key-control-file', 'keyControls');
+            }
+        });
+
+        document.getElementById('upload-secondary-control-btn').addEventListener('click', () => {
+            document.getElementById('upload-secondary-control-file').click();
+        });
+        document.getElementById('upload-secondary-control-file').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                uploadControls('upload-secondary-control-file', 'secondaryControls');
+            }
+        });
+        
+        document.getElementById('share-key-button').addEventListener('click', () => {
+            const latestPdf = controlData.generatedPdfs
+                .filter(p => p.controlType === 'Key Controls')
+                .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+            if(latestPdf) {
+                sharePdf(latestPdf.id);
+            } else {
+                showMessage('No recent Key Controls PDF found to share.');
+            }
+        });
+        
+        document.getElementById('share-secondary-button').addEventListener('click', () => {
+            const latestPdf = controlData.generatedPdfs
+                .filter(p => p.controlType === 'Secondary Controls')
+                .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+            if(latestPdf) {
+                sharePdf(latestPdf.id);
+            } else {
+                showMessage('No recent Secondary Controls PDF found to share.');
+            }
+        });
+        
+        function loadLogo() {
+            const logoPreview = document.getElementById('logo-preview');
+            const loginLogo = document.getElementById('login-logo-preview');
+            const signupLogo = document.getElementById('signup-logo-preview');
+            const headerLogo = document.getElementById('header-logo-preview');
+            const pdfLogo = document.getElementById('pdf-logo-preview');
+            
+            const logoUrl = localStorage.getItem('companyLogo');
+            if(logoUrl) {
+                logoDataUrl = logoUrl;
+                logoPreview.src = logoUrl;
+                logoPreview.classList.remove('hidden');
+                loginLogo.src = logoUrl;
+                loginLogo.classList.remove('hidden');
+                signupLogo.src = logoUrl;
+                signupLogo.classList.remove('hidden');
+                headerLogo.src = logoUrl;
+                headerLogo.classList.remove('hidden');
+                pdfLogo.src = logoUrl;
+            }
+        }
+        
+        document.getElementById('logo-file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const logoUrl = event.target.result;
+                    localStorage.setItem('companyLogo', logoUrl);
+                    loadLogo();
+                    showMessage('Logo uploaded successfully!');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        function getStatusCounts(controls, collectionName) {
+            const counts = {};
+            controls.forEach(control => {
+                const status = control['Tracking Status'] || control['Assessment'] || '-';
+                counts[status] = (counts[status] || 0) + 1;
+            });
+            return counts;
+        }
+
+        function renderChart(chartId, title, dataCounts) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            const labels = Object.keys(dataCounts);
+            const data = Object.values(dataCounts);
+
+            const colors = [
+                '#34d399',
+                '#f87171',
+                '#fbbf24',
+                '#6b7280',
+                '#8b5cf6',
+                '#3b82f6'
+            ];
+            
+            const backgroundColors = labels.map(label => {
+                switch(label) {
+                    case 'On Track': return '#34d399';
+                    case 'Overdue': return '#f87171';
+                    case 'Pending': return '#fbbf24';
+                    case 'Closed': return '#6b7280';
+                    case 'Y': return '#34d399';
+                    case 'N': return '#f87171';
+                    case '-': return '#fbbf24';
+                    case 'Effective': return '#34d399';
+                    case 'Partially Effective': return '#fbbf24';
+                    case 'Not Effective': return '#f87171';
+                    default: return '#e5e7eb';
                 }
-                
-                document.getElementById('logo-file-input').addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            const logoUrl = event.target.result;
-                            localStorage.setItem('companyLogo', logoUrl);
-                            loadLogo();
-                            showMessage('Logo uploaded successfully!');
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-                
-                function getStatusCounts(controls, collectionName) {
-                    const counts = {};
-                    controls.forEach(control => {
-                        const status = control['Tracking Status'] || control['Assessment'] || '-';
-                        counts[status] = (counts[status] || 0) + 1;
-                    });
-                    return counts;
-                }
+            });
 
-                function renderChart(chartId, title, dataCounts) {
-                    const ctx = document.getElementById(chartId).getContext('2d');
-                    const labels = Object.keys(dataCounts);
-                    const data = Object.values(dataCounts);
-
-                    const colors = [
-                        '#34d399',
-                        '#f87171',
-                        '#fbbf24',
-                        '#6b7280',
-                        '#8b5cf6',
-                        '#3b82f6'
-                    ];
-                    
-                    const backgroundColors = labels.map(label => {
-                        switch(label) {
-                            case 'On Track': return '#34d399';
-                            case 'Overdue': return '#f87171';
-                            case 'Pending': return '#fbbf24';
-                            case 'Closed': return '#6b7280';
-                            case 'Y': return '#34d399';
-                            case 'N': return '#f87171';
-                            case '-': return '#fbbf24';
-                            case 'Effective': return '#34d399';
-                            case 'Partially Effective': return '#fbbf24';
-                            case 'Not Effective': return '#f87171';
-                            default: return '#e5e7eb';
-                        }
-                    });
-
-                    let existingChart = Chart.getChart(ctx);
-                    if (existingChart) {
-                        existingChart.destroy();
-                    }
-                    
-                    return new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Number of Controls',
-                                data: data,
-                                backgroundColor: backgroundColors,
-                                borderColor: 'white',
-                                borderWidth: 2
-                            }]
+            let existingChart = Chart.getChart(ctx);
+            if (existingChart) {
+                existingChart.destroy();
+            }
+            
+            return new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Number of Controls',
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: 'white',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'top',
-                                },
-                                title: {
-                                    display: true,
-                                    text: title
-                                }
-                            }
+                        title: {
+                            display: true,
+                            text: title
                         }
-                    });
-                }
-
-                function renderDashboardCharts() {
-                    const keyCounts = getStatusCounts(controlData.keyControls, 'keyControls');
-                    if (keyControlsChart) keyControlsChart.destroy();
-                    keyControlsChart = renderChart('keyControlsChart', 'Key Controls Status Distribution', keyCounts);
-
-                    const secondaryCounts = getStatusCounts(controlData.secondaryControls, 'secondaryControls');
-                    if (secondaryControlsChart) secondaryControlsChart.destroy();
-                    secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
-                }
-
-                async function createUser(email, password, fullName, department) {
-                    showLoadingSpinner();
-                    try {
-                        const userCredential = await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
-                        const user = userCredential.user;
-                        await retryOperation(() => setDoc(doc(db, `artifacts/${appId}/users`, user.uid), {
-                            email: email,
-                            fullName: fullName,
-                            department: department
-                        }));
-                        showMessage(`User ${email} created successfully!`);
-                        document.getElementById('create-user-form').reset();
-                        await loadUsers();
-                    } catch (error) {
-                        console.error("Error creating user:", error);
-                        showMessage(`Signup failed: ${error.message}`);
-                    } finally {
-                        hideLoadingSpinner();
                     }
                 }
+            });
+        }
 
-                document.getElementById('create-user-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const email = document.getElementById('new-user-email').value;
-                    const password = document.getElementById('new-user-password').value;
-                    const fullName = document.getElementById('new-user-fullname').value;
-                    const department = document.getElementById('new-user-department').value;
-                    await createUser(email, password, fullName, department);
+        function renderDashboardCharts() {
+            const keyCounts = getStatusCounts(controlData.keyControls, 'keyControls');
+            if (keyControlsChart) keyControlsChart.destroy();
+            keyControlsChart = renderChart('keyControlsChart', 'Key Controls Status Distribution', keyCounts);
+
+            const secondaryCounts = getStatusCounts(controlData.secondaryControls, 'secondaryControls');
+            if (secondaryControlsChart) secondaryControlsChart.destroy();
+            secondaryControlsChart = renderChart('secondaryControlsChart', 'Secondary Controls Status Distribution', secondaryCounts);
+        }
+
+        async function createUser(email, password, fullName, department) {
+            showLoadingSpinner();
+            try {
+                // This function is now responsible for creating a user and their database record.
+                // It should be an admin-level operation.
+                // As the Firebase Admin SDK is not available client-side, this function simulates
+                // a successful creation and handles the Firestore document.
+                const userCredential = await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
+                const user = userCredential.user;
+                await retryOperation(() => setDoc(doc(db, `artifacts/${appId}/users`, user.uid), {
+                    email: email,
+                    fullName: fullName,
+                    department: department
+                }));
+                showMessage(`User ${email} created successfully!`);
+                document.getElementById('create-user-form').reset();
+                await loadUsers();
+            } catch (error) {
+                console.error("Error creating user:", error);
+                showMessage(`Signup failed: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        document.getElementById('create-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('new-user-email').value;
+            const password = document.getElementById('new-user-password').value;
+            const fullName = document.getElementById('new-user-fullname').value;
+            const department = document.getElementById('new-user-department').value;
+            await createUser(email, password, fullName, department);
+        });
+
+        async function loadUsers() {
+            const userList = document.getElementById('user-list');
+            if (!userList) return;
+            userList.innerHTML = '';
+            
+            const usersColRef = collection(db, `artifacts/${appId}/users`);
+            const usersSnapshot = await retryOperation(() => getDocs(usersColRef));
+            
+            if (usersSnapshot.empty) {
+                const listItem = document.createElement('li');
+                listItem.textContent = `No users found.`;
+                userList.appendChild(listItem);
+                return;
+            }
+
+            usersSnapshot.forEach(userDoc => {
+                const user = userDoc.data();
+                const listItem = document.createElement('li');
+                listItem.textContent = `${user.fullName} (${user.email}) - ${user.department}`;
+                userList.appendChild(listItem);
+            });
+        }
+        
+        function renderVerifiedControlsTable(verifiedControls) {
+            const tableBody = document.querySelector('#verified-controls-table tbody');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+            verifiedControls.forEach(doc => {
+                const row = tableBody.insertRow();
+                row.insertCell().textContent = doc.controlType;
+                row.insertCell().textContent = doc.month;
+                row.insertCell().textContent = doc.date;
+                
+                const docCell = row.insertCell();
+                const docLink = document.createElement('a');
+                docLink.href = doc.downloadUrl;
+                docLink.textContent = doc.fileName;
+                docLink.target = '_blank';
+                docCell.appendChild(docLink);
+
+                const downloadCell = row.insertCell();
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Download';
+                downloadBtn.classList.add('btn-primary', 'py-1', 'px-2', 'text-xs');
+                downloadBtn.onclick = () => window.open(doc.downloadUrl, '_blank');
+                downloadCell.appendChild(downloadBtn);
+            });
+        }
+
+        document.getElementById('verified-control-form').addEventListener('submit', handleVerifiedDocumentUpload);
+        
+        async function handleVerifiedDocumentUpload(e) {
+            e.preventDefault();
+            showLoadingSpinner();
+            
+            const controlType = document.getElementById('verified-control-type').value;
+            const month = document.getElementById('verified-control-month').value;
+            const fileInput = document.getElementById('verified-control-file');
+            const file = fileInput.files[0];
+            
+            if (!file || !controlType || !month) {
+                showMessage('Please fill all fields and select a file.');
+                hideLoadingSpinner();
+                return;
+            }
+            
+            try {
+                const storageRef = ref(storage, `verified-controls/${controlType}/${month}/${file.name}`);
+                const snapshot = await uploadBytes(storageRef, file);
+                const downloadUrl = await getDownloadURL(snapshot.ref);
+                
+                const docData = {
+                    controlType: controlType,
+                    month: month,
+                    fileName: file.name,
+                    downloadUrl: downloadUrl,
+                    date: new Date().toISOString().slice(0, 10)
+                };
+                
+                await addDoc(collection(db, `artifacts/${appId}/public/data/verifiedControls`), docData);
+                
+                showMessage('Document uploaded successfully!');
+                document.getElementById('verified-control-form').reset();
+            } catch (error) {
+                console.error('Error uploading document:', error);
+                showMessage(`Failed to upload document: ${error.message}`);
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+
+        document.getElementById('generate-key-pdf-button').addEventListener('click', () => generatePdfForControls('keyControls'));
+        document.getElementById('generate-secondary-pdf-button').addEventListener('click', () => generatePdfForControls('secondaryControls'));
+        document.getElementById('generate-all-pdf-button').addEventListener('click', () => generatePdfForControls('all'));
+
+        async function generatePdfForControls(type) {
+            const pdfExportContent = document.getElementById('pdf-export-content');
+            const pdfTable = document.getElementById('pdf-table-to-generate');
+            const pdfReportTitle = document.getElementById('pdf-report-title');
+            const pdfLogoPreview = document.getElementById('pdf-logo-preview');
+            
+            showLoadingSpinner();
+
+            let controlsToPrint = [];
+            let title = '';
+
+            if (type === 'keyControls') {
+                controlsToPrint = controlData.keyControls;
+                title = 'Key Controls Report';
+            } else if (type === 'secondaryControls') {
+                controlsToPrint = controlData.secondaryControls;
+                title = 'Secondary Controls Report';
+            } else if (type === 'all') {
+                controlsToPrint = controlData.keyControls.concat(controlData.secondaryControls);
+                title = 'All Controls Report';
+            }
+            
+            document.getElementById('pdf-user-name').textContent = `${currentUserData.department || 'N/A'} - Prepared By: ${currentUserData.fullName || 'N/A'}`;
+            
+            const signoffTable = document.querySelector('.pdf-signoff-table');
+            const preparedByHeader = signoffTable.querySelector('th:first-child');
+            const approvedByHeader = signoffTable.querySelector('th:last-child');
+            const preparedByName = signoffTable.querySelector('#signoff-assistant-name');
+            const approvedByName = signoffTable.querySelector('#signoff-group-manager-name');
+
+            if (preparedByHeader) {
+                preparedByHeader.textContent = 'Prepared By';
+            }
+            if (approvedByHeader) {
+                approvedByHeader.textContent = 'Approved By';
+            }
+            if (preparedByName) {
+                preparedByName.textContent = currentUserData.fullName || 'N/A';
+            }
+            if (approvedByName) {
+                approvedByName.textContent = '';
+            }
+
+            if(pdfReportTitle) pdfReportTitle.textContent = title;
+            populatePdfTable(pdfTable, controlsToPrint, type);
+            if (logoDataUrl) {
+                pdfLogoPreview.src = logoDataUrl;
+                pdfLogoPreview.classList.remove('hidden');
+            } else {
+                pdfLogoPreview.classList.add('hidden');
+            }
+            
+            if(pdfExportContent) pdfExportContent.style.display = 'block';
+            
+            const options = {
+                margin: 10,
+                filename: `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' }
+            };
+
+            try {
+                const pdfBlob = await html2pdf().set(options).from(pdfExportContent).output('blob');
+
+                const fileName = `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
+                const downloadUrl = URL.createObjectURL(pdfBlob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+
+                const storagePath = `generated-pdfs/${type}/${fileName}`;
+                const storageRef = ref(storage, storagePath);
+                const uploadTask = await uploadBytes(storageRef, pdfBlob);
+                const permanentDownloadUrl = await getDownloadURL(uploadTask.ref);
+
+                if(pdfExportContent) pdfExportContent.style.display = 'none';
+                showMessage('PDF generated and saved successfully!');
+                
+                const pdfRecord = {
+                    date: new Date().toISOString().slice(0, 10),
+                    month: new Date().toLocaleString('default', { month: 'long' }),
+                    controlType: title.replace(' Report', ''),
+                    fileName: fileName,
+                    downloadUrl: permanentDownloadUrl
+                };
+                await addDoc(collection(db, `artifacts/${appId}/public/data/generatedPdfs`), pdfRecord);
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                showMessage(`Failed to generate PDF: ${error.message}`);
+                if(pdfExportContent) pdfExportContent.style.display = 'none';
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        function populatePdfTable(tableElement, controls, controlType) {
+            if (!tableElement) return;
+            
+            tableElement.innerHTML = '';
+            
+            const tableHeader = tableElement.createTHead();
+            const tableBody = tableElement.createTBody();
+
+            if (controlType === 'keyControls' || controlType === 'all') {
+                const topRow = tableHeader.insertRow();
+                const middleRow = tableHeader.insertRow();
+                const bottomRow = tableHeader.insertRow();
+
+                const mainHeaders = [
+                    'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
+                ];
+                mainHeaders.forEach(h => {
+                    const th = document.createElement('th');
+                    th.textContent = h;
+                    th.rowSpan = 3;
+                    topRow.appendChild(th);
                 });
 
-                async function loadUsers() {
-                    const userList = document.getElementById('user-list');
-                    if (!userList) return;
-                    userList.innerHTML = '';
-                    
-                    const usersColRef = collection(db, `artifacts/${appId}/users`);
-                    const usersSnapshot = await retryOperation(() => getDocs(usersColRef));
-                    
-                    if (usersSnapshot.empty) {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = `No users found.`;
-                        userList.appendChild(listItem);
-                        return;
-                    }
+                const monthsHeader = document.createElement('th');
+                monthsHeader.textContent = 'Months';
+                monthsHeader.colSpan = 12;
+                topRow.appendChild(monthsHeader);
 
-                    usersSnapshot.forEach(userDoc => {
-                        const user = userDoc.data();
-                        const listItem = document.createElement('li');
-                        listItem.textContent = `${user.fullName} (${user.email}) - ${user.department}`;
-                        userList.appendChild(listItem);
-                    });
-                }
-                
-                function renderVerifiedControlsTable(verifiedControls) {
-                    const tableBody = document.querySelector('#verified-controls-table tbody');
-                    if (!tableBody) return;
-                    tableBody.innerHTML = '';
-                    verifiedControls.forEach(doc => {
-                        const row = tableBody.insertRow();
-                        row.insertCell().textContent = doc.controlType;
-                        row.insertCell().textContent = doc.month;
-                        row.insertCell().textContent = doc.date;
-                        
-                        const docCell = row.insertCell();
-                        const docLink = document.createElement('a');
-                        docLink.href = doc.downloadUrl;
-                        docLink.textContent = doc.fileName;
-                        docLink.target = '_blank';
-                        docCell.appendChild(docLink);
+                const annTrackLinkHeaders = ['Annual', 'Tracking Status', 'Link', 'Actions', 'Due In'];
+                annTrackLinkHeaders.forEach(h => {
+                    const th = document.createElement('th');
+                    th.textContent = h;
+                    th.rowSpan = 3;
+                    topRow.appendChild(th);
+                });
 
-                        const downloadCell = row.insertCell();
-                        const downloadBtn = document.createElement('button');
-                        downloadBtn.textContent = 'Download';
-                        downloadBtn.classList.add('btn-primary', 'py-1', 'px-2', 'text-xs');
-                        downloadBtn.onclick = () => window.open(doc.downloadUrl, '_blank');
-                        downloadCell.appendChild(downloadBtn);
-                    });
-                }
+                const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+                quarters.forEach(q => {
+                    const th = document.createElement('th');
+                    th.textContent = q;
+                    th.colSpan = 3;
+                    middleRow.appendChild(th);
+                });
 
-                document.getElementById('verified-control-form').addEventListener('submit', handleVerifiedDocumentUpload);
-                
-                async function handleVerifiedDocumentUpload(e) {
-                    e.preventDefault();
-                    showLoadingSpinner();
-                    
-                    const controlType = document.getElementById('verified-control-type').value;
-                    const month = document.getElementById('verified-control-month').value;
-                    const fileInput = document.getElementById('verified-control-file');
-                    const file = fileInput.files[0];
-                    
-                    if (!file || !controlType || !month) {
-                        showMessage('Please fill all fields and select a file.');
-                        hideLoadingSpinner();
-                        return;
-                    }
-                    
-                    try {
-                        const storageRef = ref(storage, `verified-controls/${controlType}/${month}/${file.name}`);
-                        const snapshot = await uploadBytes(storageRef, file);
-                        const downloadUrl = await getDownloadURL(snapshot.ref);
-                        
-                        const docData = {
-                            controlType: controlType,
-                            month: month,
-                            fileName: file.name,
-                            downloadUrl: downloadUrl,
-                            date: new Date().toISOString().slice(0, 10)
-                        };
-                        
-                        await addDoc(collection(db, `artifacts/${appId}/public/data/verifiedControls`), docData);
-                        
-                        showMessage('Document uploaded successfully!');
-                        document.getElementById('verified-control-form').reset();
-                    } catch (error) {
-                        console.error('Error uploading document:', error);
-                        showMessage(`Failed to upload document: ${error.message}`);
-                    } finally {
-                        hideLoadingSpinner();
-                    }
-                }
+                const monthHeaders = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+                monthHeaders.forEach(month => {
+                    const thMonth = document.createElement('th');
+                    thMonth.textContent = month;
+                    thMonth.style.width = '3%';
+                    bottomRow.appendChild(thMonth);
+                });
+            } else if (controlType === 'secondaryControls') {
+                const headerRow = tableHeader.insertRow();
+                const headersToUse = secondaryControlHeaders.map(h => h.label);
+                headersToUse.forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header;
+                        headerRow.appendChild(th);
+                });
+                const thActions = document.createElement('th');
+                thActions.textContent = "Actions";
+                headerRow.appendChild(thActions);
+                const thDueIn = document.createElement('th');
+                thDueIn.textContent = "Due In";
+                headerRow.appendChild(thDueIn);
+            }
+            
+            controls.forEach(control => {
+                const row = tableBody.insertRow();
+                const today = new Date();
+                const byWhenDateStr = control['BY WHEN'];
+                let dueInDays = '-';
+                let overdueClass = '';
 
-
-                document.getElementById('generate-key-pdf-button').addEventListener('click', () => generatePdfForControls('keyControls'));
-                document.getElementById('generate-secondary-pdf-button').addEventListener('click', () => generatePdfForControls('secondaryControls'));
-                document.getElementById('generate-all-pdf-button').addEventListener('click', () => generatePdfForControls('all'));
-
-                async function generatePdfForControls(type) {
-                    const pdfExportContent = document.getElementById('pdf-export-content');
-                    const pdfTable = document.getElementById('pdf-table-to-generate');
-                    const pdfReportTitle = document.getElementById('pdf-report-title');
-                    const pdfLogoPreview = document.getElementById('pdf-logo-preview');
-                    
-                    showLoadingSpinner();
-
-                    let controlsToPrint = [];
-                    let title = '';
-
-                    if (type === 'keyControls') {
-                        controlsToPrint = controlData.keyControls;
-                        title = 'Key Controls Report';
-                    } else if (type === 'secondaryControls') {
-                        controlsToPrint = controlData.secondaryControls;
-                        title = 'Secondary Controls Report';
-                    } else if (type === 'all') {
-                        controlsToPrint = controlData.keyControls.concat(controlData.secondaryControls);
-                        title = 'All Controls Report';
-                    }
-                    
-                    // NEW: Update PDF header with department and user name
-                    document.getElementById('pdf-user-name').textContent = `${currentUserData.department || 'N/A'} - Prepared By: ${currentUserData.fullName || 'N/A'}`;
-                    
-                    // NEW: Update sign-off section with new labels and user name
-                    const signoffTable = document.querySelector('.pdf-signoff-table');
-                    const preparedByHeader = signoffTable.querySelector('th:first-child');
-                    const approvedByHeader = signoffTable.querySelector('th:last-child');
-                    const preparedByName = signoffTable.querySelector('#signoff-assistant-name');
-                    const approvedByName = signoffTable.querySelector('#signoff-group-manager-name');
-
-                    if (preparedByHeader) {
-                        preparedByHeader.textContent = 'Prepared By';
-                    }
-                    if (approvedByHeader) {
-                        approvedByHeader.textContent = 'Approved By';
-                    }
-                    if (preparedByName) {
-                        preparedByName.textContent = currentUserData.fullName || 'N/A';
-                    }
-                    if (approvedByName) {
-                        approvedByName.textContent = ''; // Make this name field blank
-                    }
-
-                    if(pdfReportTitle) pdfReportTitle.textContent = title;
-                    populatePdfTable(pdfTable, controlsToPrint, type);
-                    if (logoDataUrl) {
-                        pdfLogoPreview.src = logoDataUrl;
-                        pdfLogoPreview.classList.remove('hidden');
-                    } else {
-                        pdfLogoPreview.classList.add('hidden');
-                    }
-                    
-                    if(pdfExportContent) pdfExportContent.style.display = 'block';
-                    
-                    const options = {
-                        margin: 10,
-                        filename: `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
-                        jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' }
-                    };
-
-                    try {
-                        // Generate the PDF and get it as a blob
-                        const pdfBlob = await html2pdf().set(options).from(pdfExportContent).output('blob');
-
-                        // Save the file locally for the user
-                        const fileName = `${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
-                        const downloadUrl = URL.createObjectURL(pdfBlob);
-                        const a = document.createElement('a');
-                        a.href = downloadUrl;
-                        a.download = fileName;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(downloadUrl);
-
-                        // Upload the PDF blob to Firebase Storage
-                        const storagePath = `generated-pdfs/${type}/${fileName}`;
-                        const storageRef = ref(storage, storagePath);
-                        const uploadTask = await uploadBytes(storageRef, pdfBlob);
-                        const permanentDownloadUrl = await getDownloadURL(uploadTask.ref);
-
-                        if(pdfExportContent) pdfExportContent.style.display = 'none';
-                        showMessage('PDF generated and saved successfully!');
-                        
-                        // Create a record in Firestore with the permanent URL
-                        const pdfRecord = {
-                            date: new Date().toISOString().slice(0, 10),
-                            month: new Date().toLocaleString('default', { month: 'long' }),
-                            controlType: title.replace(' Report', ''),
-                            fileName: fileName,
-                            downloadUrl: permanentDownloadUrl
-                        };
-                        await addDoc(collection(db, `artifacts/${appId}/public/data/generatedPdfs`), pdfRecord);
-                    } catch (error) {
-                        console.error("Error generating PDF:", error);
-                        showMessage(`Failed to generate PDF: ${error.message}`);
-                        if(pdfExportContent) pdfExportContent.style.display = 'none';
-                    } finally {
-                        hideLoadingSpinner();
-                    }
-                }
-
-                function populatePdfTable(tableElement, controls, controlType) {
-                    if (!tableElement) return;
-                    
-                    tableElement.innerHTML = '';
-                    
-                    const tableHeader = tableElement.createTHead();
-                    const tableBody = tableElement.createTBody();
-
-                    if (controlType === 'keyControls' || controlType === 'all') {
-                        const topRow = tableHeader.insertRow();
-                        const middleRow = tableHeader.insertRow();
-                        const bottomRow = tableHeader.insertRow();
-
-                        const mainHeaders = [
-                            'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
-                        ];
-                        mainHeaders.forEach(h => {
-                            const th = document.createElement('th');
-                            th.textContent = h;
-                            th.rowSpan = 3;
-                            topRow.appendChild(th);
-                        });
-
-                        const monthsHeader = document.createElement('th');
-                        monthsHeader.textContent = 'Months';
-                        monthsHeader.colSpan = 12;
-                        topRow.appendChild(monthsHeader);
-
-                        const annTrackLinkHeaders = ['Annual', 'Tracking Status', 'Link', 'Actions', 'Due In'];
-                        annTrackLinkHeaders.forEach(h => {
-                            const th = document.createElement('th');
-                            th.textContent = h;
-                            th.rowSpan = 3;
-                            topRow.appendChild(th);
-                        });
-
-                        const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-                        quarters.forEach(q => {
-                            const th = document.createElement('th');
-                            th.textContent = q;
-                            th.colSpan = 3;
-                            middleRow.appendChild(th);
-                        });
-
-                        const monthHeaders = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-                        monthHeaders.forEach(month => {
-                            const thMonth = document.createElement('th');
-                            thMonth.textContent = month;
-                            thMonth.style.width = '3%';
-                            bottomRow.appendChild(thMonth);
-                        });
-                    } else if (controlType === 'secondaryControls') {
-                        const headerRow = tableHeader.insertRow();
-                        const headersToUse = secondaryControlHeaders.map(h => h.label);
-                        headersToUse.forEach(header => {
-                               const th = document.createElement('th');
-                               th.textContent = header;
-                               headerRow.appendChild(th);
-                        });
-                        const thActions = document.createElement('th');
-                        thActions.textContent = "Actions";
-                        headerRow.appendChild(thActions);
-                        const thDueIn = document.createElement('th');
-                        thDueIn.textContent = "Due In";
-                        headerRow.appendChild(thDueIn);
-                    }
-                    
-                    controls.forEach(control => {
-                        const row = tableBody.insertRow();
-                        const today = new Date();
-                        const byWhenDateStr = control['BY WHEN'];
-                        let dueInDays = '-';
-                        let overdueClass = '';
-
-                        if (byWhenDateStr) {
-                            const byWhenDate = new Date(byWhenDateStr);
-                            if (!isNaN(byWhenDate.getTime())) { 
-                                byWhenDate.setHours(0, 0, 0, 0);
-                                const diffTime = byWhenDate.getTime() - today.getTime();
-                                dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                if (byWhenDate < today) {
-                                    overdueClass = 'overdue-text';
-                                }
-                            }
+                if (byWhenDateStr) {
+                    const byWhenDate = new Date(byWhenDateStr);
+                    if (!isNaN(byWhenDate.getTime())) { 
+                        byWhenDate.setHours(0, 0, 0, 0);
+                        const diffTime = byWhenDate.getTime() - today.getTime();
+                        dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        if (byWhenDate < today) {
+                            overdueClass = 'overdue-text';
                         }
-                        
-                        if (controlType === 'keyControls' || controlType === 'all') {
-                            const cellsToRender = [
-                                'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
-                            ];
-                            cellsToRender.forEach(key => {
-                                const cell = row.insertCell();
-                                cell.textContent = control[key] || '';
-                            });
-                            months.forEach(month => {
-                                const cell = row.insertCell();
-                                cell.textContent = control[month] || '-';
-                            });
-                            const annualCell = row.insertCell();
-                            annualCell.textContent = control['Annual'] || '-';
-                            const trackingStatusCell = row.insertCell();
-                            trackingStatusCell.textContent = control['Tracking Status'] || '';
+                    }
+                }
+                
+                if (controlType === 'keyControls' || controlType === 'all') {
+                    const cellsToRender = [
+                        'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
+                    ];
+                    cellsToRender.forEach(key => {
+                        const cell = row.insertCell();
+                        cell.textContent = control[key] || '';
+                    });
+                    months.forEach(month => {
+                        const cell = row.insertCell();
+                        cell.textContent = control[month] || '-';
+                    });
+                    const annualCell = row.insertCell();
+                    annualCell.textContent = control['Annual'] || '-';
+                    const trackingStatusCell = row.insertCell();
+                    trackingStatusCell.textContent = control['Tracking Status'] || '';
 
-                            const linkCell = row.insertCell();
+                    const linkCell = row.insertCell();
+                    const linkName = control['Link Name'];
+                    const linkURL = control['Link URL'];
+                    if (linkName && linkURL) {
+                        const anchor = document.createElement('a');
+                        anchor.href = linkURL;
+                        anchor.textContent = linkName;
+                        anchor.target = '_blank';
+                        linkCell.appendChild(anchor);
+                    } else {
+                        linkCell.textContent = linkName || '';
+                    }
+
+                    const actionsCell = row.insertCell();
+                    actionsCell.textContent = 'Review / Delete';
+                    const dueInCell = row.insertCell();
+                    if (!isNaN(dueInDays)) {
+                        dueInCell.textContent = dueInDays;
+                    } else {
+                        dueInCell.textContent = '-';
+                    }
+                    if (overdueClass) {
+                        dueInCell.classList.add(overdueClass);
+                    }
+
+                } else if (controlType === 'secondaryControls') {
+                    const headersToRender = secondaryControlHeaders.map(h => h.id);
+                    headersToRender.forEach(headerId => {
+                        const cell = row.insertCell();
+                        if (headerId === 'Link') {
                             const linkName = control['Link Name'];
                             const linkURL = control['Link URL'];
                             if (linkName && linkURL) {
@@ -2243,77 +2303,47 @@
                                 anchor.href = linkURL;
                                 anchor.textContent = linkName;
                                 anchor.target = '_blank';
-                                linkCell.appendChild(anchor);
+                                cell.appendChild(anchor);
                             } else {
-                                linkCell.textContent = linkName || '';
+                                cell.textContent = linkName || '';
                             }
-
-                            const actionsCell = row.insertCell();
-                            actionsCell.textContent = 'Review / Delete';
-                            const dueInCell = row.insertCell();
-                            if (!isNaN(dueInDays)) {
-                                dueInCell.textContent = dueInDays;
-                            } else {
-                                dueInCell.textContent = '-';
-                            }
-                            if (overdueClass) {
-                                dueInCell.classList.add(overdueClass);
-                            }
-
-                        } else if (controlType === 'secondaryControls') {
-                            const headersToRender = secondaryControlHeaders.map(h => h.id);
-                            headersToRender.forEach(headerId => {
-                                const cell = row.insertCell();
-                                if (headerId === 'Link') {
-                                    const linkName = control['Link Name'];
-                                    const linkURL = control['Link URL'];
-                                    if (linkName && linkURL) {
-                                        const anchor = document.createElement('a');
-                                        anchor.href = linkURL;
-                                        anchor.textContent = linkName;
-                                        anchor.target = '_blank';
-                                        cell.appendChild(anchor);
-                                    } else {
-                                        cell.textContent = linkName || '';
-                                    }
-                                } else {
-                                    cell.textContent = control[headerId] || '';
-                                }
-                            });
-                            const actionsCell = row.insertCell();
-                            actionsCell.textContent = 'Review / Delete';
-                            const dueInCell = row.insertCell();
-                            if (!isNaN(dueInDays)) {
-                                dueInCell.textContent = dueInDays;
-                            } else {
-                                dueInCell.textContent = '-';
-                            }
-                            if (overdueClass) {
-                                dueInCell.classList.add(overdueClass);
-                            }
+                        } else {
+                            cell.textContent = control[headerId] || '';
                         }
                     });
-                }
-
-                document.getElementById('download-key-excel-button').addEventListener('click', () => {
-                     downloadExcel('keyControls');
-                });
-                document.getElementById('download-secondary-excel-button').addEventListener('click', () => {
-                     downloadExcel('secondaryControls');
-                });
-
-                function downloadExcel(controlType) {
-                    const tableId = controlType === 'keyControls' ? 'key-controls-table' : 'secondary-controls-table';
-                    const tableName = controlType === 'keyControls' ? 'Key Controls' : 'Secondary Controls';
-                    const table = document.getElementById(tableId);
-
-                    const ws = XLSX.utils.table_to_sheet(table);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, tableName);
-                    
-                    XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                    const actionsCell = row.insertCell();
+                    actionsCell.textContent = 'Review / Delete';
+                    const dueInCell = row.insertCell();
+                    if (!isNaN(dueInDays)) {
+                        dueInCell.textContent = dueInDays;
+                    } else {
+                        dueInCell.textContent = '-';
+                    }
+                    if (overdueClass) {
+                        dueInCell.classList.add(overdueClass);
+                    }
                 }
             });
-        </script>
-    </body>
+        }
+
+        document.getElementById('download-key-excel-button').addEventListener('click', () => {
+                downloadExcel('keyControls');
+        });
+        document.getElementById('download-secondary-excel-button').addEventListener('click', () => {
+                downloadExcel('secondaryControls');
+        });
+
+        function downloadExcel(controlType) {
+            const tableId = controlType === 'keyControls' ? 'key-controls-table' : 'secondary-controls-table';
+            const tableName = controlType === 'keyControls' ? 'Key Controls' : 'Secondary Controls';
+            const table = document.getElementById(tableId);
+
+            const ws = XLSX.utils.table_to_sheet(table);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, tableName);
+            
+            XLSX.writeFile(wb, `${tableName}_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+    </script>
+</body>
 </html>
