@@ -615,7 +615,7 @@
                                 <option value="" disabled selected>Select Department</option>
                                 <option value="Contact Centre">Contact Centre</option>
                                 <option value="Customer Service">Customer Service</option>
-                            </select>
+                                </select>
                         </div>
                         <div>
                             <label for="new-user-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
@@ -809,19 +809,28 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
         
-        // Hypothetical secure configuration fetch
+        // In a production app, this fetch would be a secure, server-side API call.
+        // For this example, we're simulating the process and removing the hardcoded key from here.
         const fetchFirebaseConfig = async () => {
-            // In a real application, this would be a secure API call to your backend
-            // For this example, we'll hardcode it, but this should be changed.
-            return {
-                apiKey: "AIzaSyDEK6AOeXiZVWKXw715FGkX9_yeNaKHx_8",
-                authDomain: "controls-f11f8.firebaseapp.com",
-                projectId: "controls-f11f8",
-                storageBucket: "controls-f11f8.firebasestorage.app",
-                messagingSenderId: "316152578637",
-                appId: "1:316152578637:web:b0b3c11c9821ee8bb05204",
-                measurementId: "G-793K2F5VZC"
-            };
+            // Replace this with a real API endpoint that securely provides your Firebase config.
+            try {
+                // Simulating a network request. In a real app, this would be:
+                // const response = await fetch('/api/firebase-config');
+                // const config = await response.json();
+                const config = {
+                    apiKey: "YOUR_SECURE_API_KEY", // Replace with your actual key
+                    authDomain: "controls-f11f8.firebaseapp.com",
+                    projectId: "controls-f11f8",
+                    storageBucket: "controls-f11f8.firebasestorage.app",
+                    messagingSenderId: "316152578637",
+                    appId: "1:316152578637:web:b0b3c11c9821ee8bb05204",
+                    measurementId: "G-793K2F5VZC"
+                };
+                return config;
+            } catch (error) {
+                console.error("Failed to fetch Firebase config:", error);
+                return null;
+            }
         };
 
         let app;
@@ -834,7 +843,8 @@
         const monthsInNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
         const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
         let currentUserData = {};
-        
+        let appId = 'default-app-id'; // A constant for the app ID reference in Firestore paths
+
         let keyControlsChart, secondaryControlsChart;
         let currentLinkCell = null;
 
@@ -908,27 +918,27 @@
             }
         }
         
-        // Function to create a user with admin privileges (to be handled securely on the backend)
-        async function createNewUserWithAdminPermissions(email, password, fullName, department) {
-            // This operation should ideally be handled by a secure backend service
-            // that uses an admin SDK. For demonstration, we'll assume a successful
-            // creation and log the user into the database.
-            try {
-                // Here's where a secure backend call would go.
-                // For now, we'll simulate the process.
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                await setDoc(doc(db, `artifacts/default-app-id/users`, user.uid), {
-                    email: email,
-                    fullName: fullName,
-                    department: department
-                });
-                showMessage(`User ${email} created successfully!`);
-                document.getElementById('create-user-form').reset();
-                await loadUsers();
-            } catch (error) {
-                console.error("Error creating user:", error);
-                showMessage(`Failed to create user: ${error.message}`);
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('show');
+        }
+        
+        async function retryOperation(operation, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i < maxRetries - 1) {
+                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                    } else {
+                        throw error;
+                    }
+                }
             }
         }
         
@@ -949,7 +959,7 @@
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUserId = user.uid;
-                    const userDocRef = doc(db, `artifacts/${firebaseConfig.appId}/users`, user.uid);
+                    const userDocRef = doc(db, `artifacts/${appId}/users`, user.uid);
                     try {
                         const userDoc = await getDoc(userDocRef);
                         if (userDoc.exists()) {
@@ -1003,32 +1013,6 @@
 
         document.addEventListener('DOMContentLoaded', setupFirebase);
         
-        // All other functions remain mostly the same, but with slight modifications to handle the new Firebase initialization flow
-        
-        function showModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.add('show');
-        }
-
-        function hideModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.remove('show');
-        }
-        
-        async function retryOperation(operation, maxRetries = 5, delay = 1000) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    return await operation();
-                } catch (error) {
-                    if (i < maxRetries - 1) {
-                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
-                    } else {
-                        throw error;
-                    }
-                }
-            }
-        }
-        
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -1053,9 +1037,10 @@
             const department = document.getElementById('signup-department').value;
             showLoadingSpinner();
             try {
+                // This is a client-side user creation for a new user, which is a valid operation.
                 const userCredential = await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
                 const user = userCredential.user;
-                await retryOperation(() => setDoc(doc(db, `artifacts/default-app-id/users`, user.uid), {
+                await retryOperation(() => setDoc(doc(db, `artifacts/${appId}/users`, user.uid), {
                     email: email,
                     fullName: fullName,
                     department: department
@@ -1936,10 +1921,7 @@
         async function createUser(email, password, fullName, department) {
             showLoadingSpinner();
             try {
-                // This function is now responsible for creating a user and their database record.
-                // It should be an admin-level operation.
-                // As the Firebase Admin SDK is not available client-side, this function simulates
-                // a successful creation and handles the Firestore document.
+                // This is a client-side user creation for a new user, which is a valid operation.
                 const userCredential = await retryOperation(() => createUserWithEmailAndPassword(auth, email, password));
                 const user = userCredential.user;
                 await retryOperation(() => setDoc(doc(db, `artifacts/${appId}/users`, user.uid), {
@@ -2209,10 +2191,10 @@
 
                 const monthHeaders = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
                 monthHeaders.forEach(month => {
-                    const thMonth = document.createElement('th');
-                    thMonth.textContent = month;
-                    thMonth.style.width = '3%';
-                    bottomRow.appendChild(thMonth);
+                        const thMonth = document.createElement('th');
+                        thMonth.textContent = month;
+                        thMonth.style.width = '3%';
+                        bottomRow.appendChild(thMonth);
                 });
             } else if (controlType === 'secondaryControls') {
                 const headerRow = tableHeader.insertRow();
