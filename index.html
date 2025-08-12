@@ -2010,16 +2010,22 @@
                         document.body.removeChild(a);
                         URL.revokeObjectURL(downloadUrl);
 
+                        // Upload the PDF blob to Firebase Storage
+                        const storagePath = `generated-pdfs/${type}/${fileName}`;
+                        const storageRef = ref(storage, storagePath);
+                        const uploadTask = await uploadBytes(storageRef, pdfBlob);
+                        const permanentDownloadUrl = await getDownloadURL(uploadTask.ref);
+
                         if(pdfExportContent) pdfExportContent.style.display = 'none';
-                        showMessage('PDF generated successfully!');
+                        showMessage('PDF generated and saved successfully!');
                         
-                        // Create a record in Firestore
+                        // Create a record in Firestore with the permanent URL
                         const pdfRecord = {
                             date: new Date().toISOString().slice(0, 10),
                             month: new Date().toLocaleString('default', { month: 'long' }),
                             controlType: title.replace(' Report', ''),
                             fileName: fileName,
-                            downloadUrl: downloadUrl // Note: this URL is temporary. For permanent storage, you need to upload the blob to Firebase Storage.
+                            downloadUrl: permanentDownloadUrl
                         };
                         await addDoc(collection(db, `artifacts/${appId}/public/data/generatedPdfs`), pdfRecord);
                     } catch (error) {
