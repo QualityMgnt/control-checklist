@@ -1483,6 +1483,11 @@
 
                     let headersToUse = type === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
                     
+                    // Create a container for the grid layout
+                    const gridContainer = document.createElement('div');
+                    gridContainer.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
+                    controlForm.appendChild(gridContainer);
+                    
                     headersToUse.forEach(header => {
                         if (header.id === 'Link') {
                             return;
@@ -1524,7 +1529,7 @@
                         }
                         
                         div.appendChild(inputElement);
-                        controlForm.appendChild(div);
+                        gridContainer.appendChild(div); // Append to the grid container
                     });
                     
                     const linkNameHeader = { id: 'Link Name', label: 'Link Name', type: 'text' };
@@ -1533,13 +1538,14 @@
                     const linkNameDiv = document.createElement('div');
                     linkNameDiv.classList.add('mb-4');
                     linkNameDiv.innerHTML = `<label for="form-${linkNameHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkNameHeader.label}</label><input type="${linkNameHeader.type}" id="form-${linkNameHeader.id}" class="input-field" value="${data[linkNameHeader.id] || ''}">`;
-                    controlForm.appendChild(linkNameDiv);
+                    gridContainer.appendChild(linkNameDiv); // Append to the grid container
 
                     const linkUrlDiv = document.createElement('div');
                     linkUrlDiv.classList.add('mb-4');
                     linkUrlDiv.innerHTML = `<label for="form-${linkUrlHeader.id}" class="block text-sm font-medium text-gray-700 mb-1">${linkUrlHeader.label}</label><input type="${linkUrlHeader.type}" id="form-${linkUrlHeader.id}" class="input-field" value="${data[linkUrlHeader.id] || ''}">`;
-                    controlForm.appendChild(linkUrlDiv);
+                    gridContainer.appendChild(linkUrlDiv); // Append to the grid container
 
+                    // Add the button container after the grid container
                     const buttonDiv = document.createElement('div');
                     buttonDiv.classList.add('flex', 'justify-end', 'mt-6');
                     
