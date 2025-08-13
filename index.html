@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -432,6 +432,7 @@
                             <option value="" disabled selected>Select Department</option>
                             <option value="Contact Centre">Contact Centre</option>
                             <option value="Customer Service">Customer Service</option>
+                            <!-- The "Admin" department option should be added here for a real admin. -->
                         </select>
                     </div>
                     <div>
@@ -490,6 +491,7 @@
                         <table id="key-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
                             <thead>
                                 <tr>
+                                    <th class="w-10"><input type="checkbox" class="form-checkbox" id="key-select-all"></th>
                                     <th rowspan="3" style="width: 15%;">KEY CONTROL DESCRIPTION</th>
                                     <th rowspan="3" style="width: 5%;">HOW</th>
                                     <th rowspan="3" style="width: 5%;">FREQ</th>
@@ -534,6 +536,7 @@
                         <button id="generate-key-pdf-button" class="btn-primary">Generate PDF</button>
                         <button id="download-key-excel-button" class="btn-primary">Download as Excel</button>
                         <button id="share-key-button" class="btn-primary">Share</button>
+                        <button id="delete-selected-key-controls" class="btn-secondary">Delete Selected</button>
                     </div>
                 </div>
 
@@ -543,6 +546,7 @@
                         <table id="secondary-controls-table" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
                             <thead>
                                 <tr>
+                                    <th class="w-10"><input type="checkbox" class="form-checkbox" id="secondary-select-all"></th>
                                     <th>Description</th>
                                     <th>How</th>
                                     <th>Who</th>
@@ -574,6 +578,7 @@
                         <button id="generate-secondary-pdf-button" class="btn-primary">Generate PDF</button>
                         <button id="download-secondary-excel-button" class="btn-primary">Download as Excel</button>
                         <button id="share-secondary-button" class="btn-primary">Share</button>
+                        <button id="delete-selected-secondary-controls" class="btn-secondary">Delete Selected</button>
                     </div>
                 </div>
                 
@@ -1148,10 +1153,10 @@
             });
 
             async function loadControls(collectionName, tableId) {
-                if (!currentUserId) return; // Removed department check for global view
+                if (!currentUserId) return;
                 const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
                 
-                const q = query(controlsColRef); // Removed where clause for global view
+                const q = query(controlsColRef);
                 
                 onSnapshot(q, (snapshot) => {
                     const controls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1167,8 +1172,6 @@
             }
 
             async function loadPdfs() {
-                // This function no longer loads PDFs from Firebase.
-                // The table will display a message instead.
                 const tableBody = document.querySelector('#pdf-database-table tbody');
                 if (!tableBody) return;
                 tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-500">PDFs are not saved to the cloud. Please use the "Generate PDF" button to download a copy.</td></tr>';
@@ -1189,14 +1192,11 @@
             }
         
             function renderPdfsTable(pdfs) {
-                // This function is now a placeholder and will not render anything
                 const tableBody = document.querySelector('#pdf-database-table tbody');
                 if (!tableBody) return;
                 tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-500">PDFs are not saved to the cloud. Please use the "Generate PDF" button to download a copy.</td></tr>';
             }
         
-            // Removed the `deletePdf` and `sharePdf` functions as they are no longer needed.
-
             function getStatusColorClass(status) {
                 if (status === 'Y' || status === 'On Track' || status === 'Effective') {
                     return 'status-green';
@@ -1260,6 +1260,16 @@
                 today.setHours(0, 0, 0, 0);
 
                 const headersToUse = collectionName === 'keyControls' ? keyControlHeaders : secondaryControlHeaders;
+                const selectAllCheckbox = document.querySelector(`#${tableId.split('-')[0]}-select-all`);
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.onclick = () => {
+                        const isChecked = selectAllCheckbox.checked;
+                        document.querySelectorAll(`#${tableId} tbody input[type="checkbox"]`).forEach(checkbox => {
+                            checkbox.checked = isChecked;
+                        });
+                    };
+                }
 
                 controls.forEach(control => {
                     const row = tableBody.insertRow();
@@ -1284,6 +1294,12 @@
                         }
                     }
                     
+                    const checkboxCell = row.insertCell();
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.classList.add('form-checkbox');
+                    checkboxCell.appendChild(checkbox);
+
                     headersToUse.forEach(header => {
                         const cell = row.insertCell();
                         const value = control[header.id] || '';
@@ -1424,6 +1440,44 @@
                         dueInCell.classList.add(overdueClass);
                     }
                 });
+            }
+
+            document.getElementById('delete-selected-key-controls').addEventListener('click', () => deleteSelectedControls('key-controls-table', 'keyControls'));
+            document.getElementById('delete-selected-secondary-controls').addEventListener('click', () => deleteSelectedControls('secondary-controls-table', 'secondaryControls'));
+
+            async function deleteSelectedControls(tableId, collectionName) {
+                const confirmed = window.confirm('Are you sure you want to delete the selected controls?');
+                if (!confirmed) return;
+
+                const selectedIds = Array.from(document.querySelectorAll(`#${tableId} tbody input[type="checkbox"]:checked`))
+                    .map(checkbox => checkbox.closest('tr').dataset.id);
+
+                if (selectedIds.length === 0) {
+                    showMessage('Please select at least one control to delete.');
+                    return;
+                }
+
+                showLoadingSpinner();
+                const controlsColRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                const batch = writeBatch(db);
+                let deleteCount = 0;
+
+                selectedIds.forEach(id => {
+                    if (id) {
+                        batch.delete(doc(controlsColRef, id));
+                        deleteCount++;
+                    }
+                });
+                
+                try {
+                    await retryOperation(() => batch.commit());
+                    showMessage(`Successfully deleted ${deleteCount} controls.`);
+                } catch (error) {
+                    console.error("Error deleting selected controls:", error);
+                    showMessage(`Failed to delete selected controls: ${error.message}`);
+                } finally {
+                    hideLoadingSpinner();
+                }
             }
 
 
@@ -2007,24 +2061,9 @@
                     document.body.removeChild(a);
                     URL.revokeObjectURL(downloadUrl);
 
-                    // These lines are removed to prevent saving to Firebase Storage
-                    // const storagePath = `generated-pdfs/${type}/${fileName}`;
-                    // const storageRef = ref(storage, storagePath);
-                    // const uploadTask = await uploadBytes(storageRef, pdfBlob);
-                    // const permanentDownloadUrl = await getDownloadURL(uploadTask.ref);
-
                     if(pdfExportContent) pdfExportContent.style.display = 'none';
                     showMessage('PDF generated and downloaded successfully!');
                     
-                    // These lines are removed to prevent saving a record to Firestore
-                    // const pdfRecord = {
-                    //     date: new Date().toISOString().slice(0, 10),
-                    //     month: new Date().toLocaleString('default', { month: 'long' }),
-                    //     controlType: title.replace(' Report', ''),
-                    //     fileName: fileName,
-                    //     downloadUrl: permanentDownloadUrl
-                    // };
-                    // await addDoc(collection(db, `artifacts/${appId}/public/data/generatedPdfs`), pdfRecord);
                 } catch (error) {
                     console.error("Error generating PDF:", error);
                     showMessage(`Failed to generate PDF: ${error.message}`);
@@ -2045,7 +2084,12 @@
                 if (controlType === 'keyControls' || controlType === 'all') {
                     const topRow = tableHeader.insertRow();
                     const middleRow = tableHeader.insertRow();
-                    const bottomRow = tableHeader.insertRow();
+                    const bottomRow = tableHeader.createTFoot();
+
+                    const multiSelectHeader = document.createElement('th');
+                    multiSelectHeader.innerHTML = '<input type="checkbox" class="form-checkbox">';
+                    multiSelectHeader.rowSpan = 3;
+                    topRow.appendChild(multiSelectHeader);
 
                     const mainHeaders = [
                         'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
@@ -2087,6 +2131,10 @@
                     });
                 } else if (controlType === 'secondaryControls') {
                     const headerRow = tableHeader.insertRow();
+                    const multiSelectHeader = document.createElement('th');
+                    multiSelectHeader.innerHTML = '<input type="checkbox" class="form-checkbox">';
+                    headerRow.appendChild(multiSelectHeader);
+
                     const headersToUse = secondaryControlHeaders.map(h => h.label);
                     headersToUse.forEach(header => {
                             const th = document.createElement('th');
@@ -2120,6 +2168,12 @@
                         }
                     }
                     
+                    const checkboxCell = row.insertCell();
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.classList.add('form-checkbox');
+                    checkboxCell.appendChild(checkbox);
+
                     if (controlType === 'keyControls' || controlType === 'all') {
                         const cellsToRender = [
                             'KEY CONTROL DESCRIPTION', 'HOW', 'FREQ', 'BY WHEN', 'EVIDENCE OF CONTROL'
@@ -2218,4 +2272,3 @@
         </script>
     </body>
     </html>
-    
