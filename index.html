@@ -957,8 +957,7 @@
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                storage = getStorage(app);
-
+                
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         currentUserId = user.uid;
@@ -994,8 +993,7 @@
                         
                         await loadControls('keyControls', 'key-controls-table');
                         await loadControls('secondaryControls', 'secondary-controls-table');
-                        // No need to load PDFs from Firebase Storage anymore
-                        // await loadPdfs();
+                        await loadPdfs();
                         await loadVerifiedControls();
                         await loadUsers();
                         loadLogo();
@@ -1169,7 +1167,8 @@
             }
 
             async function loadPdfs() {
-                // Modified: This function no longer loads PDFs from Firestore
+                // This function no longer loads PDFs from Firebase.
+                // The table will display a message instead.
                 const tableBody = document.querySelector('#pdf-database-table tbody');
                 if (!tableBody) return;
                 tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-500">PDFs are not saved to the cloud. Please use the "Generate PDF" button to download a copy.</td></tr>';
@@ -1190,7 +1189,7 @@
             }
         
             function renderPdfsTable(pdfs) {
-                // Modified: This function is now a placeholder and will not render anything
+                // This function is now a placeholder and will not render anything
                 const tableBody = document.querySelector('#pdf-database-table tbody');
                 if (!tableBody) return;
                 tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-gray-500">PDFs are not saved to the cloud. Please use the "Generate PDF" button to download a copy.</td></tr>';
