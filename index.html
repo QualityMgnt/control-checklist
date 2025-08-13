@@ -597,7 +597,7 @@
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow-md">
                         <h3 class="text-xl font-medium text-gray-700 mb-4">Logo Preview</h3>
-                        <img id="logo-preview" class="max-h-40 w-auto rounded-lg shadow-md hidden" src="" alt="Logo Preview">
+                        <img id="logo-preview" class="max-h-40 w-auto rounded-lg shadow-md hidden" src="" alt="Company Logo">
                     </div>
                 </div>
 
@@ -1272,14 +1272,16 @@
 
                     if (byWhenDateStr) {
                         const byWhenDate = new Date(byWhenDateStr);
-                        byWhenDate.setHours(0, 0, 0, 0);
-                        const diffTime = byWhenDate.getTime() - today.getTime();
-                        dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        if (byWhenDate < today) {
-                            overdueClass = 'overdue-text';
-                            if(collectionName === 'keyControls' && control['Tracking Status'] !== 'Overdue') {
-                                    updateStatusOnDateChange(control, collectionName);
-                                }
+                        if (!isNaN(byWhenDate.getTime())) { 
+                            byWhenDate.setHours(0, 0, 0, 0);
+                            const diffTime = byWhenDate.getTime() - today.getTime();
+                            dueInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            if (byWhenDate < today) {
+                                overdueClass = 'overdue-text';
+                                if(collectionName === 'keyControls' && control['Tracking Status'] !== 'Overdue') {
+                                        updateStatusOnDateChange(control, collectionName);
+                                    }
+                            }
                         }
                     }
                     
@@ -1707,26 +1709,19 @@
                 }
             });
             
+            // The share and download buttons for PDFs will now be direct links, as they are not stored.
             document.getElementById('share-key-button').addEventListener('click', () => {
-                const latestPdf = controlData.generatedPdfs
-                    .filter(p => p.controlType === 'Key Controls')
-                    .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-                if(latestPdf) {
-                    sharePdf(latestPdf.id);
-                } else {
-                    showMessage('No recent Key Controls PDF found to share.');
-                }
+                showMessage('Sharing functionality is for documents saved to the cloud. Please generate and download the PDF manually to share it.');
             });
             
             document.getElementById('share-secondary-button').addEventListener('click', () => {
-                const latestPdf = controlData.generatedPdfs
-                    .filter(p => p.controlType === 'Secondary Controls')
-                    .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-                if(latestPdf) {
-                    sharePdf(latestPdf.id);
-                } else {
-                    showMessage('No recent Secondary Controls PDF found to share.');
-                }
+                showMessage('Sharing functionality is for documents saved to the cloud. Please generate and download the PDF manually to share it.');
+            });
+
+            // The verified control upload functionality is no longer needed.
+            document.getElementById('verified-control-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                showMessage('Document upload is disabled. Please use the Generate PDF button to create a local copy of your report.');
             });
             
             function loadLogo() {
@@ -1808,7 +1803,7 @@
                 if (existingChart) {
                     existingChart.destroy();
                 }
-            
+                
                 return new Chart(ctx, {
                     type: 'doughnut',
                     data: {
@@ -1930,42 +1925,7 @@
             
             async function handleVerifiedDocumentUpload(e) {
                 e.preventDefault();
-                showLoadingSpinner();
-                
-                const controlType = document.getElementById('verified-control-type').value;
-                const month = document.getElementById('verified-control-month').value;
-                const fileInput = document.getElementById('verified-control-file');
-                const file = fileInput.files[0];
-                
-                if (!file || !controlType || !month) {
-                    showMessage('Please fill all fields and select a file.');
-                    hideLoadingSpinner();
-                    return;
-                }
-                
-                try {
-                    const storageRef = ref(storage, `verified-controls/${controlType}/${month}/${file.name}`);
-                    const snapshot = await uploadBytes(storageRef, file);
-                    const downloadUrl = await getDownloadURL(snapshot.ref);
-                    
-                    const docData = {
-                        controlType: controlType,
-                        month: month,
-                        fileName: file.name,
-                        downloadUrl: downloadUrl,
-                        date: new Date().toISOString().slice(0, 10)
-                    };
-                    
-                    await addDoc(collection(db, `artifacts/${appId}/public/data/verifiedControls`), docData);
-                    
-                    showMessage('Document uploaded successfully!');
-                    document.getElementById('verified-control-form').reset();
-                } catch (error) {
-                    console.error('Error uploading document:', error);
-                    showMessage(`Failed to upload document: ${error.message}`);
-                } finally {
-                    hideLoadingSpinner();
-                }
+                showMessage('Document upload is disabled. Please use the Generate PDF button to create a local copy of your report.');
             }
 
 
